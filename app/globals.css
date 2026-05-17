@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-background text-slate-100 antialiased;
+}
+
+.grid-overlay {
+  background-image: linear-gradient(to right, rgb(30 41 59 / .35) 1px, transparent 1px), linear-gradient(to bottom, rgb(30 41 59 / .35) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
