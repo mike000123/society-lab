@@ -9,6 +9,10 @@ type NavItem = {
 };
 
 const nav: NavItem[] = [
+import { Globe2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const nav = [
   { href: "/learn", label: "Learn" },
   { href: "/simulate", label: "Simulate" },
   { href: "/discuss", label: "Discuss" },
@@ -30,6 +34,7 @@ export function SiteHeader() {
               <Link href={item.href}>{item.label}</Link>
             </Button>
           ))}
+          {nav.map((item) => <Button key={item.href} variant="ghost" asChild><Link href={item.href}>{item.label}</Link></Button>)}
         </nav>
       </div>
     </header>
