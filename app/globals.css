@@ -1,0 +1,156 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DARK THEME (default) */
+:root,
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-background text-slate-100 antialiased;
+}
+
+.grid-overlay {
+  background-image:
+    linear-gradient(to right,  rgb(30 41 59 / .35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(30 41 59 / .35) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+/* LIGHT THEME — Harvard Crimson / cream / silver */
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  @apply antialiased;
+  background-color: #f5f0ea;
+  color: #1a1614;
+}
+
+html.light .grid-overlay {
+  background-image:
+    linear-gradient(to right,  rgb(165 28 48 / .06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(165 28 48 / .06) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+/* bg-background / bg-panel overrides */
+html.light .bg-background    { background-color: #f5f0ea !important; }
+html.light .bg-background\/90 { background-color: rgb(245 240 234 / 0.90) !important; }
+html.light .bg-background\/92 { background-color: rgb(245 240 234 / 0.92) !important; }
+html.light .bg-background\/95 { background-color: rgb(245 240 234 / 0.95) !important; }
+html.light .bg-panel    { background-color: #ffffff !important; }
+html.light .bg-panel\/80 { background-color: rgb(255 255 255 / 0.80) !important; }
+html.light .bg-panel\/85 { background-color: rgb(255 255 255 / 0.85) !important; }
+html.light .bg-panel\/90 { background-color: rgb(255 255 255 / 0.90) !important; }
+
+/* text-primary (cyan -> crimson) */
+html.light .text-primary   { color: #a51c30 !important; }
+html.light .bg-primary\/10 { background-color: rgb(165 28 48 / 0.08) !important; }
+
+/* Text — invert the slate scale */
+html.light .text-slate-50  { color: #0f0d0c !important; }
+html.light .text-slate-100 { color: #1a1614 !important; }
+html.light .text-slate-200 { color: #2d2926 !important; }
+html.light .text-slate-300 { color: #4a4540 !important; }
+html.light .text-slate-400 { color: #6b6560 !important; }
+html.light .text-slate-500 { color: #908982 !important; }
+html.light .text-slate-600 { color: #b8b0a6 !important; }
+html.light .text-slate-700 { color: #ccc4ba !important; }
+html.light .text-slate-900 { color: #f5f0ea !important; }
+html.light .text-slate-950 { color: #f8f4ef !important; }
+
+/* Backgrounds — slate-950 = white, scale up to silver */
+html.light .bg-slate-950     { background-color: #ffffff !important; }
+html.light .bg-slate-950\/40 { background-color: rgb(255 255 255 / 0.40) !important; }
+html.light .bg-slate-950\/50 { background-color: rgb(255 255 255 / 0.50) !important; }
+html.light .bg-slate-950\/55 { background-color: rgb(255 255 255 / 0.55) !important; }
+html.light .bg-slate-950\/60 { background-color: rgb(255 255 255 / 0.60) !important; }
+html.light .bg-slate-950\/65 { background-color: rgb(255 255 255 / 0.65) !important; }
+html.light .bg-slate-950\/70 { background-color: rgb(255 255 255 / 0.70) !important; }
+html.light .bg-slate-950\/75 { background-color: rgb(255 255 255 / 0.75) !important; }
+html.light .bg-slate-950\/80 { background-color: rgb(255 255 255 / 0.80) !important; }
+html.light .bg-slate-950\/85 { background-color: rgb(255 255 255 / 0.85) !important; }
+html.light .bg-slate-950\/90 { background-color: rgb(255 255 255 / 0.90) !important; }
+html.light .bg-slate-950\/95 { background-color: rgb(255 255 255 / 0.95) !important; }
+html.light .bg-slate-900     { background-color: #f2ece4 !important; }
+html.light .bg-slate-900\/40 { background-color: rgb(242 236 228 / 0.40) !important; }
+html.light .bg-slate-900\/50 { background-color: rgb(242 236 228 / 0.50) !important; }
+html.light .bg-slate-900\/60 { background-color: rgb(242 236 228 / 0.60) !important; }
+html.light .bg-slate-900\/70 { background-color: rgb(242 236 228 / 0.70) !important; }
+html.light .bg-slate-900\/80 { background-color: rgb(242 236 228 / 0.80) !important; }
+html.light .bg-slate-900\/95 { background-color: rgb(242 236 228 / 0.95) !important; }
+html.light .bg-slate-800     { background-color: #e8e2da !important; }
+html.light .bg-slate-800\/30 { background-color: rgb(232 226 218 / 0.30) !important; }
+html.light .bg-slate-800\/60 { background-color: rgb(232 226 218 / 0.60) !important; }
+html.light .bg-slate-800\/80 { background-color: rgb(232 226 218 / 0.80) !important; }
+html.light .bg-slate-700     { background-color: #d8d0c5 !important; }
+html.light .bg-slate-500     { background-color: #a89f96 !important; }
+
+/* Borders */
+html.light .border-slate-800     { border-color: #ddd8cf !important; }
+html.light .border-slate-800\/80 { border-color: rgb(221 216 207 / 0.80) !important; }
+html.light .border-slate-700     { border-color: #cec7bc !important; }
+html.light .border-slate-600     { border-color: #bbb4a8 !important; }
+
+/* Cyan -> Crimson brand overrides */
+html.light .bg-cyan-400\/10  { background-color: rgb(165 28 48 / 0.08) !important; }
+html.light .bg-cyan-400\/12  { background-color: rgb(165 28 48 / 0.10) !important; }
+html.light .bg-cyan-400\/15  { background-color: rgb(165 28 48 / 0.12) !important; }
+html.light .bg-cyan-400\/20  { background-color: rgb(165 28 48 / 0.16) !important; }
+html.light .text-cyan-400    { color: #a51c30 !important; }
+html.light .text-cyan-300    { color: #c41e3a !important; }
+html.light .text-cyan-200    { color: #8b1a2b !important; }
+html.light .text-cyan-100    { color: #fde8ea !important; }
+html.light .border-cyan-400\/20 { border-color: rgb(165 28 48 / 0.20) !important; }
+html.light .border-cyan-400\/30 { border-color: rgb(165 28 48 / 0.28) !important; }
+html.light .border-cyan-400\/40 { border-color: rgb(165 28 48 / 0.36) !important; }
+html.light .border-cyan-300\/20 { border-color: rgb(165 28 48 / 0.18) !important; }
+html.light .border-cyan-300\/25 { border-color: rgb(165 28 48 / 0.22) !important; }
+html.light .from-cyan-400\/12 { --tw-gradient-from: rgb(165 28 48 / 0.10) var(--tw-gradient-from-position) !important; }
+html.light .from-cyan-400\/14 { --tw-gradient-from: rgb(165 28 48 / 0.12) var(--tw-gradient-from-position) !important; }
+html.light .via-cyan-400\/4   { --tw-gradient-via:  rgb(165 28 48 / 0.03) var(--tw-gradient-via-position)  !important; }
+html.light .via-cyan-400\/5   { --tw-gradient-via:  rgb(165 28 48 / 0.04) var(--tw-gradient-via-position)  !important; }
+
+/* Glossy card effects */
+html.light .rounded-\[1\.75rem\],
+html.light .rounded-\[2rem\],
+html.light .rounded-\[1\.5rem\] {
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.9) inset,
+    0 2px 6px  rgb(0 0 0 / 0.05),
+    0 8px 28px rgb(0 0 0 / 0.07);
+}
+
+/* Sticky header: cream glass + crimson top stripe */
+html.light header.sticky {
+  background-color: rgb(245 240 234 / 0.94) !important;
+  border-color: #ddd8cf !important;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.7) inset, 0 1px 12px rgb(0 0 0 / 0.06);
+  position: relative;
+}
+html.light header.sticky::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8b1a2b 0%, #a51c30 40%, #ce2b3f 60%, #a51c30 100%);
+  border-radius: 0 0 2px 2px;
+}
+
+/* Recharts in light mode */
+html.light .recharts-cartesian-grid line { stroke: #e5dfd6 !important; }
+html.light .recharts-text { fill: #908982 !important; }
+
+/* Scrollbar */
+html.light ::-webkit-scrollbar        { width: 6px; height: 6px; }
+html.light ::-webkit-scrollbar-track  { background: #ede8e0; }
+html.light ::-webkit-scrollbar-thumb  { background: #c8bfb4; border-radius: 3px; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #a51c30; }
+
+/* Selection + focus */
+html.light ::selection   { background: rgb(165 28 48 / 0.15); color: #1a1614; }
+html.light *:focus-visible { outline-color: #a51c30; }
