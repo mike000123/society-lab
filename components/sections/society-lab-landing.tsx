@@ -364,7 +364,7 @@ export function SocietyLabLanding() {
                 A civic intelligence lab
               </p>
               <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
-                Explore the bugs in today's economic, political, urban, and informational systems — then test alternatives through simulations, dialogue, and civic design tools.
+                Explore the bugs in today&apos;s economic, political, urban, and informational systems — then test alternatives through simulations, dialogue, and civic design tools.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
