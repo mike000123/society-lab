@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Bar, BarChart, Line, LineChart,
   PolarAngleAxis, PolarGrid, PolarRadiusAxis,
@@ -341,18 +342,21 @@ export function SocietyLabLanding() {
         <section className="space-y-5 pb-4">
           <div className="w-full rounded-[2rem] overflow-hidden border border-slate-200/80 dark:border-slate-700 shadow-[0_20px_60px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
             {/* ↓↓ HERO IMAGE — change src to swap ↓↓ */}
-            <img
+            <Image
               src="/hero.png"
               alt="Society Lab — designing better systems"
+              width={1600}
+              height={900}
+              priority
               className="w-full h-auto block"
               onError={e => {
                 const img = e.currentTarget as HTMLImageElement;
                 img.style.display = "none";
-                const fb = img.nextElementSibling as HTMLElement | null;
+                const fb = img.parentElement?.querySelector("[data-hero-fallback]") as HTMLElement | null;
                 if (fb) fb.style.display = "block";
               }}
             />
-            <div style={{ display: "none" }}>
+            <div data-hero-fallback style={{ display: "none" }}>
               <HeroFallback />
             </div>
           </div>
