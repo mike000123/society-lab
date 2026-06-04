@@ -51,7 +51,9 @@ export function useVotes() {
     return votes[proposalId] ?? 0;
   }, [votes]);
 
-  return { castVote, getVote, getLocalDelta };
+  const voteCount = Object.keys(votes).length;
+
+  return { castVote, getVote, getLocalDelta, voteCount, votes };
 }
 
 // ─── User submissions (localStorage) ─────────────────────────────────────────
