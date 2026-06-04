@@ -1,106 +1,118 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState, type ElementType } from "react";
 import Link from "next/link";
 import {
-  ArrowRight, PlusCircle, ThumbsUp, Landmark,
-  Vote, ShieldCheck, Cpu, Eye, Banknote, ChevronDown, ChevronUp,
+  ArrowRight,
+  Banknote,
+  ChevronDown,
+  ChevronUp,
+  Cpu,
+  Eye,
+  Landmark,
+  PlusCircle,
+  ShieldCheck,
+  ThumbsUp,
+  Vote,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import { IllustratedTabHero } from "@/components/atlas/IllustratedTabHero";
+import { SoftPanel } from "@/components/atlas/SoftPanel";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   SEEDED_PROPOSALS,
-  CATEGORY_META,
   getAllProposals,
   type ProposalCategory,
 } from "@/lib/governance/proposals";
-import { useVotes, useSubmissions } from "@/lib/governance/votes";
+import { useSubmissions, useVotes } from "@/lib/governance/votes";
 
-type SortKey = "votes" | "newest";
+type SortKey = "newest" | "votes";
 
 const CATEGORIES: { key: ProposalCategory | "all"; label: string }[] = [
-  { key: "all",         label: "All" },
-  { key: "banking",     label: "Banking" },
-  { key: "democracy",   label: "Democracy" },
-  { key: "technology",  label: "Technology" },
-  { key: "economic",    label: "Economic" },
-  { key: "political",   label: "Political" },
-  { key: "social",      label: "Social" },
+  { key: "all", label: "All themes" },
+  { key: "banking", label: "Banking" },
+  { key: "democracy", label: "Democracy" },
+  { key: "technology", label: "Technology" },
+  { key: "economic", label: "Economy" },
+  { key: "political", label: "Politics" },
+  { key: "social", label: "Society" },
   { key: "information", label: "Information" },
 ];
+
+const THEME_META: Record<
+  ProposalCategory,
+  {
+    description: string;
+    icon: ElementType;
+    pill: string;
+  }
+> = {
+  banking: {
+    description: "Money creation, public banking, and financial reform.",
+    icon: Banknote,
+    pill: "border-teal-200 bg-teal-50 text-teal-700",
+  },
+  democracy: {
+    description: "Participation, assemblies, electoral rules, and representation.",
+    icon: Vote,
+    pill: "border-violet-200 bg-violet-50 text-violet-700",
+  },
+  economic: {
+    description: "Tax, wealth, redistribution, and real-economy priorities.",
+    icon: Landmark,
+    pill: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  },
+  information: {
+    description: "Media, transparency, data rights, and public information.",
+    icon: Eye,
+    pill: "border-cyan-200 bg-cyan-50 text-cyan-700",
+  },
+  political: {
+    description: "State design, institutions, and public accountability.",
+    icon: ShieldCheck,
+    pill: "border-amber-200 bg-amber-50 text-amber-700",
+  },
+  social: {
+    description: "Public services, care systems, and social guarantees.",
+    icon: ShieldCheck,
+    pill: "border-rose-200 bg-rose-50 text-rose-700",
+  },
+  technology: {
+    description: "Digital identity, open infrastructure, and civic tools.",
+    icon: Cpu,
+    pill: "border-sky-200 bg-sky-50 text-sky-700",
+  },
+};
 
 const PILLARS = [
   {
     icon: Vote,
-    accent: "violet",
-    title: "Direct & Liquid Democracy",
-    tagline: "Citizens vote on policy, not just politicians",
-    points: [
-      "Liquid democracy: delegate your vote by topic, revoke any time",
-      "Citizens' assemblies for structural decisions (sortition)",
-      "Participatory budgeting — 10% of public spending decided directly",
-      "Ranked-choice and proportional representation as baseline",
-    ],
+    title: "Direct and liquid democracy",
+    summary: "Citizens vote on more than personalities, and delegation stays flexible by topic.",
   },
   {
     icon: ShieldCheck,
-    accent: "emerald",
-    title: "Structural Anti-Corruption",
-    tagline: "Transparency as architecture, not promise",
-    points: [
-      "All public spending published real-time, machine-readable",
-      "Beneficial ownership registries — no anonymous shell companies",
-      "5-year revolving-door ban with criminal penalties",
-      "AI conflict-of-interest detection across all parliamentary votes",
-    ],
+    title: "Structural anti-corruption",
+    summary: "Transparency is built into the system architecture rather than left to good intentions.",
   },
   {
     icon: Cpu,
-    accent: "cyan",
-    title: "Technology-Enabled Governance",
-    tagline: "Open, auditable, citizen-owned infrastructure",
-    points: [
-      "Universal digital identity (Estonia model) for all services",
-      "All government software open source and publicly auditable",
-      "Blockchain procurement audit trails — immutable public records",
-      "Constitutionally guaranteed digital rights",
-    ],
+    title: "Technology-enabled governance",
+    summary: "Civic infrastructure should be open, auditable, and designed as public capacity.",
   },
   {
     icon: Eye,
-    accent: "amber",
-    title: "Radical Transparency",
-    tagline: "Opacity is the precondition for every abuse",
-    points: [
-      "Annual public asset declarations — all elected and senior officials",
-      "Real-time lobbying registry with 48-hour reporting",
-      "Algorithmic explanation rights for every automated decision",
-      "Open-source voting infrastructure with public audit",
-    ],
+    title: "Radical transparency",
+    summary: "Opacity is the precondition for capture, so disclosure must become normal and timely.",
   },
   {
     icon: Banknote,
-    accent: "teal",
-    title: "A Banking System for People, Not Profit",
-    tagline: "Money as a public utility — not a private extraction machine",
-    points: [
-      "Sovereign money: debt-free creation by a democratic authority",
-      "Strict retail/investment separation — no more casino banking on deposits",
-      "Public banks with a social mandate; cooperative banking floor of 30%",
-      "Interest-free public credit for housing, education, and green transition",
-      "Real-time AML monitoring with executive criminal liability",
-      "Universal basic banking — free accounts for every resident",
-    ],
+    title: "Banking for public purpose",
+    summary: "The monetary system should support housing, care, resilience, and productive investment.",
   },
 ];
-
-const ACCENT_PILLAR: Record<string, { border: string; bg: string; icon: string; glow: string }> = {
-  violet:  { border: "border-violet-400/30",  bg: "bg-violet-400/8",  icon: "text-violet-300 border-violet-300/20 bg-violet-400/10",  glow: "from-violet-400/12 via-violet-400/4 to-transparent" },
-  emerald: { border: "border-emerald-400/30", bg: "bg-emerald-400/8", icon: "text-emerald-300 border-emerald-300/20 bg-emerald-400/10", glow: "from-emerald-400/12 via-emerald-400/4 to-transparent" },
-  cyan:    { border: "border-cyan-400/30",    bg: "bg-cyan-400/8",    icon: "text-cyan-300 border-cyan-300/20 bg-cyan-400/10",     glow: "from-cyan-400/12 via-cyan-400/4 to-transparent" },
-  amber:   { border: "border-amber-400/30",   bg: "bg-amber-400/8",   icon: "text-amber-300 border-amber-300/20 bg-amber-400/10",  glow: "from-amber-400/12 via-amber-400/4 to-transparent" },
-  teal:    { border: "border-teal-400/30",    bg: "bg-teal-400/8",    icon: "text-teal-300 border-teal-300/20 bg-teal-400/10",     glow: "from-teal-400/12 via-teal-400/4 to-transparent" },
-};
 
 export default function GovernancePage() {
   const { getLocalDelta } = useVotes();
@@ -110,234 +122,266 @@ export default function GovernancePage() {
   const [sort, setSort] = useState<SortKey>("votes");
   const [blueprintOpen, setBlueprintOpen] = useState(false);
 
-  const allProposals = getAllProposals(submissions);
+  const allProposals = useMemo(() => getAllProposals(submissions), [submissions]);
 
-  const filtered = allProposals
-    .filter((p) => activeCategory === "all" || p.category === activeCategory)
-    .map((p) => ({
-      ...p,
-      netScore: p.seedUpvotes - p.seedDownvotes + getLocalDelta(p.id),
-    }))
-    .sort((a, b) =>
-      sort === "votes"
-        ? b.netScore - a.netScore
-        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+  const filtered = useMemo(() => {
+    return allProposals
+      .filter((proposal) => activeCategory === "all" || proposal.category === activeCategory)
+      .map((proposal) => ({
+        ...proposal,
+        netScore: proposal.seedUpvotes - proposal.seedDownvotes + getLocalDelta(proposal.id),
+      }))
+      .sort((a, b) =>
+        sort === "votes"
+          ? b.netScore - a.netScore
+          : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+  }, [activeCategory, allProposals, getLocalDelta, sort]);
 
-  const totalProposals = allProposals.length;
-  const totalVotes = SEEDED_PROPOSALS.reduce((s, p) => s + p.seedUpvotes + p.seedDownvotes, 0);
-  const democracyCount = allProposals.filter((p) => p.category === "democracy").length;
-  const techCount = allProposals.filter((p) => p.category === "technology").length;
-  const bankingCount = allProposals.filter((p) => p.category === "banking").length;
+  const totalVotes = SEEDED_PROPOSALS.reduce((sum, proposal) => sum + proposal.seedUpvotes + proposal.seedDownvotes, 0);
+  const contributorCount = 3200 + submissions.length;
+  const activeDebates = filtered.length;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-10">
-
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-violet-400/14 via-violet-400/4 to-transparent" />
-        <div className="relative grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-4">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-300/25 bg-violet-400/10 px-3 py-1 text-xs font-medium text-violet-100">
-              <Landmark className="h-3.5 w-3.5" /> Governance lab
-            </span>
-            <h1 className="text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">
-              Designing the political and financial system we don&apos;t have yet
-            </h1>
-            <p className="max-w-2xl text-sm leading-6 text-slate-300">
-              Representative democracy was designed for a pre-digital world. Our banking system was designed
-              to generate private debt, not public welfare. Technology now makes direct participation,
-              radical transparency, and structural anti-corruption not just possible — but practical.
-              These proposals are concrete, evidence-based steps toward that system.
-            </p>
-            <Button asChild className="rounded-2xl gap-2 w-fit">
+    <AtlasPage className="space-y-8 pb-14">
+      <IllustratedTabHero
+        actions={
+          <>
+            <Button asChild className="rounded-full px-5">
               <Link href="/governance/submit">
-                <PlusCircle className="h-4 w-4" /> Submit a proposal
+                <PlusCircle className="h-4 w-4" />
+                Submit a proposal
               </Link>
             </Button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 content-start">
-            <div className="rounded-[1.5rem] border border-slate-800 bg-panel/85 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Proposals</p>
-              <p className="mt-2 text-3xl font-black text-slate-50">{totalProposals}</p>
+            <a
+              className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
+              href="#governance-blueprint"
+            >
+              View the blueprint
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </>
+        }
+        description="Design better systems, propose concrete reforms, and evaluate them together. Governance Lab is where the atlas stops only diagnosing failure and starts testing public alternatives."
+        eyebrow="Governance Lab"
+        imageAlt="A civic landscape with a public building, open space, and people walking toward institutions."
+        imageSrc="/atlas/governance-hero.png"
+        title="Propose, evaluate, and refine better systems together"
+      >
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            { label: "Proposals", value: String(allProposals.length) },
+            { label: "Total votes", value: `${(totalVotes / 1000).toFixed(1)}K` },
+            { label: "Contributors", value: `${(contributorCount / 1000).toFixed(1)}K` },
+            { label: "Active debates", value: String(activeDebates) },
+          ].map((stat) => (
+            <div
+              className="rounded-[1.4rem] border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4 shadow-[0_14px_32px_rgba(28,36,48,0.04)]"
+              key={stat.label}
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{stat.label}</p>
+              <p className="mt-2 atlas-display text-3xl text-slate-900">{stat.value}</p>
             </div>
-            <div className="rounded-[1.5rem] border border-slate-800 bg-panel/85 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Total votes</p>
-              <p className="mt-2 text-3xl font-black text-slate-50">{totalVotes.toLocaleString()}</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-teal-400/20 bg-teal-400/8 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-teal-400/70">Banking reform</p>
-              <p className="mt-2 text-3xl font-black text-teal-200">{bankingCount}</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-violet-400/20 bg-violet-400/8 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-violet-400/70">Democracy</p>
-              <p className="mt-2 text-3xl font-black text-violet-200">{democracyCount}</p>
-            </div>
-          </div>
+          ))}
         </div>
-      </section>
+      </IllustratedTabHero>
 
-      {/* ── Blueprint ─────────────────────────────────────────────────────── */}
-      <section className="rounded-[2rem] border border-slate-800 bg-slate-950/70 overflow-hidden">
-        <button
-          className="w-full flex items-center justify-between gap-3 px-6 py-5 text-left hover:bg-slate-900/40 transition-colors"
-          onClick={() => setBlueprintOpen((v) => !v)}
-        >
-          <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Blueprint</p>
-            <h2 className="mt-0.5 text-xl font-black text-slate-50 sm:text-2xl">
-              Five pillars of a system redesigned for people
-            </h2>
-          </div>
-          {blueprintOpen
-            ? <ChevronUp className="h-5 w-5 text-slate-500 flex-shrink-0" />
-            : <ChevronDown className="h-5 w-5 text-slate-500 flex-shrink-0" />
-          }
-        </button>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_20rem]">
+        <div className="space-y-6">
+          <SoftPanel>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="atlas-kicker">Explore by theme</p>
+                <h2 className="atlas-display mt-2 text-3xl text-slate-900">Choose a reform region</h2>
+              </div>
+              <Link className="text-sm font-semibold text-slate-500 transition hover:text-slate-900" href="/learn?view=tracks">
+                Learn routes
+              </Link>
+            </div>
 
-        {blueprintOpen && (
-          <div className="border-t border-slate-800 px-6 pb-6 pt-5">
-            <p className="max-w-3xl text-sm leading-6 text-slate-400 mb-6">
-              Every proposal maps to one of five design principles. Together they describe a system that is
-              structurally resistant to corruption, genuinely participatory, and built around welfare rather than debt and extraction.
-            </p>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {PILLARS.map((pillar) => {
-                const a = ACCENT_PILLAR[pillar.accent];
-                const Icon = pillar.icon;
-                return (
-                  <article
-                    key={pillar.title}
-                    className={cn(
-                      "relative overflow-hidden rounded-[1.75rem] border p-5",
-                      a.border, a.bg
-                    )}
-                  >
-                    <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b", a.glow)} />
-                    <div className="relative">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={cn("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border", a.icon)}>
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-50">{pillar.title}</p>
-                          <p className="text-xs text-slate-400">{pillar.tagline}</p>
-                        </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {(CATEGORIES.filter((category) => category.key !== "all") as Array<{ key: ProposalCategory; label: string }>).map(
+                ({ key, label }) => {
+                  const meta = THEME_META[key];
+                  const Icon = meta.icon;
+                  const active = activeCategory === key;
+
+                  return (
+                    <button
+                      className={cn(
+                        "rounded-[1.35rem] border px-4 py-4 text-left transition",
+                        active
+                          ? "border-[rgba(59,130,246,0.22)] bg-[rgba(59,130,246,0.08)]"
+                          : "border-[rgba(28,36,48,0.08)] bg-white/86 hover:border-[rgba(28,36,48,0.18)]",
+                      )}
+                      key={key}
+                      onClick={() => setActiveCategory(key)}
+                      type="button"
+                    >
+                      <div className={cn("inline-flex rounded-full border p-2", meta.pill)}>
+                        <Icon className="h-4 w-4" />
                       </div>
-                      <ul className="space-y-1.5">
-                        {pillar.points.map((pt) => (
-                          <li key={pt} className="flex items-start gap-2 text-xs leading-5 text-slate-300">
-                            <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-slate-500" />
-                            {pt}
-                          </li>
-                        ))}
-                      </ul>
+                      <p className="mt-3 text-sm font-semibold text-slate-900">{label}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">{meta.description}</p>
+                    </button>
+                  );
+                },
+              )}
+            </div>
+          </SoftPanel>
+
+          <SoftPanel>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="atlas-kicker">Trending proposals</p>
+                <h2 className="atlas-display mt-2 text-3xl text-slate-900">What people are arguing for</h2>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map(({ key, label }) => (
+                  <button
+                    className={cn(
+                      "rounded-full border px-3 py-2 text-sm font-medium transition",
+                      activeCategory === key
+                        ? "border-[rgba(59,130,246,0.25)] bg-[rgba(59,130,246,0.1)] text-slate-900"
+                        : "border-[rgba(28,36,48,0.1)] bg-white/90 text-slate-500 hover:text-slate-800",
+                    )}
+                    key={key}
+                    onClick={() => setActiveCategory(key)}
+                    type="button"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {(["votes", "newest"] as SortKey[]).map((option) => (
+                <button
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition",
+                    sort === option
+                      ? "border-[rgba(28,36,48,0.18)] bg-[rgba(246,244,238,0.9)] text-slate-900"
+                      : "border-[rgba(28,36,48,0.1)] bg-white/90 text-slate-400 hover:text-slate-700",
+                  )}
+                  key={option}
+                  onClick={() => setSort(option)}
+                  type="button"
+                >
+                  {option === "votes" ? "Most voted" : "Newest"}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-6 divide-y divide-[rgba(28,36,48,0.08)]">
+              {filtered.map((proposal) => {
+                const meta = THEME_META[proposal.category];
+
+                return (
+                  <article className="grid gap-4 py-5 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_6rem_6rem]" key={proposal.id}>
+                    <div>
+                      <span className={cn("inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]", meta.pill)}>
+                        {CATEGORIES.find((category) => category.key === proposal.category)?.label}
+                      </span>
+                      <h3 className="mt-3 text-lg font-semibold leading-7 text-slate-900">{proposal.title}</h3>
+                      <p className="mt-2 text-sm leading-7 text-slate-600">{proposal.description}</p>
+                      {proposal.moduleSlug ? (
+                        <Link
+                          className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900"
+                          href={`/learn/${proposal.moduleSlug}`}
+                        >
+                          Connected module: {proposal.moduleTitle}
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      ) : null}
+                    </div>
+
+                    <div className="md:text-right">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Votes</p>
+                      <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.9)] px-3 py-2 text-slate-800">
+                        <ThumbsUp className="h-4 w-4 text-emerald-600" />
+                        <span className="text-sm font-semibold">
+                          {proposal.netScore > 0 ? `+${proposal.netScore}` : proposal.netScore}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="md:text-right">
+                      <Button asChild className="rounded-full px-4" size="sm" variant="outline">
+                        <Link href={`/governance/${proposal.id}`}>View</Link>
+                      </Button>
                     </div>
                   </article>
                 );
               })}
+
+              {filtered.length === 0 ? (
+                <p className="py-8 text-sm text-slate-500">No proposals match that theme yet.</p>
+              ) : null}
             </div>
-          </div>
-        )}
-      </section>
-
-      {/* ── Filters + sort ────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setActiveCategory(key)}
-              className={cn(
-                "rounded-2xl border px-3.5 py-1.5 text-sm font-medium transition-colors",
-                activeCategory === key
-                  ? "border-violet-400/50 bg-violet-400/10 text-violet-100"
-                  : "border-slate-700 bg-slate-900/60 text-slate-400 hover:border-slate-500 hover:text-slate-200"
-              )}
-            >
-              {label}
-            </button>
-          ))}
+          </SoftPanel>
         </div>
-        <div className="flex gap-2">
-          {(["votes", "newest"] as SortKey[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => setSort(s)}
-              className={cn(
-                "rounded-2xl border px-3 py-1.5 text-xs font-medium transition-colors",
-                sort === s
-                  ? "border-slate-500 text-slate-200"
-                  : "border-slate-700 text-slate-500 hover:text-slate-300"
-              )}
-            >
-              {s === "votes" ? "Most voted" : "Newest"}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {/* ── Proposal grid ─────────────────────────────────────────────────── */}
-      <div className="grid gap-4 xl:grid-cols-2">
-        {filtered.map((proposal) => {
-          const cat = CATEGORY_META[proposal.category];
-          return (
-            <article
-              key={proposal.id}
-              className="flex flex-col rounded-[1.75rem] border border-slate-800 bg-panel/90 p-5 shadow-[0_18px_50px_rgba(2,8,23,0.18)] sm:p-6"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className={cn("rounded-full border px-2.5 py-0.5 text-xs font-medium", cat.border, cat.bg, cat.color)}>
-                  {cat.label}
-                </span>
-                {!proposal.isSeeded && (
-                  <span className="rounded-full border border-slate-600 bg-slate-800/60 px-2.5 py-0.5 text-xs text-slate-400">
-                    Community
-                  </span>
-                )}
-              </div>
-
-              <h2 className="mt-3 text-base font-semibold leading-6 text-slate-50">{proposal.title}</h2>
-              <p className="mt-2 flex-1 text-sm leading-6 text-slate-400 line-clamp-3">{proposal.description}</p>
-
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-sm">
-                    <ThumbsUp className="h-3.5 w-3.5 text-emerald-400" />
-                    <span className="font-semibold text-slate-200">
-                      {proposal.netScore > 0 ? `+${proposal.netScore}` : proposal.netScore}
-                    </span>
+        <div className="space-y-6">
+          <SoftPanel tone="gold">
+            <p className="atlas-kicker">How it works</p>
+            <h2 className="atlas-display mt-2 text-2xl text-slate-900">A simple civic loop</h2>
+            <div className="mt-4 space-y-3">
+              {[
+                "Propose: submit a concrete reform with a rationale and linked evidence.",
+                "Evaluate: community votes and comments surface tradeoffs and weak spots.",
+                "Refine: better versions emerge as arguments get sharper.",
+                "Decide: the best proposals become candidates for the governance roadmap.",
+              ].map((step, index) => (
+                <div className="flex gap-3 rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white/86 px-4 py-4" key={step}>
+                  <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.9)] text-sm font-semibold text-slate-700">
+                    {index + 1}
                   </div>
-                  <span className="text-xs text-slate-600">
-                    {(proposal.seedUpvotes + proposal.seedDownvotes).toLocaleString()} votes
-                  </span>
+                  <p className="text-sm leading-6 text-slate-600">{step}</p>
                 </div>
-                <Button asChild variant="outline" size="sm" className="rounded-2xl gap-1.5">
-                  <Link href={`/governance/${proposal.id}`}>
-                    Read & vote <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </Button>
+              ))}
+            </div>
+          </SoftPanel>
+
+          <SoftPanel className="space-y-4" id="governance-blueprint">
+            <button
+              className="flex w-full items-center justify-between gap-3 text-left"
+              onClick={() => setBlueprintOpen((value) => !value)}
+              type="button"
+            >
+              <div>
+                <p className="atlas-kicker">Blueprint</p>
+                <h2 className="atlas-display mt-2 text-2xl text-slate-900">Five pillars of redesign</h2>
               </div>
+              {blueprintOpen ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
+            </button>
 
-              {proposal.moduleSlug && (
-                <div className="mt-3 border-t border-slate-800 pt-3">
-                  <Link
-                    href={`/learn/${proposal.moduleSlug}`}
-                    className="text-xs text-slate-500 hover:text-cyan-300 transition-colors"
+            <p className="atlas-copy text-sm">
+              Governance Lab is not only a proposal wall. It also carries a more coherent direction for what a
+              public-interest system might actually look like.
+            </p>
+
+            {blueprintOpen ? (
+              <div className="space-y-3">
+                {PILLARS.map(({ icon: Icon, summary, title }) => (
+                  <div
+                    className="flex gap-3 rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4"
+                    key={title}
                   >
-                    Module: {proposal.moduleTitle}
-                  </Link>
-                </div>
-              )}
-            </article>
-          );
-        })}
+                    <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-[rgba(59,130,246,0.16)] bg-[rgba(59,130,246,0.08)] text-[rgb(var(--atlas-primary))]">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{title}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">{summary}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </SoftPanel>
+        </div>
       </div>
-
-      {filtered.length === 0 && (
-        <p className="py-12 text-center text-slate-500">No proposals in this category yet.</p>
-      )}
-    </div>
+    </AtlasPage>
   );
 }

@@ -7,24 +7,34 @@ const accentStyles: Record<
   AccentTone,
   {
     badge: string;
-    button: string;
+    chip: string;
+    frame: string;
+    icon: string;
   }
 > = {
   amber: {
-    badge: "border-amber-300/25 bg-amber-400/10 text-amber-100",
-    button: "text-amber-200 hover:text-amber-100",
+    badge: "border-amber-300 bg-amber-50 text-amber-700",
+    chip: "border-amber-200 bg-amber-50/75 text-amber-700",
+    frame: "border-amber-200/80 bg-amber-50/45",
+    icon: "border-amber-200 bg-amber-50 text-amber-600",
   },
   cyan: {
-    badge: "border-cyan-300/25 bg-cyan-400/10 text-cyan-100",
-    button: "text-cyan-200 hover:text-cyan-100",
+    badge: "border-cyan-300 bg-cyan-50 text-cyan-700",
+    chip: "border-cyan-200 bg-cyan-50/75 text-cyan-700",
+    frame: "border-cyan-200/80 bg-cyan-50/45",
+    icon: "border-cyan-200 bg-cyan-50 text-cyan-600",
   },
   emerald: {
-    badge: "border-emerald-300/25 bg-emerald-400/10 text-emerald-100",
-    button: "text-emerald-200 hover:text-emerald-100",
+    badge: "border-emerald-300 bg-emerald-50 text-emerald-700",
+    chip: "border-emerald-200 bg-emerald-50/75 text-emerald-700",
+    frame: "border-emerald-200/80 bg-emerald-50/45",
+    icon: "border-emerald-200 bg-emerald-50 text-emerald-600",
   },
   rose: {
-    badge: "border-rose-300/25 bg-rose-400/10 text-rose-100",
-    button: "text-rose-200 hover:text-rose-100",
+    badge: "border-rose-300 bg-rose-50 text-rose-700",
+    chip: "border-rose-200 bg-rose-50/75 text-rose-700",
+    frame: "border-rose-200/80 bg-rose-50/45",
+    icon: "border-rose-200 bg-rose-50 text-rose-600",
   },
 };
 
@@ -38,33 +48,54 @@ export function ModuleEvidencePanel({
   const styles = accentStyles[accent];
 
   return (
-    <section className="rounded-[1.75rem] border border-slate-800 bg-panel/90 p-5 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="max-w-3xl">
-          <span className={cn("inline-flex rounded-full border px-3 py-1 text-xs font-medium", styles.badge)}>
+    <section className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-3xl space-y-3">
+          <span
+            className={cn(
+              "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
+              styles.badge,
+            )}
+          >
             Evidence and further exploration
           </span>
-          <p className="mt-3 text-sm leading-6 text-slate-300">
-            These links are attached where Our World in Data adds real evidence value to the lesson. They work best as the
-            empirical layer under the explanation, not as a replacement for it.
+          <h2 className="atlas-display text-3xl leading-tight text-slate-900">Follow the strongest evidence trail</h2>
+          <p className="atlas-copy text-sm">
+            These references are included where the lesson benefits from real-world trend data, historical context, or
+            a clearer empirical picture. They deepen the module without forcing the learner to start from scratch
+            somewhere else.
           </p>
+        </div>
+
+        <div className={cn("rounded-[1.3rem] border px-4 py-3 text-sm leading-6 text-slate-700", styles.frame)}>
+          Best used after the guided reading, when the learner already understands the argument and wants to see the
+          evidence underneath it.
         </div>
       </div>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid gap-4 xl:grid-cols-2">
         {evidenceLinks.map((link) => (
           <article
-            className="flex h-full flex-col rounded-[1.5rem] border border-slate-800 bg-slate-950/60 p-5"
+            className="rounded-[1.6rem] border border-[rgba(28,36,48,0.08)] bg-white/88 p-5"
             key={link.url}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{link.source}</p>
-                <h2 className="mt-2 text-lg font-semibold text-slate-50">{link.title}</h2>
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-3">
+                <span className={cn("inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]", styles.chip)}>
+                  {link.source}
+                </span>
+                <div>
+                  <h3 className="atlas-display text-2xl leading-tight text-slate-900">{link.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-slate-600">{link.note}</p>
+                </div>
               </div>
+
               <a
                 aria-label={`Open ${link.title}`}
-                className={cn("inline-flex h-10 w-10 flex-none items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/70 transition", styles.button)}
+                className={cn(
+                  "inline-flex h-11 w-11 flex-none items-center justify-center rounded-full border transition hover:scale-[1.02]",
+                  styles.icon,
+                )}
                 href={link.url}
                 rel="noreferrer"
                 target="_blank"
@@ -72,7 +103,6 @@ export function ModuleEvidencePanel({
                 <ExternalLink className="h-4 w-4" />
               </a>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-300">{link.note}</p>
           </article>
         ))}
       </div>

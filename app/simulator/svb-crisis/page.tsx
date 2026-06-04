@@ -17,6 +17,12 @@ import {
   ReferenceLine,
 } from "recharts";
 
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import {
+  SimulatorActionRow,
+  SimulatorHero,
+} from "@/components/simulator/SimulatorAtlas";
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface Params {
@@ -270,46 +276,21 @@ export default function SVBCrisisPage() {
   const isTwitterAccelerated = params.twitterAmplifier > 2;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-10">
-      {/* Header */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-amber-400/18 via-amber-400/6 to-transparent" />
-        <div className="relative space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1 text-xs font-medium text-amber-100">
-              SVB 2023 · Crisis simulator
-            </span>
-          </div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">
-            Silicon Valley Bank Collapse
-          </h1>
-          <p className="max-w-3xl text-sm leading-7 text-slate-300">
-            SVB collapsed in 36 hours in March 2023 — the fastest large bank failure in US history. Adjust the structural 
-            vulnerabilities: duration mismatch, uninsured deposit concentration, VC herd behaviour, and social media speed. 
-            See how each one contributed and what could have stopped the run.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-4">
-            <div className="rounded-2xl border border-slate-800 bg-panel/80 px-4 py-3 text-center">
-              <p className="text-xs text-slate-500">Unrealised Bond Loss</p>
-              <p className="mt-1 text-xl font-black text-amber-300">${unrealisedLoss.toFixed(1)}bn</p>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-panel/80 px-4 py-3 text-center">
-              <p className="text-xs text-slate-500">Deposit Loss</p>
-              <p className="mt-1 text-xl font-black text-rose-400">{depositLossPct}%</p>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-panel/80 px-4 py-3 text-center">
-              <p className="text-xs text-slate-500">Peak Daily Withdrawal</p>
-              <p className="mt-1 text-xl font-black text-orange-300">{maxWithdrawalRate.toFixed(1)}%/day</p>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-panel/80 px-4 py-3 text-center">
-              <p className="text-xs text-slate-500">Bank Failed</p>
-              <p className={`mt-1 text-xl font-black ${failDay ? "text-red-400" : "text-emerald-400"}`}>
-                {failDay ? `Day ${failDay}` : "Survived"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+    <AtlasPage className="simulator-atlas space-y-6 pb-10">
+      <SimulatorHero
+        actions={<SimulatorActionRow primaryHref="#svb-lab" primaryLabel="Open the lab" secondaryHref="#svb-patterns" secondaryLabel="Read the patterns" />}
+        description="SVB failed in just 36 hours because several vulnerabilities lined up at once: duration mismatch, uninsured deposits, concentrated networks, and social-media-speed panic. This lab lets you test how much each one mattered, and which interventions could have stopped the run."
+        eyebrow="SVB 2023 · Crisis simulator"
+        imageAlt="Bank run and crisis simulation landscape"
+        imageSrc="/atlas/simulator-hero.png"
+        metrics={[
+          { label: "Bond loss", value: `$${unrealisedLoss.toFixed(1)}bn`, description: "Mark-to-market losses embedded in the bond portfolio." },
+          { label: "Deposit loss", value: `${depositLossPct}%`, description: "Share of deposits withdrawn during the run." },
+          { label: "Peak run speed", value: `${maxWithdrawalRate.toFixed(1)}%/day`, description: "Fastest observed daily withdrawal rate in the scenario." },
+          { label: "Outcome", value: failDay ? `Failed Day ${failDay}` : "Survived", description: failDay ? "Liquidity ran out before confidence stabilized." : "The bank survives the stress." },
+        ]}
+        title="Silicon Valley Bank Collapse"
+      />
 
       {/* Callouts */}
       {(isHighlyConcentrated || isDurationRisk || isTwitterAccelerated) && (
@@ -349,7 +330,7 @@ export default function SVBCrisisPage() {
       )}
 
       {/* Main layout */}
-      <div className="grid gap-5 lg:grid-cols-[340px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[340px_1fr]" id="svb-lab">
         {/* Controls */}
         <aside className="space-y-5">
           <div className="rounded-[1.75rem] border border-slate-800 bg-panel/90 p-5">
@@ -565,6 +546,7 @@ export default function SVBCrisisPage() {
           </div>
         </div>
       </div>
-    </div>
+      <div id="svb-patterns" />
+    </AtlasPage>
   );
 }

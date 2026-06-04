@@ -6,6 +6,11 @@ import {
   ResponsiveContainer, ReferenceLine,
 } from "recharts";
 import { Shield, Users, TrendingDown, Building2, UserX, DollarSign, Award, AlertTriangle } from "lucide-react";
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import {
+  SimulatorActionRow,
+  SimulatorHero,
+} from "@/components/simulator/SimulatorAtlas";
 
 // ─── Model ───────────────────────────────────────────────────────────────────
 
@@ -177,39 +182,31 @@ export default function PoliticalTalentPage() {
     ? { text: "Clientelism emerging — party patronage starts to replace meritocracy in public appointments.", color: "text-amber-400", bg: "border-amber-400/20 bg-amber-400/5" }
     : instant.capable < 65
     ? { text: "Approaching Nordic threshold (65) — barriers visible but reform tractable before feedback loop locks in.", color: "text-yellow-400", bg: "border-yellow-400/20 bg-yellow-400/5" }
-    : { text: "Above Nordic baseline — open-entry system, capable pool broadly accessible.", color: "text-emerald-400", bg: "border-emerald-400/20 bg-emerald-400/5" };
+      : { text: "Above Nordic baseline — open-entry system, capable pool broadly accessible.", color: "text-emerald-400", bg: "border-emerald-400/20 bg-emerald-400/5" };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 pb-12">
+    <AtlasPage className="simulator-atlas space-y-8 pb-12">
+      <SimulatorHero
+        actions={<SimulatorActionRow primaryHref="#talent-lab" primaryLabel="Open the lab" secondaryHref="#talent-patterns" secondaryLabel="Read the patterns" />}
+        description="This lab tracks the barriers that keep capable people out of politics before voters even get a choice. Adjust dynasties, party monopoly, pay gaps, class exclusion, and gender exclusion to see how they shape government quality, public service, and the feedback loop of institutional decline."
+        eyebrow="Politics & Governance · Intermediate"
+        imageAlt="Political access and institutions simulation landscape"
+        imageSrc="/atlas/simulator-hero.png"
+        metrics={[
+          { label: "Capable pool", value: `${instant.capable}/100`, description: "How open the system is to capable entrants." },
+          { label: "Government quality", value: `${instant.govQuality}/100`, description: "Expected quality of political leadership under current barriers." },
+          { label: "Wellbeing", value: `${instant.wellbeing}/100`, description: "How citizens experience the downstream effects." },
+          { label: "Barrier average", value: `${totalBlocker}/100`, description: "Average intensity across the five filters." },
+        ]}
+        title="Political Talent Barrier Simulator"
+      />
 
-      {/* Header */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-amber-400/30 bg-slate-950/85 p-6 sm:p-10">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-amber-400/14 via-amber-400/4 to-transparent" />
-        <div className="relative space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1 text-xs font-medium text-amber-100">
-              Politics &amp; Governance
-            </span>
-            <span className="inline-flex rounded-full border border-slate-700 bg-slate-800/50 px-3 py-1 text-xs text-slate-400">
-              Intermediate
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl">
-            Political Talent Barrier Simulator
-          </h1>
-          <p className="max-w-3xl text-base leading-7 text-slate-300">
-            Five structural barriers filter out capable people before voters ever get a choice.
-            Adjust each barrier to see how the capable politician pool, public service quality,
-            and citizen wellbeing respond — with or without the Casel-Morelli feedback spiral.
-          </p>
-          <p className="text-xs text-slate-500">
-            Based on research presented by Kosmas Marinakis (Greconomic). Sources: Berkeley/Brown/ECLA dynasty study (2009),
-            Patrikios &amp; Xatzikonstandinou, Glasgow (2015), Casel &amp; Morelli (LSE/Bocconi), Swedish quota studies.
-          </p>
-        </div>
-      </section>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        Based on research presented by Kosmas Marinakis (Greconomic). Sources: Berkeley/Brown/ECLA dynasty study (2009),
+        Patrikios &amp; Xatzikonstandinou, Glasgow (2015), Casel &amp; Morelli (LSE/Bocconi), Swedish quota studies.
+      </p>
 
-      <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[420px_1fr]" id="talent-lab">
 
         {/* ── Sidebar ── */}
         <div className="space-y-4">
@@ -385,6 +382,7 @@ export default function PoliticalTalentPage() {
           </div>
         </div>
       </div>
-    </div>
+      <div id="talent-patterns" />
+    </AtlasPage>
   );
 }

@@ -18,6 +18,16 @@ import {
   YAxis,
 } from "recharts";
 
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import {
+  SimulatorActionRow,
+  SimulatorCallout,
+  SimulatorChartPanel,
+  SimulatorHero,
+  SimulatorPrimer,
+  SimulatorSidebarPanel,
+} from "@/components/simulator/SimulatorAtlas";
+
 // ─── Model ────────────────────────────────────────────────────────────────────
 interface PPParams {
   monthlyIncome: number;      // € per month
@@ -176,12 +186,11 @@ function ChartTooltip({ active, payload, label }: {
 
 function ChartPanel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-panel p-4">
-      <p className="mb-3 text-xs font-semibold text-slate-400">{title}</p>
+    <SimulatorChartPanel title={title}>
       <ResponsiveContainer width="100%" height={220}>
         {children as React.ReactElement}
       </ResponsiveContainer>
-    </div>
+    </SimulatorChartPanel>
   );
 }
 
@@ -234,57 +243,45 @@ export default function PurchasingPowerPage() {
   const realWageGap = params.wageGrowth - params.inflation;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      {/* Header */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-amber-400/12 via-amber-400/4 to-transparent" />
-        <div className="relative">
-          <span className="inline-flex rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1 text-xs font-medium text-amber-100">
-            Personal Economy Model
-          </span>
-          <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">
-            Your Purchasing Power
-          </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-300">
-            Move the sliders to set your income and the economic conditions around you. See how inflation, energy shocks, interest rates and housing costs eat into your real disposable income over 20 years.
-          </p>
-        </div>
-      </section>
+    <AtlasPage className="simulator-atlas space-y-6 pb-12">
+      <SimulatorHero
+        actions={<SimulatorActionRow primaryHref="#purchasing-power-lab" primaryLabel="Open the lab" secondaryHref="#purchasing-power-ideas" secondaryLabel="Read the lessons" />}
+        description="Move the levers around wages, inflation, energy, housing, and interest rates to see how everyday budgets evolve over two decades. The goal is not just to watch prices rise, but to understand why some households still fall behind even when their payslip gets bigger."
+        eyebrow="Personal Economy Model"
+        imageAlt="City and household economy simulation landscape"
+        imageSrc="/atlas/simulator-hero.png"
+        metrics={[
+          { label: `Power in ${yr10.year}`, value: `${yr10.purchasingPowerIdx}%`, description: "Share of today's disposable income after ten years." },
+          { label: `Power in ${yr20.year}`, value: `${yr20.purchasingPowerIdx}%`, description: "Long-run purchasing power relative to today." },
+          { label: "Real savings", value: `€${yr20.savings.toLocaleString()}`, description: "Total savings built after inflation over 20 years." },
+          { label: "Real wage gap", value: `${realWageGap >= 0 ? "+" : ""}${realWageGap.toFixed(1)}%`, description: "How much wages outpace or lag inflation each year." },
+        ]}
+        title="Your Purchasing Power"
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <SimulatorPrimer
+        aside="This lab is most useful when you compare the same household under different macro conditions. Try one stable baseline, then one energy shock or high-housing scenario, and watch which line in the budget starts eating the most breathing room."
+        items={[
+          {
+            title: "Follow disposable income, not just salary.",
+            text: "A higher nominal wage can still leave you worse off if housing, food, transport, and energy rise faster. The key signal is the disposable slice left after core costs.",
+          },
+          {
+            title: "Watch the cascade from energy into everything else.",
+            text: "Energy shocks do not stay in utility bills. They feed into food, transport, and manufacturing, then prompt central banks to raise rates, which squeezes housing separately.",
+          },
+          {
+            title: "Treat the wage-price gap as the quiet pressure point.",
+            text: "If wages trail inflation for long enough, the system erodes living standards slowly rather than all at once. That is why the purchasing-power index often matters more than one dramatic crisis headline.",
+          },
+        ]}
+        summary="This simulator works best as a household lens on macroeconomics. It translates inflation, rate policy, housing pressure, and energy shocks into the question people actually feel: what is left at the end of the month, and how does that change over time?"
+        title="Read the household system first"
+      />
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]" id="purchasing-power-lab">
         {/* ── Charts ── */}
         <div className="space-y-4">
-
-          {/* Summary banner */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              {
-                label: "Purchasing power in " + yr10.year,
-                value: yr10.purchasingPowerIdx + "%",
-                sub: "of today's level",
-                color: yr10.purchasingPowerIdx >= 90 ? "text-emerald-400" : yr10.purchasingPowerIdx >= 70 ? "text-amber-400" : "text-rose-400",
-              },
-              {
-                label: "Purchasing power in " + yr20.year,
-                value: yr20.purchasingPowerIdx + "%",
-                sub: "of today's level",
-                color: yr20.purchasingPowerIdx >= 90 ? "text-emerald-400" : yr20.purchasingPowerIdx >= 70 ? "text-amber-400" : "text-rose-400",
-              },
-              {
-                label: "Savings built by " + yr20.year,
-                value: "€" + yr20.savings.toLocaleString(),
-                sub: "in real terms",
-                color: yr20.savings > 0 ? "text-violet-400" : "text-rose-400",
-              },
-            ].map((card) => (
-              <div key={card.label} className="rounded-2xl border border-slate-800 bg-panel p-4">
-                <p className="text-xs text-slate-500">{card.label}</p>
-                <p className={`mt-1 text-2xl font-black ${card.color}`}>{card.value}</p>
-                <p className="text-xs text-slate-600">{card.sub}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Real income vs costs over 20 years */}
           <ChartPanel title="Monthly budget breakdown (real €, today's money)">
             <AreaChart data={data} stackOffset="none">
@@ -337,7 +334,7 @@ export default function PurchasingPowerPage() {
           </ChartPanel>
 
           {/* Budget snapshot bars: today vs year 10 vs year 20 */}
-          <div className="rounded-2xl border border-slate-800 bg-panel p-4">
+          <SimulatorChartPanel title="Monthly budget snapshot (real €)">
             <p className="mb-4 text-xs font-semibold text-slate-400">Monthly budget snapshot (real €)</p>
             <div className="grid gap-6 sm:grid-cols-3">
               {[
@@ -365,42 +362,33 @@ export default function PurchasingPowerPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </SimulatorChartPanel>
 
           {/* Energy cascade explanation */}
           {params.energyMultiplier > 1.3 && (
-            <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5">
-              <p className="text-xs font-semibold text-amber-300 mb-2">⚡ Energy cascade effect at {params.energyMultiplier.toFixed(1)}× price level</p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title={`Energy cascade effect at ${params.energyMultiplier.toFixed(1)}× price level`} tone="gold">
                 Energy isn&apos;t just your electricity bill. At {params.energyMultiplier.toFixed(1)}× baseline prices,
                 food rises by ~{Math.round((params.energyMultiplier - 1) * 8)}% (fertilisers and transport run on oil),
                 transport costs climb by ~{Math.round((params.energyMultiplier - 1) * 35)}%,
                 and manufactured goods rise by ~{Math.round((params.energyMultiplier - 1) * 12)}%.
                 Central banks respond by raising rates — which then increases your housing cost separately.
                 This is the mechanism behind the 1973 and 2022 inflation shocks.
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
 
           {realWageGap < 0 && (
-            <div className="rounded-2xl border border-rose-400/20 bg-rose-400/5 p-5">
-              <p className="text-xs font-semibold text-rose-300 mb-2">
-                ⚠️ Real wage decline: wages grow at {params.wageGrowth}% but inflation is {params.inflation}%
-              </p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title={`Real wage decline: wages grow at ${params.wageGrowth}% but inflation is ${params.inflation}%`} tone="rose">
                 Your nominal salary is rising, but purchasing power is shrinking by {Math.abs(realWageGap).toFixed(1)}% per year in real terms.
                 After 10 years that compounds to a {Math.round((1 - Math.pow(1 + realWageGap / 100, 10)) * 100)}% real pay cut — even though your payslip shows a higher number.
                 This is how sustained inflation quietly redistributes income from workers to asset holders.
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
         </div>
 
         {/* ── Controls ── */}
         <div className="space-y-4">
           {/* Sliders */}
-          <div className="rounded-[1.75rem] border border-amber-400/20 bg-panel p-5 space-y-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-amber-300">Your situation</p>
+          <SimulatorSidebarPanel kicker="Your situation" title="Set the pressures" tone="gold">
             {SLIDERS.map((sl) => {
               const val = params[sl.key];
               const display = sl.unit === "%" && sl.key !== "housingFrac"
@@ -413,52 +401,51 @@ export default function PurchasingPowerPage() {
               return (
                 <label key={sl.key} className="block">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-300">{sl.icon} {sl.label}</span>
-                    <span className="font-mono font-bold text-amber-300">{display}</span>
+                    <span className="text-slate-800 dark:text-slate-100">{sl.icon} {sl.label}</span>
+                    <span className="font-mono font-bold text-[rgb(var(--atlas-gold))]">{display}</span>
                   </div>
                   <input
                     type="range"
                     min={sl.min} max={sl.max} step={sl.step}
                     value={val as number}
                     onChange={(e) => setParam(sl.key, Number(e.target.value))}
-                    className="w-full accent-amber-400"
+                    className="w-full accent-[rgb(var(--atlas-gold))]"
                   />
-                  <p className="mt-0.5 text-xs text-slate-600">{sl.tooltip}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{sl.tooltip}</p>
                 </label>
               );
             })}
-          </div>
+          </SimulatorSidebarPanel>
 
           {/* Scenario presets */}
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Historical scenarios</p>
+          <SimulatorSidebarPanel kicker="Historical scenarios" title="Load a preset">
             {PRESETS.map((preset) => (
               <button key={preset.label} onClick={() => loadPreset(preset)}
-                className="w-full rounded-2xl border border-slate-800 p-3 text-left hover:border-slate-600 transition-colors"
+                className="w-full rounded-2xl border border-[rgba(28,36,48,0.08)] bg-white/76 p-3 text-left transition hover:border-[rgba(28,36,48,0.18)] dark:border-slate-800 dark:bg-slate-900/65"
                 style={{ borderLeftColor: preset.color, borderLeftWidth: 3 }}>
                 <p className="text-xs font-semibold" style={{ color: preset.color }}>{preset.label}</p>
                 <p className="mt-0.5 text-xs text-slate-500">{preset.description}</p>
               </button>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
 
           {/* Key insights */}
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Key mechanisms</p>
+          <SimulatorSidebarPanel kicker="Key mechanisms" title="What drives the squeeze" className="space-y-3">
             {[
               { title: "Wage-price gap", text: "When inflation exceeds wage growth, every extra year means a hidden pay cut — even if your payslip shows a bigger number.", color: "text-rose-300" },
               { title: "Energy cascade", text: "Energy price shocks don't just raise your utility bill. They flow through fertilisers → food prices, fuel → transport costs, and heating → manufacturing costs.", color: "text-amber-300" },
               { title: "Interest rate squeeze", text: "Higher central bank rates reduce inflation but raise mortgage rates and rents simultaneously, squeezing you from both sides.", color: "text-cyan-300" },
               { title: "Financial repression", text: "When savings rates are below inflation, every euro you save loses value. Central banks used this deliberately after 2008 to reduce debt burdens.", color: "text-violet-300" },
             ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div key={item.title} className="rounded-xl border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.58)] p-3 dark:border-slate-800 dark:bg-slate-900/60">
                 <p className={`text-xs font-semibold ${item.color}`}>{item.title}</p>
-                <p className="mt-1 text-xs text-slate-400">{item.text}</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{item.text}</p>
               </div>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
         </div>
       </div>
-    </div>
+      <div id="purchasing-power-ideas" />
+    </AtlasPage>
   );
 }

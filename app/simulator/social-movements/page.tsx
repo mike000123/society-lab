@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { ArrowRight, Landmark, Scale, Sparkles, Users2 } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -14,6 +16,14 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import { FeatureStrip } from "@/components/atlas/FeatureStrip";
+import { IllustratedTabHero } from "@/components/atlas/IllustratedTabHero";
+import { InsightBlock } from "@/components/atlas/InsightBlock";
+import { SectionNarrative } from "@/components/atlas/SectionNarrative";
+import { SoftPanel } from "@/components/atlas/SoftPanel";
+import { Button } from "@/components/ui/button";
 
 type FamilyKey = "print" | "industrial" | "anticolonial" | "rights" | "networked";
 
@@ -881,10 +891,10 @@ function ChartTooltip({
   }
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-xs shadow-xl">
-      <p className="mb-2 font-bold text-slate-200">{label}</p>
+    <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white/96 px-4 py-3 text-xs shadow-[0_16px_30px_rgba(28,36,48,0.08)] dark:border-slate-700 dark:bg-slate-950/95">
+      <p className="mb-2 font-bold text-slate-900 dark:text-slate-100">{label}</p>
       {payload.map((entry) => (
-        <p key={entry.name} style={{ color: entry.color }}>
+        <p className="text-slate-700 dark:text-slate-200" key={entry.name} style={{ color: entry.color }}>
           {entry.name}: <span className="font-semibold">{entry.value}</span>
         </p>
       ))}
@@ -892,13 +902,35 @@ function ChartTooltip({
   );
 }
 
-function ChartPanel({ children, title }: { children: React.ReactNode; title: string }) {
+function ChartPanel({
+  children,
+  title,
+  description,
+  height = 280,
+}: {
+  children: React.ReactNode;
+  title: string;
+  description?: string;
+  height?: number;
+}) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-panel p-4">
-      <p className="mb-3 text-xs font-semibold text-slate-400">{title}</p>
-      <ResponsiveContainer height={240} width="100%">
+    <div className="rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/94 p-5 shadow-[0_18px_34px_rgba(28,36,48,0.05)] dark:border-slate-800 dark:bg-slate-950/80">
+      <div className="mb-4 space-y-1">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{title}</p>
+        {description ? <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">{description}</p> : null}
+      </div>
+      <ResponsiveContainer height={height} width="100%">
         {children as React.ReactElement}
       </ResponsiveContainer>
+    </div>
+  );
+}
+
+function ScoreMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-[1.15rem] border border-[rgba(28,36,48,0.08)] bg-white/78 px-3 py-3 text-center dark:border-slate-700 dark:bg-slate-900/70">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</p>
+      <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{value}</p>
     </div>
   );
 }
@@ -944,35 +976,82 @@ function SocialMovementsSimulatorPageContent() {
     setContext((current) => ({ ...current, [key]: value }));
   };
 
-  return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-amber-400/12 via-cyan-400/6 to-transparent" />
-        <div className="relative space-y-4">
-          <span className="inline-flex rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1 text-xs font-medium text-amber-100">
-            Compare-mode simulator
-          </span>
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">
-              Social Movement Compare Lab
-            </h1>
-            <p className="mt-3 max-w-4xl text-base leading-7 text-slate-300">
-              Test why one movement family breaks through while another stalls. Load a historical
-              scenario or set the context sliders manually, then compare how different movement
-              strategies would have fared under the same conditions.
-            </p>
-          </div>
-          {focus && (
-            <div className="rounded-2xl border border-slate-800 bg-panel/85 px-4 py-3 text-sm leading-6 text-slate-300">
-              <span className="font-semibold text-slate-100">Current focus:</span> {focus}
-            </div>
-          )}
-        </div>
-      </section>
+  const breakthroughGap = Math.abs(leftResult.breakthrough - rightResult.breakthrough);
+  const sharedPressure = Math.round(
+    ((leftResult.phases[leftResult.phases.length - 1]?.pressure ?? 0) +
+      (rightResult.phases[rightResult.phases.length - 1]?.pressure ?? 0)) /
+      2,
+  );
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
-        <div className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-2">
+  return (
+    <AtlasPage className="space-y-8 pb-14">
+      <IllustratedTabHero
+        actions={
+          <>
+            <Button asChild className="rounded-full px-5">
+              <a href="#movement-lab">Open comparison</a>
+            </Button>
+            <Button asChild className="rounded-full px-5" variant="outline">
+              <a href="#movement-explainer">How to read it</a>
+            </Button>
+          </>
+        }
+        description="Test why one movement family breaks through while another stalls. Give both the same historical environment, then see which strategies convert pressure into durable change."
+        eyebrow="Compare-Mode Simulator"
+        imageAlt="People meeting and organizing in a civic landscape"
+        imageSrc="/atlas/discuss-hero.png"
+        title="Social Movement Compare Lab"
+      >
+        <FeatureStrip
+          items={[
+            {
+              label: "Scenario A",
+              value: `${leftResult.breakthrough}`,
+              description: `${leftProfile.label} breakthrough score`,
+              icon: <Users2 className="h-4 w-4" />,
+            },
+            {
+              label: "Scenario B",
+              value: `${rightResult.breakthrough}`,
+              description: `${rightProfile.label} breakthrough score`,
+              icon: <Users2 className="h-4 w-4" />,
+            },
+            {
+              label: "Gap",
+              value: `${breakthroughGap}`,
+              description: "The bigger the gap, the more the context favors one family over the other.",
+              icon: <Scale className="h-4 w-4" />,
+            },
+            {
+              label: "Shared pressure",
+              value: `${sharedPressure}`,
+              description: "Average end-stage movement pressure under the current context.",
+              icon: <Sparkles className="h-4 w-4" />,
+            },
+          ]}
+        />
+      </IllustratedTabHero>
+
+      {focus ? (
+        <div className="rounded-[1.5rem] border border-[rgba(28,36,48,0.08)] bg-white/82 px-5 py-4 text-sm leading-6 text-slate-600 shadow-[0_14px_30px_rgba(28,36,48,0.04)] dark:border-slate-800 dark:bg-slate-950/75 dark:text-slate-300">
+          <span className="font-semibold text-slate-900 dark:text-slate-100">Current focus:</span> {focus}
+        </div>
+      ) : null}
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]" id="movement-lab">
+        <div className="space-y-5">
+          <SoftPanel className="space-y-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="atlas-kicker">Movement families</p>
+                <h2 className="atlas-display text-3xl text-slate-900">Compare two strategic logics</h2>
+              </div>
+              <span className="rounded-full border border-[rgba(28,36,48,0.08)] px-4 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                Same context, different strengths
+              </span>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
             {[
               {
                 family: leftFamily,
@@ -990,7 +1069,7 @@ function SocialMovementsSimulatorPageContent() {
               },
             ].map((panel) => (
               <section
-                className="rounded-[1.75rem] border bg-panel p-5"
+                className="rounded-[1.75rem] border bg-white/90 p-5 shadow-[0_16px_30px_rgba(28,36,48,0.04)] dark:bg-slate-950/78"
                 key={panel.label}
                 style={{ borderColor: `${panel.profile.color}44` }}
               >
@@ -998,7 +1077,7 @@ function SocialMovementsSimulatorPageContent() {
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{panel.label}</p>
                     <select
-                      className="mt-2 rounded-2xl border border-slate-800 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
+                      className="mt-2 rounded-2xl border border-[rgba(28,36,48,0.1)] bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                       onChange={(event) => panel.setFamily(event.target.value as FamilyKey)}
                       value={panel.family}
                     >
@@ -1021,12 +1100,12 @@ function SocialMovementsSimulatorPageContent() {
                   </span>
                 </div>
 
-                <p className="mt-4 text-sm leading-6 text-slate-300">{panel.profile.description}</p>
+                <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{panel.profile.description}</p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {panel.profile.strengths.map((strength) => (
                     <span
-                      className="inline-flex rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-xs font-medium text-slate-200"
+                      className="inline-flex rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.75)] px-3 py-1 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
                       key={strength}
                     >
                       {strength}
@@ -1035,14 +1114,14 @@ function SocialMovementsSimulatorPageContent() {
                 </div>
 
                 <div className="mt-4 space-y-2">
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-slate-600">Historical cases for this family</p>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Historical cases for this family</p>
                   {panel.profile.historicalCases.map((c) => (
-                    <div key={c.event} className="rounded-xl border border-slate-800 bg-slate-950/50 px-3 py-2">
+                    <div className="rounded-xl border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.58)] px-3 py-2 dark:border-slate-800 dark:bg-slate-900/60" key={c.event}>
                       <div className="flex items-center gap-2">
-                        <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-bold text-slate-400">{c.year}</span>
-                        <span className="text-xs font-semibold text-slate-200">{c.event}</span>
+                        <span className="rounded-full border border-[rgba(28,36,48,0.08)] px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:border-slate-700 dark:text-slate-400">{c.year}</span>
+                        <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{c.event}</span>
                       </div>
-                      <p className="mt-1 text-[11px] leading-4 text-slate-500">{c.outcome}</p>
+                      <p className="mt-1 text-[11px] leading-4 text-slate-500 dark:text-slate-400">{c.outcome}</p>
                     </div>
                   ))}
                 </div>
@@ -1053,32 +1132,30 @@ function SocialMovementsSimulatorPageContent() {
                     { label: "Durability", value: panel.result.durability },
                     { label: "Stall risk", value: panel.result.stallRisk },
                   ].map((metric) => (
-                    <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-3 py-3" key={metric.label}>
-                      <p className="text-[11px] uppercase tracking-[0.14em] text-slate-500">{metric.label}</p>
-                      <p className="mt-2 text-2xl font-black text-slate-50">{metric.value}</p>
-                    </div>
+                    <ScoreMetric key={metric.label} label={metric.label} value={metric.value} />
                   ))}
                 </div>
 
-                <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+                <div className="mt-5 rounded-2xl border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.58)] p-4 dark:border-slate-800 dark:bg-slate-900/60">
                   <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Why this one moves</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-200">
+                  <p className="mt-2 text-sm leading-6 text-slate-900 dark:text-slate-100">
                     Strongest supports: {joinLabels(panel.result.supports)}.
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                     Main drag: {panel.result.drag}. {panel.result.summary}
                   </p>
                 </div>
               </section>
             ))}
           </div>
+          </SoftPanel>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <ChartPanel title="Public pressure across the movement cycle">
+            <ChartPanel description="Pressure measures whether a movement can keep visible momentum alive across phases." title="Public pressure across the movement cycle">
               <LineChart data={chartData}>
-                <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-                <XAxis dataKey="phase" tick={{ fill: "#64748b", fontSize: 10 }} />
-                <YAxis domain={[0, 100]} tick={{ fill: "#64748b", fontSize: 10 }} />
+                <CartesianGrid stroke="#ddd6c8" strokeDasharray="3 3" />
+                <XAxis dataKey="phase" tick={{ fill: "#6b7280", fontSize: 10 }} />
+                <YAxis domain={[0, 100]} tick={{ fill: "#6b7280", fontSize: 10 }} />
                 <Tooltip content={<ChartTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10 }} />
                 <Line
@@ -1102,11 +1179,11 @@ function SocialMovementsSimulatorPageContent() {
               </LineChart>
             </ChartPanel>
 
-            <ChartPanel title="Institutional traction toward a turning point">
+            <ChartPanel description="Traction shows whether movement energy is actually converting into institutional opening or durable reform." title="Institutional traction toward a turning point">
               <AreaChart data={chartData}>
-                <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-                <XAxis dataKey="phase" tick={{ fill: "#64748b", fontSize: 10 }} />
-                <YAxis domain={[0, 100]} tick={{ fill: "#64748b", fontSize: 10 }} />
+                <CartesianGrid stroke="#ddd6c8" strokeDasharray="3 3" />
+                <XAxis dataKey="phase" tick={{ fill: "#6b7280", fontSize: 10 }} />
+                <YAxis domain={[0, 100]} tick={{ fill: "#6b7280", fontSize: 10 }} />
                 <Tooltip content={<ChartTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10 }} />
                 <Area
@@ -1132,20 +1209,20 @@ function SocialMovementsSimulatorPageContent() {
             </ChartPanel>
           </div>
 
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Read the comparison</p>
+          <SoftPanel className="space-y-4">
+            <p className="atlas-kicker">Read the comparison</p>
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-                <p className="text-sm font-semibold text-slate-50">Legitimacy versus coercion</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
+              <div className="rounded-2xl border border-[rgba(28,36,48,0.08)] bg-white/76 p-4 dark:border-slate-800 dark:bg-slate-900/65">
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Legitimacy versus coercion</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                   Some movement families benefit more when repression becomes visible to outsiders.
                   Rights-based and networked movements often turn witness into legitimacy pressure, while
                   print-era and industrial movements depend more on durable organization or shelter.
                 </p>
               </div>
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-                <p className="text-sm font-semibold text-slate-50">Why stalling happens</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
+              <div className="rounded-2xl border border-[rgba(28,36,48,0.08)] bg-white/76 p-4 dark:border-slate-800 dark:bg-slate-900/65">
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Why stalling happens</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                   Stalls usually appear when coordination becomes easier faster than organization does, or
                   when institutions stay too closed for pressure to convert into reform. The simulator
                   makes that mismatch visible.
@@ -1161,7 +1238,7 @@ function SocialMovementsSimulatorPageContent() {
                     ? `${leftProfile.color}44`
                     : winner === "right"
                       ? `${rightProfile.color}44`
-                      : "#334155",
+                      : "rgba(28,36,48,0.14)",
               }}
             >
               {winner === null
@@ -1170,15 +1247,18 @@ function SocialMovementsSimulatorPageContent() {
                   ? `${leftProfile.label} has the clearer path under the current conditions. It is better aligned with ${joinLabels(leftResult.supports.slice(0, 2))}, while ${rightProfile.label.toLowerCase()} is held back more by ${rightResult.drag}.`
                   : `${rightProfile.label} has the clearer path under the current conditions. It is better aligned with ${joinLabels(rightResult.supports.slice(0, 2))}, while ${leftProfile.label.toLowerCase()} is held back more by ${leftResult.drag}.`}
             </div>
-          </div>
+          </SoftPanel>
         </div>
 
-        <aside className="space-y-4">
-          <section className="rounded-[1.75rem] border border-amber-400/20 bg-panel p-5">
+        <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
+          <SoftPanel className="space-y-4" tone="gold">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs uppercase tracking-[0.2em] text-amber-300">Shared context</p>
+              <div>
+                <p className="atlas-kicker">Shared context</p>
+                <h3 className="atlas-display text-2xl text-slate-900">Set the environment</h3>
+              </div>
               <button
-                className="rounded-xl border border-slate-700 px-3 py-1.5 text-xs text-slate-400 transition hover:text-slate-200"
+                className="rounded-full border border-[rgba(28,36,48,0.12)] px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
                 onClick={() => setContext(BASE_CONTEXT)}
                 type="button"
               >
@@ -1194,13 +1274,13 @@ function SocialMovementsSimulatorPageContent() {
               {SLIDERS.map((slider) => (
                 <label className="block" key={slider.key}>
                   <div className="mb-1 flex items-center justify-between text-xs">
-                    <span className="text-slate-300">{slider.label}</span>
-                    <span className="font-mono font-bold text-amber-200">
+                    <span className="text-slate-800 dark:text-slate-100">{slider.label}</span>
+                    <span className="font-mono font-bold text-[rgb(var(--atlas-gold))]">
                       {context[slider.key]}
                     </span>
                   </div>
                   <input
-                    className="w-full accent-amber-400"
+                    className="w-full accent-[rgb(var(--atlas-gold))]"
                     max={slider.max}
                     min={slider.min}
                     onChange={(event) => setContextValue(slider.key, Number(event.target.value))}
@@ -1208,86 +1288,119 @@ function SocialMovementsSimulatorPageContent() {
                     type="range"
                     value={context[slider.key]}
                   />
-                  <p className="mt-1 text-xs leading-5 text-slate-600">{slider.tooltip}</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{slider.tooltip}</p>
                 </label>
               ))}
             </div>
-          </section>
+          </SoftPanel>
 
-          <section className="rounded-[1.75rem] border border-amber-400/15 bg-panel p-5">
-            <p className="text-xs uppercase tracking-[0.2em] text-amber-300/80">Historical scenarios</p>
+          <SoftPanel className="space-y-4" tone="blue">
+            <p className="atlas-kicker">Historical scenarios</p>
             <p className="mt-1 text-xs leading-5 text-slate-600">Load a real event — sets Scenario A family and all context sliders.</p>
             <div className="mt-3 space-y-2">
               {HISTORICAL_PRESETS.map((preset) => (
                 <button
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 p-3 text-left transition hover:border-amber-400/30"
+                  className="w-full rounded-2xl border border-[rgba(28,36,48,0.08)] bg-white/76 p-3 text-left transition hover:border-[rgba(59,130,246,0.24)] dark:border-slate-800 dark:bg-slate-900/65"
                   key={preset.label}
                   onClick={() => { setLeftFamily(preset.family); setContext(preset.context); }}
                   type="button"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-bold text-slate-400">{preset.year}</span>
-                    <p className="text-xs font-semibold text-slate-100">{preset.label}</p>
+                    <span className="rounded-full border border-[rgba(28,36,48,0.08)] px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:border-slate-700 dark:text-slate-400">{preset.year}</span>
+                    <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">{preset.label}</p>
                   </div>
-                  <p className="mt-1 text-[11px] leading-4 text-slate-500">{preset.description}</p>
+                  <p className="mt-1 text-[11px] leading-4 text-slate-500 dark:text-slate-400">{preset.description}</p>
                 </button>
               ))}
             </div>
-          </section>
+          </SoftPanel>
 
-          <section className="rounded-[1.75rem] border border-slate-800 bg-panel p-5">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Generic context presets</p>
+          <SoftPanel className="space-y-4">
+            <p className="atlas-kicker">Context presets</p>
             <div className="mt-4 space-y-3">
               {CONTEXT_PRESETS.map((preset) => (
                 <button
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 p-3 text-left transition hover:border-slate-600"
+                  className="w-full rounded-2xl border border-[rgba(28,36,48,0.08)] bg-white/76 p-3 text-left transition hover:border-[rgba(28,36,48,0.18)] dark:border-slate-800 dark:bg-slate-900/65"
                   key={preset.label}
                   onClick={() => setContext(preset.context)}
                   type="button"
                 >
-                  <p className="text-sm font-semibold text-slate-100">{preset.label}</p>
-                  <p className="mt-1 text-xs leading-5 text-slate-500">{preset.description}</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{preset.label}</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{preset.description}</p>
                 </button>
               ))}
             </div>
-          </section>
+          </SoftPanel>
+        </aside>
+      </section>
 
-          <section className="rounded-[1.75rem] border border-slate-800 bg-panel p-5">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">What the model is doing</p>
-            <div className="mt-4 space-y-3 text-xs leading-5 text-slate-400">
-              <p>
-                1. It gives both families the same historical environment.
-              </p>
-              <p>
-                2. Each family weights that environment differently based on its typical strengths.
-              </p>
+      <div id="movement-explainer">
+        <SectionNarrative
+          description="Movements rarely win just because grievances are intense. They win when communication, organization, coalition breadth, institutional opening, and elite division line up at the same moment."
+          eyebrow="Interpretation"
+          side={
+            <p>
+              This model compares families of movements, not single countries. It asks which strategic logic fits the context best.
+            </p>
+          }
+          title="What the model is really testing"
+        >
+          <div className="grid gap-4 lg:grid-cols-3">
+            <InsightBlock
+              description="Fast communication can create a spark, but without organization it often outruns itself."
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Visibility is not enough"
+              tone="blue"
+            />
+            <InsightBlock
+              description="Institutional openness and elite splits are what turn pressure into reform instead of permanent blockage."
+              icon={<Landmark className="h-5 w-5" />}
+              title="Turning points need openings"
+              tone="gold"
+            />
+            <InsightBlock
+              description="Durable wins usually come from alignment: broad coalitions, repeated organization, and a structure ready to outlast the initial wave."
+              icon={<Users2 className="h-5 w-5" />}
+              title="Durability is built"
+              tone="green"
+            />
+          </div>
+
+          <SoftPanel className="space-y-3">
+            <p className="atlas-kicker">What the model is doing</p>
+            <div className="space-y-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+              <p>1. It gives both families the same historical environment.</p>
+              <p>2. Each family weights that environment differently based on its typical strengths.</p>
               <p>
                 3. The score evolves across phases from spark to durability, so quick visibility and long-run
                 institutional traction can pull in different directions.
               </p>
             </div>
-          </section>
-        </aside>
+            <Link
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[rgb(var(--atlas-primary))] transition hover:text-slate-900"
+              href="/learn/how-social-movements-reshape-history"
+            >
+              Continue into the social movement lesson
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </SoftPanel>
+        </SectionNarrative>
       </div>
-    </div>
+    </AtlasPage>
   );
 }
 
 function SocialMovementsSimulatorFallback() {
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      <section className="rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <span className="inline-flex rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1 text-xs font-medium text-amber-100">
-          Compare-mode simulator
-        </span>
-        <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">
-          Social Movement Compare Lab
-        </h1>
-        <p className="mt-3 max-w-3xl text-base leading-7 text-slate-300">
-          Loading the movement comparison environment.
-        </p>
-      </section>
-    </div>
+    <AtlasPage className="pb-14">
+      <IllustratedTabHero
+        description="Loading the movement comparison environment."
+        eyebrow="Compare-Mode Simulator"
+        imageAlt="People organizing in a civic landscape"
+        imageSrc="/atlas/discuss-hero.png"
+        title="Social Movement Compare Lab"
+      />
+    </AtlasPage>
   );
 }
 

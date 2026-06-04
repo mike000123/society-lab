@@ -1,15 +1,22 @@
 import Link from "next/link";
-import { MessageSquare, Play } from "lucide-react";
+import { ArrowRight, MessageSquare, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { AccentTone } from "@/lib/learn/modules";
 import { cn, withQuery } from "@/lib/utils";
 
 const accentGlow: Record<AccentTone, string> = {
-  amber: "from-amber-400/15 via-amber-400/5 to-transparent",
-  cyan: "from-cyan-400/15 via-cyan-400/5 to-transparent",
-  emerald: "from-emerald-400/15 via-emerald-400/5 to-transparent",
-  rose: "from-rose-400/15 via-rose-400/5 to-transparent",
+  amber: "from-[rgba(212,168,79,0.14)] via-[rgba(212,168,79,0.05)] to-transparent",
+  cyan: "from-[rgba(59,130,246,0.14)] via-[rgba(59,130,246,0.05)] to-transparent",
+  emerald: "from-[rgba(76,175,80,0.14)] via-[rgba(76,175,80,0.05)] to-transparent",
+  rose: "from-[rgba(244,114,182,0.14)] via-[rgba(244,114,182,0.05)] to-transparent",
+};
+
+const accentIcon: Record<AccentTone, string> = {
+  amber: "border-amber-200 bg-amber-50 text-amber-600",
+  cyan: "border-cyan-200 bg-cyan-50 text-cyan-600",
+  emerald: "border-emerald-200 bg-emerald-50 text-emerald-600",
+  rose: "border-rose-200 bg-rose-50 text-rose-600",
 };
 
 export function RelatedActions({
@@ -36,40 +43,61 @@ export function RelatedActions({
   });
 
   return (
-    <section className="rounded-[1.75rem] border border-slate-800 bg-panel/90 p-5 sm:p-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Next actions</p>
-        <h2 className="text-2xl font-semibold text-slate-50">Turn the lesson into practice</h2>
-        <p className="max-w-3xl text-sm leading-6 text-slate-300">
-          Society Lab should move from explanation to experimentation and then into structured public dialogue.
+    <section className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6">
+      <div className="space-y-3">
+        <p className="atlas-kicker">Next actions</p>
+        <h2 className="atlas-display text-3xl leading-tight text-slate-900">Turn the lesson into action</h2>
+        <p className="atlas-copy max-w-4xl text-sm">
+          The goal is not only to understand a system, but to test ideas inside it and talk about alternatives in a
+          more structured way.
         </p>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <article className="relative overflow-hidden rounded-[1.5rem] border border-slate-800 bg-slate-950/65 p-5">
-          <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b", accentGlow[accent])} />
+      <div className="mt-6 grid gap-4 xl:grid-cols-2">
+        <article className="relative overflow-hidden rounded-[1.6rem] border border-[rgba(28,36,48,0.08)] bg-white/88 p-5">
+          <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b", accentGlow[accent])} />
           <div className="relative">
-            <div className="flex items-center gap-2">
-              <Play className="h-4 w-4 text-cyan-300" />
-              <p className="font-semibold text-slate-50">Test this in simulation</p>
+            <div className="flex items-center gap-3">
+              <div className={cn("flex h-10 w-10 items-center justify-center rounded-full border", accentIcon[accent])}>
+                <Play className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Simulation path</p>
+                <p className="text-lg font-semibold text-slate-900">Test the idea in a model</p>
+              </div>
             </div>
-            <p className="mt-3 text-sm leading-6 text-slate-300">{simulationPrompt}</p>
-            <Button asChild className="mt-5 rounded-2xl">
-              <Link href={simulationHref}>Open simulator</Link>
+
+            <p className="mt-4 text-sm leading-7 text-slate-600">{simulationPrompt}</p>
+
+            <Button asChild className="mt-5 rounded-full">
+              <Link href={simulationHref}>
+                Open simulator
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </article>
 
-        <article className="relative overflow-hidden rounded-[1.5rem] border border-slate-800 bg-slate-950/65 p-5">
-          <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b", accentGlow[accent])} />
+        <article className="relative overflow-hidden rounded-[1.6rem] border border-[rgba(28,36,48,0.08)] bg-white/88 p-5">
+          <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b", accentGlow[accent])} />
           <div className="relative">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-cyan-300" />
-              <p className="font-semibold text-slate-50">Start structured discussion</p>
+            <div className="flex items-center gap-3">
+              <div className={cn("flex h-10 w-10 items-center justify-center rounded-full border", accentIcon[accent])}>
+                <MessageSquare className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Discussion path</p>
+                <p className="text-lg font-semibold text-slate-900">Bring the question into dialogue</p>
+              </div>
             </div>
-            <p className="mt-3 text-sm leading-6 text-slate-300">{discussionPrompt}</p>
-            <Button asChild className="mt-5 rounded-2xl" variant="outline">
-              <Link href={discussionHref}>Open discussion space</Link>
+
+            <p className="mt-4 text-sm leading-7 text-slate-600">{discussionPrompt}</p>
+
+            <Button asChild className="mt-5 rounded-full" variant="outline">
+              <Link href={discussionHref}>
+                Open discussion space
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </article>

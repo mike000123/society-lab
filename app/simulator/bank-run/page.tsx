@@ -6,6 +6,15 @@ import {
   ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import {
+  SimulatorActionRow,
+  SimulatorCallout,
+  SimulatorChartPanel,
+  SimulatorHero,
+  SimulatorSidebarPanel,
+} from "@/components/simulator/SimulatorAtlas";
+
 // ─── Model ────────────────────────────────────────────────────────────────────
 interface BankRunParams {
   reserveRatio: number;        // % of deposits held as cash (5–30)
@@ -170,10 +179,9 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
 }
 function ChartPanel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-panel p-4">
-      <p className="mb-3 text-xs font-semibold text-slate-400">{title}</p>
+    <SimulatorChartPanel title={title}>
       <ResponsiveContainer width="100%" height={200}>{children as React.ReactElement}</ResponsiveContainer>
-    </div>
+    </SimulatorChartPanel>
   );
 }
 const gridProps = { strokeDasharray: "3 3", stroke: "#1e293b" };
@@ -201,37 +209,25 @@ export default function BankRunPage() {
   const runDay = data.find(d => d.failedBanks > 0);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      {/* Header */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-rose-400/12 via-rose-400/4 to-transparent" />
-        <div className="relative">
-          <span className="inline-flex rounded-full border border-rose-300/25 bg-rose-400/10 px-3 py-1 text-xs font-medium text-rose-100">Bank Run Dynamics</span>
-          <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">Bank Run Simulator</h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-300">
-            Bank runs are self-fulfilling prophecies: if enough depositors believe a bank will fail, their simultaneous withdrawal makes it fail — regardless of the bank&apos;s underlying solvency. Adjust reserve ratios, deposit insurance, and central bank response speed to see how the same panic plays out under different regulatory regimes.
-          </p>
-        </div>
-      </section>
+    <AtlasPage className="simulator-atlas space-y-6 pb-12">
+      <SimulatorHero
+        actions={<SimulatorActionRow primaryHref="#bank-run-lab" primaryLabel="Open the lab" secondaryHref="#bank-run-ideas" secondaryLabel="Why it matters" />}
+        description="Bank runs are self-fulfilling: if enough depositors expect failure, their rush to withdraw can destroy an otherwise solvent bank. Test how reserves, deposit insurance, contagion, and central bank speed change the outcome."
+        eyebrow="Bank Run Dynamics"
+        imageAlt="Simulation landscape for banking stability"
+        imageSrc="/atlas/simulator-hero.png"
+        metrics={[
+          { label: "Banks failed", value: `${last.failedBanks} / ${params.numBanks}`, description: "At the end of the 90-day run." },
+          { label: "First failure", value: runDay ? `Day ${runDay.day}` : "None", description: "When confidence crosses into collapse." },
+          { label: "Depositors protected", value: `${last.depositorsProtected}%`, description: "Higher insurance breaks the incentive to run." },
+          { label: "CB loans", value: `€${last.cbLoansProvided.toLocaleString()}M`, description: "Emergency liquidity supplied to keep banks open." },
+        ]}
+        title="Bank Run Simulator"
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]" id="bank-run-lab">
         {/* Charts */}
         <div className="space-y-4">
-          {/* Summary */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { label: "Banks failed (90 days)", value: `${last.failedBanks} / ${params.numBanks}`, color: last.failedBanks === 0 ? "text-emerald-400" : last.failedBanks < params.numBanks / 2 ? "text-amber-400" : "text-rose-400" },
-              { label: "First failure", value: runDay ? `Day ${runDay.day}` : "None", color: runDay ? "text-rose-400" : "text-emerald-400" },
-              { label: "Depositors protected", value: `${last.depositorsProtected}%`, color: last.depositorsProtected > 90 ? "text-emerald-400" : last.depositorsProtected > 60 ? "text-amber-400" : "text-rose-400" },
-              { label: "CB loans extended", value: `€${last.cbLoansProvided.toLocaleString()}M`, color: "text-cyan-400" },
-            ].map(c => (
-              <div key={c.label} className="rounded-2xl border border-slate-800 bg-panel p-4">
-                <p className="text-xs text-slate-500">{c.label}</p>
-                <p className={`mt-1 text-lg font-black leading-tight ${c.color}`}>{c.value}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Confidence + reserves */}
           <div className="grid gap-4 sm:grid-cols-2">
             <ChartPanel title="Depositor confidence (avg %)">
@@ -282,35 +278,25 @@ export default function BankRunPage() {
 
           {/* Insight callouts */}
           {params.depositInsurance < 20 && last.failedBanks > 0 && (
-            <div className="rounded-2xl border border-rose-400/20 bg-rose-400/5 p-5">
-              <p className="text-xs font-semibold text-rose-300 mb-2">⚠️ No deposit insurance — self-fulfilling panic</p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title="No deposit insurance means panic can become rational" tone="rose">
                 With {params.depositInsurance}% deposit insurance, even perfectly solvent banks can be destroyed by panic. Each rational depositor, knowing others might run, is incentivised to run first. This is exactly what destroyed 9,000 US banks in 1930–33 — most were solvent when the panic started.
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
           {params.depositInsurance >= 80 && last.failedBanks === 0 && (
-            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-5">
-              <p className="text-xs font-semibold text-emerald-300 mb-2">✓ Deposit insurance breaks the panic loop</p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title="Deposit insurance breaks the self-fulfilling loop" tone="green">
                 At {params.depositInsurance}% coverage, insured depositors have no reason to run — they know they&apos;ll be paid regardless. The self-fulfilling prophecy is broken. The FDIC was created in 1933 precisely for this reason, and since then retail bank runs have been virtually eliminated in the US.
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
           {params.contagionRate > 0.6 && last.failedBanks > params.numBanks * 0.4 && (
-            <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5">
-              <p className="text-xs font-semibold text-amber-300 mb-2">⚡ Contagion cascade — the 1907 / 1933 pattern</p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title="Contagion can turn one failure into a system event" tone="gold">
                 High contagion ({Math.round(params.contagionRate * 100)}%) means each failure amplifies the next. This is the &quot;bank holiday&quot; scenario: once confidence collapses in one institution, the panic spreads faster than any individual bank can respond. FDR&apos;s 1933 bank holiday — closing all banks for a week — was the only way to break this cascade by resetting confidence collectively.
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
         </div>
 
         {/* Controls */}
         <div className="space-y-4">
-          <div className="rounded-[1.75rem] border border-rose-400/20 bg-panel p-5 space-y-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-300">Banking system parameters</p>
+          <SimulatorSidebarPanel kicker="Banking system parameters" title="Set the conditions" tone="blue">
             {([
               { key: "reserveRatio",    label: "Reserve ratio",            icon: "🏦", min: 2,   max: 40,  step: 1,   fmt: (v: number) => `${v}%`,      tip: "Cash the bank holds per €100 of deposits. Fractional reserve: real banks hold 5–15%." },
               { key: "depositInsurance", label: "Deposit insurance",       icon: "🛡️", min: 0,   max: 100, step: 5,   fmt: (v: number) => `${v}%`,      tip: "% of deposits guaranteed by government. The key reform after the 1933 bank runs." },
@@ -322,49 +308,48 @@ export default function BankRunPage() {
             ] as const).map(sl => (
               <label key={sl.key} className="block">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-300">{sl.icon} {sl.label}</span>
-                  <span className="font-mono font-bold text-rose-300">{sl.fmt(params[sl.key])}</span>
+                  <span className="text-slate-800 dark:text-slate-100">{sl.icon} {sl.label}</span>
+                  <span className="font-mono font-bold text-[rgb(var(--atlas-primary))]">{sl.fmt(params[sl.key])}</span>
                 </div>
                 <input type="range" min={sl.min} max={sl.max} step={sl.step}
                   value={params[sl.key]}
                   onChange={e => setP(sl.key, Number(e.target.value))}
-                  className="w-full accent-rose-400" />
+                  className="w-full accent-[rgb(var(--atlas-primary))]" />
                 <p className="mt-0.5 text-xs text-slate-600">{sl.tip}</p>
               </label>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
 
           {/* Historical presets */}
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Historical crises</p>
+          <SimulatorSidebarPanel kicker="Historical crises" title="Load a preset">
             {PRESETS.map(preset => (
               <button key={preset.label}
                 onClick={() => setParams(p => ({ ...p, ...preset.params }))}
-                className="w-full rounded-2xl border border-slate-800 p-3 text-left hover:border-slate-600 transition-colors"
+                className="w-full rounded-2xl border border-[rgba(28,36,48,0.08)] bg-white/76 p-3 text-left transition hover:border-[rgba(28,36,48,0.18)] dark:border-slate-800 dark:bg-slate-900/65"
                 style={{ borderLeftColor: preset.color, borderLeftWidth: 3 }}>
                 <p className="text-xs font-semibold" style={{ color: preset.color }}>{preset.label}</p>
                 <p className="mt-0.5 text-xs text-slate-500">{preset.description}</p>
               </button>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
 
           {/* Key concepts */}
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Why this keeps happening</p>
+          <SimulatorSidebarPanel kicker="Why this keeps happening" title="System lessons" className="space-y-3" >
             {[
               { title: "Shadow bank loophole", text: "Every major crisis featured institutions that acted like banks (took deposits, made risky bets) but weren't regulated like banks. Trusts in 1907, S&Ls in the 1980s, money-market funds and mortgage vehicles in 2008.", color: "text-rose-300" },
               { title: "Self-fulfilling prophecy", text: "Bank runs don't require the bank to be insolvent. If enough depositors believe the bank will fail, their simultaneous withdrawals make it fail. Deposit insurance breaks this logic by removing the incentive to run first.", color: "text-amber-300" },
               { title: "Contagion & network effects", text: "In a connected banking system, one failure signals that similar institutions may also be unsound. This is why crises cascade — not because all banks made the same bad bets, but because panic is contagious.", color: "text-cyan-300" },
               { title: "Lender of last resort", text: "Bagehot's 1873 rule: in a panic, the central bank should lend freely to solvent institutions at a penalty rate against good collateral. This breaks the liquidity crisis without rewarding bad behaviour. The US had no such mechanism in 1907 or 1930.", color: "text-violet-300" },
             ].map(item => (
-              <div key={item.title} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div key={item.title} className="rounded-xl border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.58)] p-3 dark:border-slate-800 dark:bg-slate-900/60">
                 <p className={`text-xs font-semibold ${item.color}`}>{item.title}</p>
                 <p className="mt-1 text-xs text-slate-400">{item.text}</p>
               </div>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
         </div>
       </div>
-    </div>
+      <div id="bank-run-ideas" />
+    </AtlasPage>
   );
 }

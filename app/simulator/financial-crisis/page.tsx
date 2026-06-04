@@ -6,6 +6,15 @@ import {
   ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import {
+  SimulatorActionRow,
+  SimulatorCallout,
+  SimulatorChartPanel,
+  SimulatorHero,
+  SimulatorSidebarPanel,
+} from "@/components/simulator/SimulatorAtlas";
+
 // ─── Model ────────────────────────────────────────────────────────────────────
 interface FCParams {
   initialLeverage: number;        // × (e.g. 30 = 30:1)
@@ -175,10 +184,9 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
 }
 function ChartPanel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-panel p-4">
-      <p className="mb-3 text-xs font-semibold text-slate-400">{title}</p>
+    <SimulatorChartPanel title={title}>
       <ResponsiveContainer width="100%" height={210}>{children as React.ReactElement}</ResponsiveContainer>
-    </div>
+    </SimulatorChartPanel>
   );
 }
 const gridProps = { strokeDasharray: "3 3", stroke: "#1e293b" };
@@ -211,38 +219,25 @@ export default function FinancialCrisisPage() {
   const last = data[data.length - 1];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      {/* Header */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-orange-400/12 via-orange-400/4 to-transparent" />
-        <div className="relative">
-          <span className="inline-flex rounded-full border border-orange-300/25 bg-orange-400/10 px-3 py-1 text-xs font-medium text-orange-100">Leverage & Contagion Model</span>
-          <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">Financial Crisis Simulator</h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-300">
-            Financial crises follow a consistent pattern: cheap credit inflates an asset bubble, leverage amplifies the gains — then amplifies the collapse. Shadow banks (unregulated institutions taking bank-like risks) accelerate both phases. Adjust leverage, regulation, and response policy to see how the same shock plays out differently.
-          </p>
-        </div>
-      </section>
+    <AtlasPage className="simulator-atlas space-y-6 pb-12">
+      <SimulatorHero
+        actions={<SimulatorActionRow primaryHref="#financial-crisis-lab" primaryLabel="Open the lab" secondaryHref="#financial-crisis-patterns" secondaryLabel="Pattern notes" />}
+        description="Cheap credit inflates an asset bubble, leverage magnifies the boom, and shadow banking spreads fragility through the system. Adjust the same crisis levers to see why some busts become depressions while others get contained."
+        eyebrow="Leverage and Contagion"
+        imageAlt="Financial systems simulation landscape"
+        imageSrc="/atlas/simulator-hero.png"
+        metrics={[
+          { label: "GDP trough", value: `${troughGDP.toFixed(1)}`, description: "Index where 100 is pre-crisis output." },
+          { label: "Peak defaults", value: `${peakDefaults.toFixed(1)}%`, description: "Share of the loan book that fails." },
+          { label: "Bailout cost", value: `€${last.bailoutCost.toLocaleString()}B`, description: "Public funds used to recapitalize banks." },
+          { label: "Unemployment rise", value: `+${last.unemploymentDelta.toFixed(1)}pp`, description: "Increase above the pre-crisis labor market." },
+        ]}
+        title="Financial Crisis Simulator"
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]" id="financial-crisis-lab">
         {/* Charts */}
         <div className="space-y-4">
-          {/* Summary */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { label: "GDP trough", value: `${troughGDP.toFixed(1)}`, sub: "index (100=pre-crisis)", color: troughGDP > 95 ? "text-emerald-400" : troughGDP > 85 ? "text-amber-400" : "text-rose-400" },
-              { label: "Peak defaults", value: `${peakDefaults.toFixed(1)}%`, sub: "of loan book", color: peakDefaults < 10 ? "text-emerald-400" : peakDefaults < 25 ? "text-amber-400" : "text-rose-400" },
-              { label: "Bailout cost", value: `€${last.bailoutCost.toLocaleString()}B`, sub: "public funds", color: last.bailoutCost === 0 ? "text-slate-400" : last.bailoutCost < 500 ? "text-amber-400" : "text-rose-400" },
-              { label: "Unemployment rise", value: `+${last.unemploymentDelta.toFixed(1)}pp`, sub: "above pre-crisis", color: last.unemploymentDelta < 2 ? "text-emerald-400" : last.unemploymentDelta < 5 ? "text-amber-400" : "text-rose-400" },
-            ].map(c => (
-              <div key={c.label} className="rounded-2xl border border-slate-800 bg-panel p-4">
-                <p className="text-xs text-slate-500">{c.label}</p>
-                <p className={`mt-1 text-lg font-black leading-tight ${c.color}`}>{c.value}</p>
-                <p className="text-xs text-slate-600">{c.sub}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Housing bubble */}
           <ChartPanel title="Housing price index (100 = baseline)">
             <AreaChart data={data}>
@@ -311,35 +306,25 @@ export default function FinancialCrisisPage() {
 
           {/* Dynamic callouts */}
           {params.shadowBankingShare > 35 && troughGDP < 88 && (
-            <div className="rounded-2xl border border-orange-400/20 bg-orange-400/5 p-5">
-              <p className="text-xs font-semibold text-orange-300 mb-2">⚠️ Shadow banking amplifies the collapse</p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title="Shadow banking amplifies the collapse" tone="gold">
                 At {params.shadowBankingShare}% of lending done by unregulated institutions, the shadow banking sector acts as a hidden leverage multiplier. In 2008, money market funds, broker-dealers, and mortgage conduits collectively held more assets than regulated banks — but had no deposit insurance, no reserve requirements, and access to the Fed&apos;s backstop was ambiguous. When Lehman failed, the entire shadow system froze within 72 hours.
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
           {params.initialLeverage > 20 && (
-            <div className="rounded-2xl border border-rose-400/20 bg-rose-400/5 p-5">
-              <p className="text-xs font-semibold text-rose-300 mb-2">📐 Leverage: {params.initialLeverage}× means a {Math.round(100/params.initialLeverage)}% asset decline wipes out equity</p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title={`Leverage at ${params.initialLeverage}× means a ${Math.round(100 / params.initialLeverage)}% fall can wipe out equity`} tone="rose">
                 At {params.initialLeverage}:1 leverage, the bank owns €{params.initialLeverage} of assets for every €1 of equity. A {Math.round(100/params.initialLeverage)}% fall in asset values — well within the range of a housing correction — renders it insolvent. Lehman Brothers was operating at ~30:1 in 2008. Bear Stearns at 33:1.
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
           {!params.bailoutPolicy && troughGDP < 80 && (
-            <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5">
-              <p className="text-xs font-semibold text-amber-300 mb-2">🏦 No bailout — credit frozen, depression-level GDP</p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title="Without recapitalization, credit can freeze into a depression" tone="gold">
                 Without recapitalisation, banks stop lending to protect their remaining capital. Businesses cannot borrow to make payroll; households cannot refinance. This is the 1933 mechanism: the banking system&apos;s collapse rendered monetary policy powerless, as Friedman and Schwartz documented. The RFC&apos;s eventual bank nationalisations ended it — but only after GDP had fallen by a third.
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
         </div>
 
         {/* Controls */}
         <div className="space-y-4">
-          <div className="rounded-[1.75rem] border border-orange-400/20 bg-panel p-5 space-y-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-orange-300">Crisis parameters</p>
+          <SimulatorSidebarPanel kicker="Crisis parameters" title="Set the fragility" tone="gold">
             {([
               { key: "initialLeverage",    label: "Bank leverage ratio",      icon: "📐", min: 5,  max: 50, step: 1,  fmt: (v: number) => `${v}×`,   tip: "Assets per €1 of equity. Pre-2008 investment banks: 25–33×. After Basel III reforms: capped at ~12×." },
               { key: "subprimeFraction",   label: "Risky lending fraction",   icon: "🎲", min: 5,  max: 60, step: 1,  fmt: (v: number) => `${v}%`,   tip: "% of loans made to borrowers unlikely to repay if prices fall. In 2006 US: ~30% of all mortgages were subprime." },
@@ -351,13 +336,13 @@ export default function FinancialCrisisPage() {
             ] as const).map(sl => (
               <label key={sl.key} className="block">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-300">{sl.icon} {sl.label}</span>
-                  <span className="font-mono font-bold text-orange-300">{sl.fmt(params[sl.key] as number)}</span>
+                  <span className="text-slate-800 dark:text-slate-100">{sl.icon} {sl.label}</span>
+                  <span className="font-mono font-bold text-[rgb(var(--atlas-gold))]">{sl.fmt(params[sl.key] as number)}</span>
                 </div>
                 <input type="range" min={sl.min} max={sl.max} step={sl.step}
                   value={params[sl.key] as number}
                   onChange={e => setP(sl.key, Number(e.target.value))}
-                  className="w-full accent-orange-400" />
+                  className="w-full accent-[rgb(var(--atlas-gold))]" />
                 <p className="mt-0.5 text-xs text-slate-600">{sl.tip}</p>
               </label>
             ))}
@@ -368,7 +353,7 @@ export default function FinancialCrisisPage() {
                 <p className="text-xs text-slate-600 mt-0.5">Recapitalise banks when capital falls below 40%</p>
               </div>
               <button onClick={() => setP("bailoutPolicy", !params.bailoutPolicy)}
-                className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${params.bailoutPolicy ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-300" : "border-slate-700 text-slate-500"}`}>
+                className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${params.bailoutPolicy ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-300" : "border-[rgba(28,36,48,0.12)] text-slate-500"}`}>
                 {params.bailoutPolicy ? "ON" : "OFF"}
               </button>
             </div>
@@ -380,43 +365,42 @@ export default function FinancialCrisisPage() {
                 </div>
                 <input type="range" min={0} max={24} step={1} value={params.bailoutDelay}
                   onChange={e => setP("bailoutDelay", Number(e.target.value))}
-                  className="w-full accent-orange-400" />
+                  className="w-full accent-[rgb(var(--atlas-gold))]" />
                 <p className="mt-0.5 text-xs text-slate-600">TARP (2008) came ~12 months after the first warning signs. Every month of delay worsens the credit freeze.</p>
               </label>
             )}
-          </div>
+          </SimulatorSidebarPanel>
 
           {/* Presets */}
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Historical crises</p>
+          <SimulatorSidebarPanel kicker="Historical crises" title="Load a crisis">
             {PRESETS.map(preset => (
               <button key={preset.label}
                 onClick={() => setParams(p => ({ ...p, ...preset.params }))}
-                className="w-full rounded-2xl border border-slate-800 p-3 text-left hover:border-slate-600 transition-colors"
+                className="w-full rounded-2xl border border-[rgba(28,36,48,0.08)] bg-white/76 p-3 text-left transition hover:border-[rgba(28,36,48,0.18)] dark:border-slate-800 dark:bg-slate-900/65"
                 style={{ borderLeftColor: preset.color, borderLeftWidth: 3 }}>
                 <p className="text-xs font-semibold" style={{ color: preset.color }}>{preset.label}</p>
                 <p className="mt-0.5 text-xs text-slate-500">{preset.description}</p>
               </button>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
 
           {/* Key concepts */}
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Recurring pattern</p>
+          <SimulatorSidebarPanel kicker="Recurring pattern" title="System lessons" className="space-y-3">
             {[
               { title: "Shadow banks, same lesson", text: "1907: trusts. 1980s: S&Ls. 2008: SIVs, money market funds, broker-dealers. Each generation creates a new institution that does banking without banking regulation. When it fails, the taxpayer pays.", color: "text-rose-300" },
               { title: "Leverage amplifies everything", text: "A 5% asset price fall is uncomfortable at 10× leverage (equity halved), catastrophic at 30× (insolvent). Leverage turns market corrections into systemic crises.", color: "text-amber-300" },
               { title: "Regulatory amnesia", text: "The Glass-Steagall Act (1933) was dismantled by 1999. Capital requirements weakened in the 1990s. Bagehot's rules written in 1873 were forgotten by 2007. Stability breeds complacency.", color: "text-cyan-300" },
               { title: "Bailouts socialise losses", text: "Private profits flow to shareholders during the bubble. Losses flow to taxpayers in the bust. This moral hazard — knowing the state will rescue you — encourages future risk-taking.", color: "text-violet-300" },
             ].map(item => (
-              <div key={item.title} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div key={item.title} className="rounded-xl border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.58)] p-3 dark:border-slate-800 dark:bg-slate-900/60">
                 <p className={`text-xs font-semibold ${item.color}`}>{item.title}</p>
                 <p className="mt-1 text-xs text-slate-400">{item.text}</p>
               </div>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
         </div>
       </div>
-    </div>
+      <div id="financial-crisis-patterns" />
+    </AtlasPage>
   );
 }

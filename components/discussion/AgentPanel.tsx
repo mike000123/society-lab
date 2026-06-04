@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Bot, ChevronDown, ChevronUp, Loader2, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 import { AGENT_PERSONAS, type AgentPersona } from "@/lib/agents/personas";
+import { cn } from "@/lib/utils";
 
 interface AgentResponse {
   agentId: string;
@@ -12,29 +13,34 @@ interface AgentResponse {
 }
 
 interface AgentPanelProps {
+  recentPosts: { author: string; content: string; kind: string }[];
   topic: string;
-  recentPosts: { kind: string; content: string; author: string }[];
 }
 
-function AgentCard({ agent, onSelect, selected }: {
+function AgentCard({
+  agent,
+  onSelect,
+  selected,
+}: {
   agent: AgentPersona;
   onSelect: () => void;
   selected: boolean;
 }) {
   return (
     <button
-      onClick={onSelect}
       className={cn(
-        "flex flex-col gap-1 rounded-2xl border p-3 text-left text-xs transition-colors w-full",
+        "w-full rounded-[1.2rem] border px-3 py-3 text-left text-xs transition",
         selected
-          ? `${agent.borderColor} ${agent.bgColor}`
-          : "border-slate-700 hover:border-slate-500",
+          ? "border-[rgba(59,130,246,0.2)] bg-[rgba(59,130,246,0.08)]"
+          : "border-[rgba(28,36,48,0.08)] bg-white/88 hover:border-[rgba(28,36,48,0.18)]",
       )}
+      onClick={onSelect}
+      type="button"
     >
-      <span className={cn("font-semibold text-sm", selected ? agent.color : "text-slate-300")}>
+      <span className={cn("block text-sm font-semibold", selected ? "text-slate-900" : "text-slate-700")}>
         {agent.name}
       </span>
-      <span className="text-slate-500 leading-snug">{agent.role}</span>
+      <span className="mt-1 block leading-snug text-slate-500">{agent.role}</span>
     </button>
   );
 }
@@ -47,15 +53,18 @@ export function AgentPanel({ topic, recentPosts }: AgentPanelProps) {
   const [responses, setResponses] = useState<AgentResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedAgent = AGENT_PERSONAS.find((a) => a.id === selectedId)!;
+  const selectedAgent = AGENT_PERSONAS.find((agent) => agent.id === selectedId)!;
 
   async function askAgent() {
-    if (loading) return;
+    if (loading) {
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch("/api/debate", {
+      const response = await fetch("/api/debate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -66,16 +75,15 @@ export function AgentPanel({ topic, recentPosts }: AgentPanelProps) {
         }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      const data = await response.json();
+      if (!response.ok) {
         setError(data.error ?? "Something went wrong.");
         return;
       }
 
-      setResponses((prev) => [
+      setResponses((previous) => [
         { agentId: data.agentId, agentName: data.agentName, response: data.response },
-        ...prev,
+        ...previous,
       ]);
       setUserPrompt("");
     } catch {
@@ -86,101 +94,95 @@ export function AgentPanel({ topic, recentPosts }: AgentPanelProps) {
   }
 
   return (
-    <div className="rounded-[1.75rem] border border-slate-700/60 bg-slate-900/40">
-      {/* Header toggle */}
+    <div className="rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white/92 shadow-[0_14px_32px_rgba(28,36,48,0.04)]">
       <button
-        onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between px-5 py-4 text-left"
+        onClick={() => setOpen((value) => !value)}
+        type="button"
       >
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-xl border border-violet-400/25 bg-violet-400/10">
-            <Bot className="h-4 w-4 text-violet-300" />
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(139,92,246,0.16)] bg-[rgba(139,92,246,0.08)] text-violet-700">
+            <Bot className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-200">Ask an AI agent</p>
-            <p className="text-xs text-slate-500">6 expert perspectives — systems, economics, ethics, history</p>
+            <p className="text-sm font-semibold text-slate-900">Ask an AI agent</p>
+            <p className="text-xs text-slate-500">Multiple perspectives for testing arguments, not replacing them.</p>
           </div>
         </div>
-        {open ? (
-          <ChevronUp className="h-4 w-4 text-slate-500" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-slate-500" />
-        )}
+        {open ? <ChevronUp className="h-4 w-4 text-slate-500" /> : <ChevronDown className="h-4 w-4 text-slate-500" />}
       </button>
 
-      {open && (
-        <div className="border-t border-slate-700/60 px-5 pb-5 pt-4 space-y-4">
-          {/* Agent selector */}
+      {open ? (
+        <div className="border-t border-[rgba(28,36,48,0.08)] px-5 pb-5 pt-4 space-y-4">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {AGENT_PERSONAS.map((agent) => (
               <AgentCard
-                key={agent.id}
                 agent={agent}
+                key={agent.id}
                 onSelect={() => setSelectedId(agent.id)}
                 selected={selectedId === agent.id}
               />
             ))}
           </div>
 
-          {/* Selected agent description */}
-          <div className={cn("rounded-xl border px-4 py-3 text-xs", selectedAgent.borderColor, selectedAgent.bgColor)}>
-            <span className={cn("font-semibold", selectedAgent.color)}>{selectedAgent.name}</span>
-            <span className="text-slate-400"> — {selectedAgent.description}</span>
+          <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(251,249,245,0.95)] px-4 py-4 text-sm leading-6 text-slate-600">
+            <span className="font-semibold text-slate-900">{selectedAgent.name}</span> — {selectedAgent.description}
           </div>
 
-          {/* Optional prompt */}
           <textarea
-            value={userPrompt}
-            onChange={(e) => setUserPrompt(e.target.value)}
-            placeholder={`Ask ${selectedAgent.name} a specific question, or leave blank for a general perspective…`}
+            className="w-full rounded-[1.35rem] border border-[rgba(28,36,48,0.12)] bg-[rgba(251,249,245,0.95)] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[rgb(var(--atlas-primary))] resize-none"
+            onChange={(event) => setUserPrompt(event.target.value)}
+            placeholder={`Ask ${selectedAgent.name} a specific question, or leave blank for a general perspective...`}
             rows={2}
-            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-violet-500 resize-none"
+            value={userPrompt}
           />
 
-          {error && (
-            <p className="rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-2 text-xs text-rose-300">
+          {error ? (
+            <p className="rounded-[1.1rem] border border-rose-200 bg-rose-50/80 px-4 py-3 text-xs text-rose-700">
               {error}
             </p>
-          )}
+          ) : null}
 
           <button
-            onClick={askAgent}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[rgb(var(--atlas-primary))] px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-50"
+            onClick={askAgent}
+            type="button"
           >
             {loading ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Thinking…</>
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Thinking...
+              </>
             ) : (
-              <><Sparkles className="h-4 w-4" /> Get {selectedAgent.name}&apos;s perspective</>
+              <>
+                <Sparkles className="h-4 w-4" />
+                Get {selectedAgent.name}&apos;s perspective
+              </>
             )}
           </button>
 
-          {/* Responses */}
-          {responses.length > 0 && (
+          {responses.length > 0 ? (
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-widest text-slate-600">Agent responses</p>
-              {responses.map((r, i) => {
-                const agent = AGENT_PERSONAS.find((a) => a.id === r.agentId)!;
-                return (
-                  <article
-                    key={i}
-                    className={cn("rounded-2xl border p-4 space-y-2", agent?.borderColor ?? "border-slate-700")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Bot className={cn("h-3.5 w-3.5", agent?.color ?? "text-slate-400")} />
-                      <span className={cn("text-xs font-semibold", agent?.color ?? "text-slate-300")}>
-                        {r.agentName}
-                      </span>
-                      <span className="text-xs text-slate-600">· AI agent</span>
-                    </div>
-                    <p className="text-sm leading-6 text-slate-300 whitespace-pre-line">{r.response}</p>
-                  </article>
-                );
-              })}
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Agent responses</p>
+              {responses.map((response, index) => (
+                <article
+                  className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4"
+                  key={`${response.agentId}-${index}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-3.5 w-3.5 text-violet-700" />
+                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      {response.agentName}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm leading-7 text-slate-700 whitespace-pre-line">{response.response}</p>
+                </article>
+              ))}
             </div>
-          )}
+          ) : null}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

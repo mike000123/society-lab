@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 // Inline script: runs before React hydrates to prevent flash of wrong theme
-const themeScript = `(function(){try{var t=localStorage.getItem("theme");document.documentElement.classList.add(t==="light"?"light":"dark");}catch(e){document.documentElement.classList.add("dark");}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem("theme");document.documentElement.classList.add(t==="dark"?"dark":"light");}catch(e){document.documentElement.classList.add("light");}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,10 +16,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body>
-        <div className="grid-overlay fixed inset-0 -z-10 opacity-20" />
+      <body className="min-h-screen">
+        <div className="grid-overlay fixed inset-0 -z-10 opacity-40" />
         <SiteHeader />
-        <main className="px-4 py-6 md:px-8">{children}</main>
+        <main className="px-4 py-6 md:px-8 lg:py-8">{children}</main>
       </body>
     </html>
   );

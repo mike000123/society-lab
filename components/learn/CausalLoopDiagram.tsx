@@ -1,11 +1,49 @@
 import type { AccentTone, CausalLoop, CausalLoopEdge, CausalLoopNode } from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
 
-const toneClasses: Record<AccentTone, string> = {
-  amber: "border-amber-300/25 bg-amber-400/10 text-amber-100",
-  cyan: "border-cyan-300/25 bg-cyan-400/10 text-cyan-100",
-  emerald: "border-emerald-300/25 bg-emerald-400/10 text-emerald-100",
-  rose: "border-rose-300/25 bg-rose-400/10 text-rose-100",
+const toneClasses: Record<
+  AccentTone,
+  {
+    badge: string;
+    glow: string;
+    node: string;
+    nodeText: string;
+    loop: string;
+    line: string;
+  }
+> = {
+  amber: {
+    badge: "border-amber-300 bg-amber-50 text-amber-700",
+    glow: "from-[rgba(212,168,79,0.12)] via-[rgba(212,168,79,0.04)] to-transparent",
+    node: "border-amber-200 bg-amber-50/95",
+    nodeText: "text-amber-800",
+    loop: "border-amber-200/80 bg-amber-50/55",
+    line: "border-amber-200/80",
+  },
+  cyan: {
+    badge: "border-cyan-300 bg-cyan-50 text-cyan-700",
+    glow: "from-[rgba(59,130,246,0.12)] via-[rgba(59,130,246,0.04)] to-transparent",
+    node: "border-cyan-200 bg-cyan-50/95",
+    nodeText: "text-cyan-800",
+    loop: "border-cyan-200/80 bg-cyan-50/55",
+    line: "border-cyan-200/80",
+  },
+  emerald: {
+    badge: "border-emerald-300 bg-emerald-50 text-emerald-700",
+    glow: "from-[rgba(76,175,80,0.12)] via-[rgba(76,175,80,0.04)] to-transparent",
+    node: "border-emerald-200 bg-emerald-50/95",
+    nodeText: "text-emerald-800",
+    loop: "border-emerald-200/80 bg-emerald-50/55",
+    line: "border-emerald-200/80",
+  },
+  rose: {
+    badge: "border-rose-300 bg-rose-50 text-rose-700",
+    glow: "from-[rgba(244,114,182,0.12)] via-[rgba(244,114,182,0.04)] to-transparent",
+    node: "border-rose-200 bg-rose-50/95",
+    nodeText: "text-rose-800",
+    loop: "border-rose-200/80 bg-rose-50/55",
+    line: "border-rose-200/80",
+  },
 };
 
 function getPointAtDistance(start: CausalLoopNode, end: CausalLoopNode, distance = 7) {
@@ -46,14 +84,8 @@ function getCurvedPath(start: CausalLoopNode, end: CausalLoopNode, bend = 0) {
 function getLabelPoint(start: CausalLoopNode, end: CausalLoopNode, bend = 0) {
   const curve = getCurvedPath(start, end, bend);
   const t = 0.5;
-  const x =
-    (1 - t) * (1 - t) * curve.startX +
-    2 * (1 - t) * t * curve.controlX +
-    t * t * curve.endX;
-  const y =
-    (1 - t) * (1 - t) * curve.startY +
-    2 * (1 - t) * t * curve.controlY +
-    t * t * curve.endY;
+  const x = (1 - t) * (1 - t) * curve.startX + 2 * (1 - t) * t * curve.controlX + t * t * curve.endX;
+  const y = (1 - t) * (1 - t) * curve.startY + 2 * (1 - t) * t * curve.controlY + t * t * curve.endY;
 
   return { x, y };
 }
@@ -73,117 +105,145 @@ export function CausalLoopDiagram({
   nodes: CausalLoopNode[];
   title: string;
 }) {
+  const styles = toneClasses[accent];
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
   const positiveMarkerId = `arrow-positive-${accent}`;
   const negativeMarkerId = `arrow-negative-${accent}`;
 
   return (
-    <section className="rounded-[1.75rem] border border-slate-800 bg-panel/90 p-5 sm:p-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Causal loop</p>
-        <h2 className="text-2xl font-semibold text-slate-50">{title}</h2>
-        <p className="max-w-3xl text-sm leading-6 text-slate-300">{description}</p>
+    <section className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6">
+      <div className="space-y-3">
+        <span
+          className={cn(
+            "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
+            styles.badge,
+          )}
+        >
+          System map
+        </span>
+        <h2 className="atlas-display text-3xl leading-tight text-slate-900">{title}</h2>
+        <p className="atlas-copy max-w-4xl text-sm">{description}</p>
       </div>
 
-      <div className="relative mt-6 h-[25rem] overflow-hidden rounded-[1.5rem] border border-slate-800 bg-slate-950/70 sm:h-[30rem]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),transparent_38%)]" />
-        <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-          <defs>
-            <marker
-              id={positiveMarkerId}
-              markerHeight="8"
-              markerWidth="8"
-              orient="auto-start-reverse"
-              refX="6"
-              refY="3"
-            >
-              <path d="M0,0 L6,3 L0,6 Z" fill="#22d3ee" />
-            </marker>
-            <marker
-              id={negativeMarkerId}
-              markerHeight="8"
-              markerWidth="8"
-              orient="auto-start-reverse"
-              refX="6"
-              refY="3"
-            >
-              <path d="M0,0 L6,3 L0,6 Z" fill="#fb7185" />
-            </marker>
-          </defs>
+      <div className="relative mt-6 overflow-hidden rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(246,244,238,0.92))] p-4 sm:p-5">
+        <div className="atlas-grid absolute inset-0 opacity-50" />
+        <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b", styles.glow)} />
 
-          {edges.map((edge) => {
-            const start = nodeMap.get(edge.from);
-            const end = nodeMap.get(edge.to);
-
-            if (!start || !end) {
-              return null;
-            }
-
-            const curve = getCurvedPath(start, end, edge.bend ?? 0);
-            const labelPoint = getLabelPoint(start, end, edge.bend ?? 0);
-            const stroke = edge.polarity === "positive" ? "#22d3ee" : "#fb7185";
-
-            return (
-              <g key={`${edge.from}-${edge.to}-${edge.label}`}>
-                <path
-                  d={curve.path}
-                  fill="none"
-                  markerEnd={`url(#${edge.polarity === "positive" ? positiveMarkerId : negativeMarkerId})`}
-                  stroke={stroke}
-                  strokeDasharray={edge.polarity === "negative" ? "3 3" : undefined}
-                  strokeLinecap="round"
-                  strokeWidth="0.75"
-                />
-                <text
-                  fill="#cbd5e1"
-                  fontSize="2.45"
-                  textAnchor="middle"
-                  x={labelPoint.x}
-                  y={labelPoint.y - 1}
-                >
-                  {edge.label}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-
-        {nodes.map((node) => (
-          <div
-            className={cn(
-              "absolute w-24 -translate-x-1/2 -translate-y-1/2 rounded-2xl border px-3 py-2 text-center text-[11px] font-medium leading-tight shadow-[0_12px_30px_rgba(2,8,23,0.35)] sm:w-32 sm:text-xs",
-              toneClasses[node.tone ?? accent],
-            )}
-            key={node.id}
-            style={{ left: `${node.x}%`, top: `${node.y}%` }}
-          >
-            {node.label}
+        <div className="relative mb-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="max-w-2xl text-sm leading-7 text-slate-600">
+            Read the arrows as feedback relationships. Reinforcing links amplify a pattern, while balancing links try to
+            contain or reverse it.
+          </p>
+          <div className="flex flex-wrap gap-2 text-xs font-medium">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-white/86 px-3 py-1 text-slate-600">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#3B82F6]" />
+              Reinforcing
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-white/86 px-3 py-1 text-slate-600">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#C46A6A]" />
+              Balancing
+            </span>
           </div>
-        ))}
+        </div>
+
+        <div className="relative h-[25rem] sm:h-[30rem]">
+          <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <defs>
+              <marker
+                id={positiveMarkerId}
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto-start-reverse"
+                refX="6"
+                refY="3"
+              >
+                <path d="M0,0 L6,3 L0,6 Z" fill="#3B82F6" />
+              </marker>
+              <marker
+                id={negativeMarkerId}
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto-start-reverse"
+                refX="6"
+                refY="3"
+              >
+                <path d="M0,0 L6,3 L0,6 Z" fill="#C46A6A" />
+              </marker>
+            </defs>
+
+            {edges.map((edge) => {
+              const start = nodeMap.get(edge.from);
+              const end = nodeMap.get(edge.to);
+
+              if (!start || !end) {
+                return null;
+              }
+
+              const curve = getCurvedPath(start, end, edge.bend ?? 0);
+              const labelPoint = getLabelPoint(start, end, edge.bend ?? 0);
+              const stroke = edge.polarity === "positive" ? "#3B82F6" : "#C46A6A";
+
+              return (
+                <g key={`${edge.from}-${edge.to}-${edge.label}`}>
+                  <path
+                    d={curve.path}
+                    fill="none"
+                    markerEnd={`url(#${edge.polarity === "positive" ? positiveMarkerId : negativeMarkerId})`}
+                    stroke={stroke}
+                    strokeDasharray={edge.polarity === "negative" ? "4 4" : undefined}
+                    strokeLinecap="round"
+                    strokeWidth="0.65"
+                  />
+                  <text fill="#556274" fontSize="2.2" textAnchor="middle" x={labelPoint.x} y={labelPoint.y - 1}>
+                    {edge.label}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+
+          {nodes.map((node) => (
+            <div
+              className={cn(
+                "absolute w-24 -translate-x-1/2 -translate-y-1/2 rounded-[1.2rem] border px-3 py-2 text-center text-[11px] font-semibold leading-tight shadow-[0_16px_36px_rgba(28,36,48,0.08)] sm:w-32 sm:text-xs",
+                toneClasses[node.tone ?? accent].node,
+                toneClasses[node.tone ?? accent].nodeText,
+              )}
+              key={node.id}
+              style={{ left: `${node.x}%`, top: `${node.y}%` }}
+            >
+              {node.label}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-2">
+      <div className="mt-5 grid gap-3 lg:grid-cols-2">
         {loops.map((loop, idx) => {
           if (typeof loop === "string") {
             return (
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3 text-sm text-slate-300" key={idx}>
+              <div
+                className="rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4 text-sm leading-7 text-slate-600"
+                key={idx}
+              >
                 {loop}
               </div>
             );
           }
+
           return (
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3" key={loop.label}>
-              <div className="flex items-center gap-2 mb-1">
-                <span className={cn(
-                  "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+            <div className={cn("rounded-[1.35rem] border px-4 py-4", styles.loop)} key={loop.label}>
+              <span
+                className={cn(
+                  "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
                   loop.polarity === "reinforcing"
-                    ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300"
-                    : "border-rose-400/30 bg-rose-400/10 text-rose-300"
-                )}>
-                  {loop.label} · {loop.polarity}
-                </span>
-              </div>
-              <p className="text-sm leading-6 text-slate-300">{loop.description}</p>
+                    ? "border-cyan-200 bg-cyan-50 text-cyan-700"
+                    : "border-rose-200 bg-rose-50 text-rose-700",
+                )}
+              >
+                {loop.label} · {loop.polarity}
+              </span>
+              <p className="mt-3 text-sm leading-7 text-slate-700">{loop.description}</p>
             </div>
           );
         })}
@@ -191,4 +251,3 @@ export function CausalLoopDiagram({
     </section>
   );
 }
-

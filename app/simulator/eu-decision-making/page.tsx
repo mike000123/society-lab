@@ -1,9 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import {
+  SimulatorActionRow,
+  SimulatorHero,
+  SimulatorPrimer,
+  SimulatorSidebarPanel,
+} from "@/components/simulator/SimulatorAtlas";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -452,52 +458,63 @@ export default function EUDecisionSimulator() {
   const vTx = { emerald:"text-emerald-200", amber:"text-amber-200", rose:"text-rose-200" };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 pb-12">
+    <AtlasPage className="simulator-atlas space-y-5 pb-12">
+      <SimulatorHero
+        actions={<SimulatorActionRow primaryHref="#eu-lab" primaryLabel="Open the lab" secondaryHref="/learn/how-the-eu-makes-decisions" secondaryLabel="Read module" />}
+        description="The EU rarely makes decisions through a single vote. Proposals move through the Commission, Parliament, Council, and trilogue, with different bottlenecks at each stage. Adjust the seven levers and watch how coalition-building, subsidiarity pressure, and unanimity rules change the odds."
+        eyebrow="EU legislative process"
+        imageAlt="European governance simulation landscape"
+        imageSrc="/atlas/simulator-hero.png"
+        metrics={[
+          { label: "Adoption chance", value: `${Math.round(result.overallSuccessProb)}%`, description: "Overall probability that the proposal survives every stage." },
+          { label: "Adoption speed", value: `${Math.round(result.adoptionSpeed)}%`, description: "How quickly the proposal moves through the ordinary procedure." },
+          { label: "Bargaining friction", value: `${Math.round(result.bargainingFriction)}%`, description: "How hard it is to bridge institutional differences." },
+          { label: "Legitimacy", value: `${Math.round(result.legitimacyScore)}%`, description: "How politically robust the final outcome looks." },
+        ]}
+        title="EU Decision-Making Simulator"
+      />
 
-      {/* Compact header */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 px-6 py-5 sm:px-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cyan-400/10 to-transparent" />
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <Link href="/simulator" className="text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1">
-                <ArrowLeft className="h-3 w-3" /> Simulators
-              </Link>
-              <span className="text-slate-700">·</span>
-              <span className="inline-flex rounded-full border border-cyan-300/25 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] font-medium text-cyan-100">EU legislative process</span>
-            </div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-50">EU Decision-Making Simulator</h1>
-            <p className="text-[11px] text-slate-500 max-w-xl">
-              Adjust the 7 sliders on the left → watch the parliament seat map, Council grid, and process flowchart update instantly.
-              Click any flowchart step to see what&apos;s blocking or enabling it.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href="/learn/how-the-eu-makes-decisions" className="inline-flex items-center gap-1 rounded-xl border border-cyan-400/30 px-3 py-1.5 text-[11px] font-medium text-cyan-300 hover:bg-cyan-400/10 transition-colors">
-              Read module
-            </Link>
-            <button onClick={reset} className="inline-flex items-center gap-1 rounded-xl border border-slate-700 px-3 py-1.5 text-[11px] text-slate-400 hover:text-slate-200 transition-colors">
-              Reset
-            </button>
-          </div>
-        </div>
-      </section>
+      <SimulatorPrimer
+        aside="A good way to explore this lab is to start from one bottleneck. Raise member-state alignment while keeping Parliament fragmented, or lower unanimity while trilogue capacity stays weak. That makes the institutional choke point visible instead of turning the process into noise."
+        items={[
+          {
+            title: "Every stage can slow the proposal for a different reason.",
+            text: "The Commission can face subsidiarity pressure, Parliament can fail to build a coalition, the Council can hit unanimity barriers, and trilogue can stall even when everyone wants movement.",
+          },
+          {
+            title: "Alignment matters more than formal procedure alone.",
+            text: "Changing the voting rule helps, but if governments and parliamentary blocs are still far apart, the proposal simply carries conflict into the next stage instead of resolving it.",
+          },
+          {
+            title: "The process rewards coalition-building, not just majorities.",
+            text: "The EU system is designed to turn fragmented preferences into negotiated settlements. That often feels slow, but it is also why legitimacy and durability matter as much as speed.",
+          },
+        ]}
+        summary="This simulator is best read as a chain of institutions rather than one vote. Its main lesson is that EU lawmaking depends on alignment across different political arenas, each with its own threshold, veto structure, and bargaining logic."
+        title="Read the EU as a negotiation system"
+      />
+
+      <div className="flex justify-end">
+        <button onClick={reset} className="inline-flex items-center gap-1 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-4 py-2 text-xs font-medium text-slate-600 transition hover:border-[rgba(28,36,48,0.2)] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-slate-100">
+          Reset
+        </button>
+      </div>
 
       {/* Main grid: sliders left, visuals right */}
-      <div className="grid gap-5 lg:grid-cols-[340px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[340px_1fr]" id="eu-lab">
 
         {/* ── Left: sliders ── */}
         <div className="space-y-4">
 
           {/* How to use */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3 space-y-2">
+          <SimulatorSidebarPanel kicker="How to use" title="Read the process" className="space-y-2">
             <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">How to use</p>
             <ol className="space-y-1 text-[11px] text-slate-400 list-none">
               <li className="flex gap-2"><span className="text-cyan-500 font-bold flex-shrink-0">①</span>Drag any slider to change the political or procedural conditions</li>
               <li className="flex gap-2"><span className="text-cyan-500 font-bold flex-shrink-0">②</span>Watch the parliament map, Council grid, and flowchart update live</li>
               <li className="flex gap-2"><span className="text-cyan-500 font-bold flex-shrink-0">③</span>Click a flowchart step to see why it passes or fails</li>
             </ol>
-          </div>
+          </SimulatorSidebarPanel>
 
           {/* Sliders */}
           <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-4 space-y-4">
@@ -564,6 +581,6 @@ export default function EUDecisionSimulator() {
         </div>
       </details>
 
-    </div>
+    </AtlasPage>
   );
 }

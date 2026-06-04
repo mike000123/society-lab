@@ -1,635 +1,795 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { useState, type ElementType } from "react";
+import type { Route } from "next";
 import {
-  Bar, BarChart, Line, LineChart,
-  PolarAngleAxis, PolarGrid, PolarRadiusAxis,
-  Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from "recharts";
-import {
-  Brain, BookOpenText, Building2, Globe2, Landmark,
-  MessageSquare, Play, ShieldCheck, Sparkles,
-  Users, Vote, WalletCards, ArrowRight, FlaskConical,
+  ArrowRight,
+  BookOpenText,
+  Compass,
+  FlaskConical,
+  Globe2,
+  Landmark,
+  Map,
+  MessageSquare,
+  Play,
+  Scale,
+  ScrollText,
+  Sparkles,
+  Users,
+  Vote,
 } from "lucide-react";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import { CivilizationIllustration } from "@/components/atlas/CivilizationIllustration";
+import { FeatureStrip } from "@/components/atlas/FeatureStrip";
+import { InsightBlock } from "@/components/atlas/InsightBlock";
+import { SectionNarrative } from "@/components/atlas/SectionNarrative";
+import { SoftPanel } from "@/components/atlas/SoftPanel";
+import { AuthControls } from "@/components/layout/auth-controls";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-type DiscussionPost = { id: string; name: string; tag: string; text: string };
-type TabId = "map" | "sim" | "quiz" | "forum";
+type ScenarioId = "business" | "green" | "equality" | "resilience";
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const tabs: { id: TabId; label: string }[] = [
-  { id: "map",   label: "Systems Map" },
-  { id: "sim",   label: "Simulation"  },
-  { id: "quiz",  label: "Quiz"        },
-  { id: "forum", label: "Dialogue"    },
+const navigation: { href: Route; label: string }[] = [
+  { href: "/learn", label: "Learn" },
+  { href: "/simulator", label: "Simulate" },
+  { href: "/discussions", label: "Discuss" },
+  { href: "/governance", label: "Governance" },
+  { href: "/map", label: "Map" },
+  { href: "/study", label: "Study" },
 ];
 
-const systems = [
+const pathways: {
+  description: string;
+  href: Route;
+  icon: ElementType;
+  label: string;
+  title: string;
+}[] = [
   {
-    key: "economy", title: "Economic System", href: "/learn",
-    icon: WalletCards,
-    cardBg:   "bg-amber-50  dark:bg-amber-950/40",
-    border:   "border-amber-200 dark:border-amber-800/50",
-    illoBg:   "bg-amber-100 dark:bg-amber-900/30",
-    iconBg:   "bg-amber-100 dark:bg-amber-900/50",
-    accent:   "text-amber-700 dark:text-amber-400",
-    bug:      "The system measures output and consumption better than human flourishing.",
-    alt:      "Wellbeing metrics, baseline security, and lower dependence on endless growth.",
-    question: "What if the economy optimised health, time, housing, and meaning?",
+    description: "Build a grounded mental model before you try to change anything.",
+    href: "/learn",
+    icon: BookOpenText,
+    label: "01",
+    title: "Learn the system",
   },
   {
-    key: "politics", title: "Politics & Democracy", href: "/learn",
+    description: "Run alternative futures and see feedback loops unfold over time.",
+    href: "/simulator",
+    icon: FlaskConical,
+    label: "02",
+    title: "Simulate the future",
+  },
+  {
+    description: "Compare perspectives, surface tradeoffs, and sharpen proposals together.",
+    href: "/discussions",
+    icon: MessageSquare,
+    label: "03",
+    title: "Discuss in public",
+  },
+  {
+    description: "Turn shared understanding into structured civic action and experiments.",
+    href: "/governance",
     icon: Landmark,
-    cardBg:   "bg-rose-50  dark:bg-rose-950/40",
-    border:   "border-rose-200 dark:border-rose-800/50",
-    illoBg:   "bg-rose-100 dark:bg-rose-900/30",
-    iconBg:   "bg-rose-100 dark:bg-rose-900/50",
-    accent:   "text-rose-700 dark:text-rose-400",
-    bug:      "Periodic elections are too weak for continuous, high-complexity decisions.",
-    alt:      "Citizens' assemblies, liquid democracy, and lobbying transparency.",
-    question: "How can citizens contribute continuously without creating chaos?",
+    label: "04",
+    title: "Govern with others",
+  },
+];
+
+const howItWorks = [
+  {
+    body: "Every topic begins with a condensed, visual learning journey. The point is not to overwhelm people with research, but to help them understand the system clearly enough to reason about it.",
+    title: "Start with the model",
   },
   {
-    key: "cities", title: "Cities & Everyday Life", href: "/learn",
-    icon: Building2,
-    cardBg:   "bg-cyan-50  dark:bg-cyan-950/40",
-    border:   "border-cyan-200 dark:border-cyan-800/50",
-    illoBg:   "bg-cyan-100 dark:bg-cyan-900/30",
-    iconBg:   "bg-cyan-100 dark:bg-cyan-900/50",
-    accent:   "text-cyan-700 dark:text-cyan-400",
-    bug:      "Cities are optimised for cars, speculation, and consumption instead of people.",
-    alt:      "15-minute neighbourhoods, civic green space, mixed-use blocks.",
-    question: "How different would daily life feel if urban design reduced stress?",
+    body: "Instead of stopping at explanation, Society Lab lets people test long-run consequences. Simulators reveal how feedback loops, delays, and tradeoffs change the picture.",
+    title: "Test possible futures",
   },
   {
-    key: "information", title: "Media & Information", href: "/learn",
-    icon: Brain,
-    cardBg:   "bg-violet-50  dark:bg-violet-950/40",
-    border:   "border-violet-200 dark:border-violet-800/50",
-    illoBg:   "bg-violet-100 dark:bg-violet-900/30",
-    iconBg:   "bg-violet-100 dark:bg-violet-900/50",
-    accent:   "text-violet-700 dark:text-violet-400",
-    bug:      "Attention becomes the product, so systems reward outrage and shallow conflict.",
-    alt:      "Critical-thinking tools, argument maps, evidence scoring, slower dialogue.",
-    question: "How do we train societies to think systemically?",
+    body: "Discussion is treated as collective sensemaking rather than content performance. The goal is to compare frames, expose blind spots, and improve ideas before they become decisions.",
+    title: "Deliberate in the open",
+  },
+  {
+    body: "Governance closes the loop. When an idea survives learning, simulation, and debate, it can move into proposals, refinement, and collaborative decision-making.",
+    title: "Move toward action",
   },
 ];
 
-const quizQuestions = [
-  { answer: 1, question: "Which goal is closest to the spirit of Society Lab?",
-    options: ["Find who to blame", "Design better systems", "Help one ideology win"] },
-  { answer: 1, question: "What best reduces the risk of an echo chamber?",
-    options: ["Let only like-minded people in", "Steelman the opposing view", "Ban disagreement"] },
-  { answer: 0, question: "What metric should sit next to GDP?",
-    options: ["Wellbeing", "Number of ads", "Hours of scrolling"] },
+const journeyStops = [
+  {
+    duration: "45 min",
+    summary: "Why money is not just coins and notes, and how banks expand credit.",
+    title: "Understand modern money",
+  },
+  {
+    duration: "30 min",
+    summary: "See why growth statistics miss health, security, time, and ecological strain.",
+    title: "GDP is not wellbeing",
+  },
+  {
+    duration: "35 min",
+    summary: "Place the economy inside social foundations and planetary boundaries.",
+    title: "Doughnut economics",
+  },
+  {
+    duration: "35 min",
+    summary: "Follow pollution, overshoot, and tipping points across entire systems.",
+    title: "Pollution and tipping points",
+  },
 ];
 
-const starterDiscussion: DiscussionPost[] = [
-  { id: "1", name: "Citizen A", tag: "Economy",
-    text: "If we only measure GDP, we hide the cost of stress, ill health, and social isolation." },
-  { id: "2", name: "Citizen B", tag: "Democracy",
-    text: "Participation needs structure. Without it, dialogue becomes noise instead of collective intelligence." },
+const governanceProposals = [
+  {
+    summary: "A proposal to fund transport, heating, and food security first, then test the fiscal and emissions effects in public.",
+    title: "Public money for public purpose",
+    votes: "1.2K",
+  },
+  {
+    summary: "A plan to guarantee baseline healthcare, housing support, and energy access while measuring wellbeing instead of output alone.",
+    title: "Universal basic services",
+    votes: "980",
+  },
+  {
+    summary: "A city-scale experiment combining slower traffic, mixed-use blocks, and public space recovery before a national rollout.",
+    title: "Fifteen-minute districts",
+    votes: "714",
+  },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
-function scoreLabel(v: number) {
-  if (v >= 75) return "Strong";
-  if (v >= 55) return "Moderate";
-  if (v >= 35) return "Fragile";
-  return "Critical";
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-function SliderControl({ label, value, setValue, min = 0, max = 100, suffix = "%" }: {
-  label: string; value: number; setValue: (v: number) => void;
-  min?: number; max?: number; suffix?: string;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between text-xs">
-        <span className="text-slate-600 dark:text-slate-400">{label}</span>
-        <span className="font-semibold text-slate-800 dark:text-slate-200">{value}{suffix}</span>
-      </div>
-      <input type="range" min={min} max={max} value={value}
-        onChange={e => setValue(Number(e.target.value))}
-        className="w-full accent-[#a51c30] cursor-pointer" />
-    </div>
-  );
-}
-
-function MetricCard({ icon: Icon, title, value }: { icon: React.ElementType; title: string; value: number }) {
-  const label = scoreLabel(value);
-  const c = value >= 75 ? "text-emerald-600 dark:text-emerald-400"
-    : value >= 55 ? "text-amber-600 dark:text-amber-400"
-    : value >= 35 ? "text-orange-600 dark:text-orange-400"
-    : "text-rose-600 dark:text-rose-400";
-  return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-2">
-      <div className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-        <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{title}</span>
-      </div>
-      <div className="flex items-end gap-2">
-        <span className="text-2xl font-bold text-slate-900 dark:text-white">{Math.round(value)}</span>
-        <span className={`text-xs font-semibold mb-0.5 ${c}`}>{label}</span>
-      </div>
-      <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-700">
-        <div className="h-1.5 rounded-full bg-[#a51c30] transition-all duration-500" style={{ width: `${value}%` }} />
-      </div>
-    </div>
-  );
-}
-
-// Mini SVG illustrations for domain cards
-function DomainIllo({ k }: { k: string }) {
-  if (k === "economy") return (
-    <svg viewBox="0 0 100 70" className="w-full h-full" aria-hidden>
-      <path d="M10 55 C25 45 35 58 50 40 C60 28 72 33 90 18"
-        fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" />
-      <rect x="10" y="58" width="10" height="12" rx="2" fill="#fbbf24" opacity="0.7" />
-      <rect x="26" y="50" width="10" height="20" rx="2" fill="#f59e0b" opacity="0.7" />
-      <rect x="42" y="43" width="10" height="27" rx="2" fill="#d97706" opacity="0.7" />
-      <circle cx="90" cy="18" r="5" fill="#f97316" />
-      <circle cx="90" cy="18" r="10" fill="#f97316" opacity="0.2" />
-    </svg>
-  );
-  if (k === "politics") return (
-    <svg viewBox="0 0 100 70" className="w-full h-full" aria-hidden>
-      <circle cx="50" cy="35" r="8" fill="#e11d48" opacity="0.25" />
-      <circle cx="50" cy="35" r="4" fill="#e11d48" opacity="0.7" />
-      {[[20,18],[80,18],[15,52],[85,52],[50,8],[50,62]].map(([x,y],i) => (
-        <g key={i}>
-          <circle cx={x} cy={y} r="4" fill="#f43f5e" opacity="0.7" />
-          <line x1="50" y1="35" x2={x} y2={y} stroke="#e11d48" strokeWidth="1.5" opacity="0.4" />
-        </g>
-      ))}
-    </svg>
-  );
-  if (k === "cities") return (
-    <svg viewBox="0 0 100 70" className="w-full h-full" aria-hidden>
-      <rect x="8"  y="40" width="14" height="30" rx="2" fill="#67e8f9" opacity="0.6" />
-      <rect x="25" y="30" width="18" height="40" rx="2" fill="#22d3ee" opacity="0.7" />
-      <rect x="46" y="18" width="20" height="52" rx="2" fill="#06b6d4" opacity="0.75" />
-      <polygon points="56,8 56,20 46,20" fill="#0891b2" opacity="0.7" />
-      <circle cx="56" cy="6" r="3" fill="#fbbf24" opacity="0.9" />
-      <rect x="70" y="35" width="16" height="35" rx="2" fill="#67e8f9" opacity="0.6" />
-      <line x1="56" y1="6" x2="25" y2="30" stroke="#fbbf24" strokeWidth="1" opacity="0.5" />
-      <line x1="56" y1="6" x2="78" y2="35" stroke="#fbbf24" strokeWidth="1" opacity="0.5" />
-    </svg>
-  );
-  return (
-    <svg viewBox="0 0 100 70" className="w-full h-full" aria-hidden>
-      <circle cx="50" cy="35" r="24" fill="none" stroke="#a78bfa" strokeWidth="1.5" opacity="0.5" />
-      <circle cx="50" cy="35" r="14" fill="none" stroke="#8b5cf6" strokeWidth="1.5" opacity="0.4" />
-      <circle cx="50" cy="35" r="6"  fill="#7c3aed" opacity="0.4" />
-      <ellipse cx="50" cy="35" rx="24" ry="10" fill="none" stroke="#a78bfa" strokeWidth="1" opacity="0.4" />
-      {[[50,11],[74,35],[50,59],[26,35]].map(([x,y],i) => (
-        <circle key={i} cx={x} cy={y} r="3" fill="#c4b5fd" opacity="0.8" />
-      ))}
-    </svg>
-  );
-}
-
-// Hero SVG fallback
-function HeroFallback() {
-  return (
-    <div className="w-full py-16 flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-900 dark:to-slate-950">
-      <svg viewBox="0 0 520 240" className="w-full max-w-lg" aria-hidden>
-        <defs>
-          <radialGradient id="fg" cx="55%" cy="55%" r="45%">
-            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#fef3c7" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <ellipse cx="270" cy="130" rx="130" ry="100" fill="url(#fg)" />
-        <rect x="80"  y="115" width="35" height="125" rx="3" fill="#c7a88a" />
-        <rect x="128" y="90"  width="48" height="150" rx="3" fill="#b8906e" />
-        <rect x="214" y="55"  width="58" height="185" rx="3" fill="#d4956a" />
-        <polygon points="243,35 243,58 232,58" fill="#c8784a" opacity="0.8" />
-        <circle cx="243" cy="32" r="6" fill="#f59e0b" opacity="0.9" />
-        <circle cx="243" cy="32" r="14" fill="#f59e0b" opacity="0.2" />
-        <rect x="288" y="78"  width="50" height="162" rx="3" fill="#c09070" />
-        <rect x="356" y="100" width="44" height="140" rx="3" fill="#b8876a" />
-        <rect x="413" y="118" width="38" height="122" rx="3" fill="#c49878" />
-        <line x1="243" y1="32" x2="152" y2="90"  stroke="#f59e0b" strokeWidth="1.5" opacity="0.5" />
-        <line x1="243" y1="32" x2="313" y2="78"  stroke="#f59e0b" strokeWidth="1.5" opacity="0.5" />
-        <line x1="243" y1="32" x2="432" y2="118" stroke="#f59e0b" strokeWidth="1"   opacity="0.3" />
-        <rect x="60" y="238" width="400" height="3" rx="2" fill="#e8d5c0" opacity="0.5" />
-      </svg>
-    </div>
-  );
-}
-
-// ─── Main component ───────────────────────────────────────────────────────────
-export function SocietyLabLanding() {
-  const [activeTab, setActiveTab] = useState<TabId>("map");
-  const [ubi, setUbi]           = useState(50);
-  const [workweek, setWork]     = useState(40);
-  const [transparency, setTrans]= useState(50);
-  const [greenCities, setGreen] = useState(50);
-  const [education, setEdu]     = useState(50);
-  const [community, setCom]     = useState(50);
-  const [quizIndex, setQI]      = useState(0);
-  const [quizScore, setQS]      = useState(0);
-  const [selAns, setSelAns]     = useState<number | null>(null);
-  const [discussion, setDisc]   = useState<DiscussionPost[]>(starterDiscussion);
-  const [newPost, setNewPost]   = useState("");
-
-  const metrics = useMemo(() => {
-    const wellbeing  = clamp(35 + ubi * 0.25 + (55 - workweek) * 0.5 + greenCities * 0.15 + community * 0.1, 0, 100);
-    const democracy  = clamp(30 + transparency * 0.35 + community * 0.3 + education * 0.2, 0, 100);
-    const stability  = clamp(25 + ubi * 0.15 + transparency * 0.2 + community * 0.2 + greenCities * 0.1 + education * 0.1, 0, 100);
-    const inequality = clamp(80 - ubi * 0.4 - transparency * 0.15 - education * 0.1, 0, 100);
-    const innovation = clamp(30 + education * 0.3 + ubi * 0.1 + (55 - workweek) * 0.4, 0, 100);
-    const ecology    = clamp(20 + greenCities * 0.5 + (55 - workweek) * 0.3 + education * 0.1, 0, 100);
-    const timeline   = Array.from({ length: 9 }, (_, i) => ({
-      year: 2025 + i,
-      Wellbeing: clamp(wellbeing + i * (community * 0.05 - 1.5), 0, 100),
-      Stability:  clamp(stability  + i * (transparency * 0.04 - 1), 0, 100),
-      Ecology:    clamp(ecology    + i * (greenCities * 0.06 - 2), 0, 100),
-    }));
-    return { wellbeing, democracy, stability, inequality, innovation, ecology, timeline };
-  }, [ubi, workweek, transparency, greenCities, education, community]);
-
-  const radarData = [
-    { metric: "Wellbeing",  value: metrics.wellbeing  },
-    { metric: "Democracy",  value: metrics.democracy  },
-    { metric: "Stability",  value: metrics.stability  },
-    { metric: "Innovation", value: metrics.innovation },
-    { metric: "Ecology",    value: metrics.ecology    },
-    { metric: "Equality",   value: 100 - metrics.inequality },
-  ];
-
-  function addPost() {
-    if (!newPost.trim()) return;
-    setDisc(d => [...d, { id: String(Date.now()), name: "You", tag: "New", text: newPost.trim() }]);
-    setNewPost("");
+const world3Scenarios: Record<
+  ScenarioId,
+  {
+    description: string;
+    label: string;
+    metrics: { label: string; value: string }[];
+    points: {
+      food: number;
+      output: number;
+      pollution: number;
+      population: number;
+      resources: number;
+      year: number;
+    }[];
   }
+> = {
+  business: {
+    description:
+      "Business as usual keeps industrial output high for a while, but pressure on pollution and resources pushes the system into overshoot.",
+    label: "Business as usual",
+    metrics: [
+      { label: "Peak wellbeing", value: "63/100" },
+      { label: "Ecological load", value: "1.8 Earths" },
+      { label: "Stability", value: "Fragile" },
+    ],
+    points: [
+      { food: 18, output: 20, pollution: 14, population: 14, resources: 100, year: 2025 },
+      { food: 48, output: 56, pollution: 23, population: 36, resources: 93, year: 2050 },
+      { food: 72, output: 86, pollution: 39, population: 62, resources: 83, year: 2075 },
+      { food: 84, output: 100, pollution: 58, population: 82, resources: 68, year: 2100 },
+      { food: 71, output: 88, pollution: 76, population: 90, resources: 50, year: 2125 },
+      { food: 49, output: 63, pollution: 82, population: 74, resources: 34, year: 2150 },
+      { food: 35, output: 42, pollution: 74, population: 51, resources: 23, year: 2175 },
+      { food: 26, output: 28, pollution: 58, population: 36, resources: 16, year: 2200 },
+    ],
+  },
+  equality: {
+    description:
+      "High equality redistributes security and slows destabilising competition. Growth is more moderate, but wellbeing and resilience remain stronger for longer.",
+    label: "High equality",
+    metrics: [
+      { label: "Peak wellbeing", value: "79/100" },
+      { label: "Ecological load", value: "1.3 Earths" },
+      { label: "Stability", value: "Moderate" },
+    ],
+    points: [
+      { food: 18, output: 18, pollution: 13, population: 14, resources: 100, year: 2025 },
+      { food: 46, output: 48, pollution: 20, population: 34, resources: 95, year: 2050 },
+      { food: 70, output: 72, pollution: 28, population: 57, resources: 88, year: 2075 },
+      { food: 84, output: 82, pollution: 37, population: 73, resources: 79, year: 2100 },
+      { food: 89, output: 83, pollution: 44, population: 81, resources: 70, year: 2125 },
+      { food: 84, output: 76, pollution: 46, population: 79, resources: 60, year: 2150 },
+      { food: 75, output: 66, pollution: 43, population: 72, resources: 52, year: 2175 },
+      { food: 68, output: 60, pollution: 39, population: 68, resources: 46, year: 2200 },
+    ],
+  },
+  green: {
+    description:
+      "Green technology improves efficiency and lowers emissions intensity, but it still works best when paired with broader social and institutional change.",
+    label: "Green technology",
+    metrics: [
+      { label: "Peak wellbeing", value: "74/100" },
+      { label: "Ecological load", value: "1.2 Earths" },
+      { label: "Stability", value: "Moderate" },
+    ],
+    points: [
+      { food: 18, output: 20, pollution: 14, population: 14, resources: 100, year: 2025 },
+      { food: 47, output: 55, pollution: 19, population: 35, resources: 95, year: 2050 },
+      { food: 74, output: 88, pollution: 28, population: 59, resources: 88, year: 2075 },
+      { food: 88, output: 100, pollution: 35, population: 77, resources: 77, year: 2100 },
+      { food: 87, output: 95, pollution: 41, population: 85, resources: 64, year: 2125 },
+      { food: 80, output: 84, pollution: 43, population: 83, resources: 55, year: 2150 },
+      { food: 72, output: 76, pollution: 40, population: 76, resources: 47, year: 2175 },
+      { food: 67, output: 68, pollution: 36, population: 70, resources: 42, year: 2200 },
+    ],
+  },
+  resilience: {
+    description:
+      "Collapse prevention combines efficiency, pollution controls, public health, and long-run planning. It does not remove tradeoffs, but it bends the trajectory away from overshoot.",
+    label: "Collapse prevention",
+    metrics: [
+      { label: "Peak wellbeing", value: "86/100" },
+      { label: "Ecological load", value: "1.0 Earth" },
+      { label: "Stability", value: "Strong" },
+    ],
+    points: [
+      { food: 18, output: 19, pollution: 14, population: 14, resources: 100, year: 2025 },
+      { food: 48, output: 50, pollution: 18, population: 34, resources: 96, year: 2050 },
+      { food: 76, output: 74, pollution: 22, population: 57, resources: 91, year: 2075 },
+      { food: 91, output: 83, pollution: 25, population: 72, resources: 86, year: 2100 },
+      { food: 96, output: 85, pollution: 26, population: 78, resources: 82, year: 2125 },
+      { food: 94, output: 82, pollution: 24, population: 77, resources: 80, year: 2150 },
+      { food: 89, output: 78, pollution: 22, population: 75, resources: 78, year: 2175 },
+      { food: 86, output: 74, pollution: 20, population: 73, resources: 76, year: 2200 },
+    ],
+  },
+};
 
-  function answerQuiz(idx: number) {
-    setSelAns(idx);
-    const ok = idx === quizQuestions[quizIndex].answer;
-    window.setTimeout(() => {
-      if (ok) setQS(s => s + 1);
-      setSelAns(null);
-      setQI(i => (i + 1) % quizQuestions.length);
-    }, 450);
-  }
-
-  const NAV_LINKS = [
-    { href: "/learn",       label: "Learn"      },
-    { href: "/study",       label: "Library"    },
-    { href: "/simulator",   label: "Simulate"   },
-    { href: "/discussions", label: "Discuss"    },
-    { href: "/governance",  label: "Governance" },
-    { href: "/map",         label: "Map"        },
-  ];
-
+function HomeHeader() {
   return (
-    <div className="relative -mx-4 -my-6 overflow-hidden md:-mx-8 bg-[#f5f0ea] dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-
-      {/* Ambient blobs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-amber-200/30 dark:bg-cyan-500/8 blur-3xl" />
-        <div className="absolute -left-32 top-[40rem] h-80 w-80 rounded-full bg-rose-200/20 dark:bg-amber-500/6 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-4 md:px-8">
-
-        {/* ══ NAV ══════════════════════════════════════════════════════════════ */}
-        <nav className="flex flex-wrap items-center justify-between gap-3 py-5">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl border border-amber-300/40 dark:border-cyan-300/20 bg-amber-400/10 dark:bg-cyan-400/10 p-2.5">
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-amber-600 dark:text-cyan-300 fill-none stroke-current" strokeWidth="1.8">
-                <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
-              </svg>
-            </div>
-            <div>
-              <div className="text-base font-bold text-slate-900 dark:text-slate-100">Society Lab</div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400">{"Let's Change the World"}</div>
-            </div>
+    <header className="space-y-4 pt-4">
+      <div className="flex items-center justify-between gap-4">
+        <Link className="flex min-w-0 items-center gap-3" href="/">
+          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-[rgba(59,130,246,0.18)] bg-white/78 text-primary shadow-sm">
+            <Globe2 className="h-5 w-5" />
           </div>
-
-          <div className="flex items-center gap-1 flex-wrap">
-            {NAV_LINKS.map(({ href, label }) => (
-              <Link key={href} href={href}
-                className="hidden lg:inline-flex items-center text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2.5 py-1.5 rounded-xl hover:bg-white/70 dark:hover:bg-slate-800 transition-colors">
-                {label}
-              </Link>
-            ))}
-            <span className="inline-flex rounded-full border border-amber-400/30 bg-amber-100 dark:bg-amber-400/15 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-200">
-              Alpha
+          <div className="min-w-0">
+            <span className="atlas-display block truncate text-2xl leading-none text-slate-900">Society Lab</span>
+            <span className="block truncate text-[11px] uppercase tracking-[0.18em] text-slate-500">
+              Interactive Civilization Atlas
             </span>
-            <ThemeToggle />
-            <Link href="/learn"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#a51c30] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8b1a2b] transition-colors shadow-sm ml-1">
-              Begin the experiment
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
           </div>
+        </Link>
+
+        <nav className="hidden items-center gap-1 rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 p-1 lg:flex">
+          {navigation.map((item) => (
+            <Link
+              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-white hover:text-slate-900"
+              href={item.href}
+              key={item.href}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
-        {/* ══ HERO IMAGE ═══════════════════════════════════════════════════════
-             TO SWAP THE IMAGE:
-               1. Drop any file into new_society/public/
-               2. Change src="/hero.png" below to "/your-filename.jpg"
-               3. Supported: JPG, PNG, WebP — any aspect ratio works
-        ═══════════════════════════════════════════════════════════════════════ */}
-        <section className="space-y-5 pb-4">
-          <div className="w-full rounded-[2rem] overflow-hidden border border-slate-200/80 dark:border-slate-700 shadow-[0_20px_60px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
-            {/* ↓↓ HERO IMAGE — change src to swap ↓↓ */}
-            <Image
-              src="/hero.png"
-              alt="Society Lab — designing better systems"
-              width={1600}
-              height={900}
-              priority
-              className="w-full h-auto block"
-              onError={e => {
-                const img = e.currentTarget as HTMLImageElement;
-                img.style.display = "none";
-                const fb = img.parentElement?.querySelector("[data-hero-fallback]") as HTMLElement | null;
-                if (fb) fb.style.display = "block";
-              }}
-            />
-            <div data-hero-fallback style={{ display: "none" }}>
-              <HeroFallback />
-            </div>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <div className="hidden sm:block">
+            <AuthControls />
           </div>
+        </div>
+      </div>
 
-          {/* Text + CTAs below image */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a51c30] dark:text-amber-400">
-                A civic intelligence lab
-              </p>
-              <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
-                Explore the bugs in today&apos;s economic, political, urban, and informational systems — then test alternatives through simulations, dialogue, and civic design tools.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <button onClick={() => { setActiveTab("sim"); document.getElementById("demo-section")?.scrollIntoView({ behavior: "smooth" }); }}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#a51c30] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#8b1a2b] transition-colors shadow-sm">
-                <FlaskConical className="h-4 w-4" />
-                Try the simulator
-              </button>
-              <Link href="/learn"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500 transition-colors">
-                <BookOpenText className="h-4 w-4" />
-                Explore modules
-              </Link>
-              {/* Stats */}
-              <div className="hidden sm:flex items-center gap-5 ml-2">
-                {[["12+", "Modules"], ["10+", "Simulators"], ["4", "Domains"]].map(([n, l]) => (
-                  <div key={l} className="text-center">
-                    <div className="text-lg font-bold text-slate-900 dark:text-white">{n}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400">{l}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+      <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
+        {navigation.map((item) => (
+          <Link
+            className="shrink-0 rounded-full border border-[rgba(28,36,48,0.1)] bg-white/70 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-[rgba(28,36,48,0.18)] hover:text-slate-900"
+            href={item.href}
+            key={item.href}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
 
-        {/* ══ FOUR DOMAINS ═════════════════════════════════════════════════════ */}
-        <section className="py-8 space-y-6">
-          <div className="text-center space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a51c30] dark:text-amber-400">Four domains</p>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">The systems shaping your world</h2>
-          </div>
+      <div className="sm:hidden">
+        <AuthControls />
+      </div>
+    </header>
+  );
+}
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {systems.map(s => {
-              const Icon = s.icon;
-              return (
-                <Link key={s.key} href={s.href}
-                  className={`group flex flex-col rounded-[1.5rem] border overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${s.cardBg} ${s.border}`}>
-                  {/* Illustration area */}
-                  <div className={`${s.illoBg} h-24 flex items-center justify-center p-4`}>
-                    <DomainIllo k={s.key} />
+function PathwaysSection() {
+  return (
+    <SectionNarrative
+      description="Enter through the route that matches how you think best. Each path feeds the next, so learning becomes experimentation, experimentation becomes dialogue, and dialogue can become collective action."
+      eyebrow="Four primary pathways"
+      side={
+        <p>
+          You do not need to move in a straight line. The platform is designed as a civic loop, not a funnel.
+        </p>
+      }
+      title="Learn. Simulate. Discuss. Govern."
+    >
+      <div className="relative">
+        <div className="pointer-events-none absolute left-[7%] right-[7%] top-10 hidden h-px atlas-mapline lg:block" />
+        <div className="grid gap-5 lg:grid-cols-4">
+          {pathways.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <div
+                className="relative space-y-4 rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white/62 p-5 backdrop-blur-sm sm:p-6"
+                key={item.title}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{item.label}</span>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(28,36,48,0.1)] bg-white/80 text-slate-700">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  {/* Content */}
-                  <div className="p-4 flex flex-col flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`flex h-7 w-7 items-center justify-center rounded-xl ${s.iconBg}`}>
-                        <Icon className={`h-3.5 w-3.5 ${s.accent}`} />
-                      </div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{s.title}</h3>
-                    </div>
-                    <p className="text-xs leading-5 text-slate-600 dark:text-slate-400 flex-1 line-clamp-2">{s.bug}</p>
-                    <div className={`mt-3 flex items-center gap-1 text-xs font-semibold ${s.accent} group-hover:gap-2 transition-all`}>
-                      Explore <ArrowRight className="h-3 w-3" />
-                    </div>
-                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="atlas-display text-[1.9rem] leading-tight text-slate-900">{item.title}</h3>
+                  <p className="atlas-copy text-sm">{item.description}</p>
+                </div>
+                <Link className="inline-flex items-center gap-2 text-sm font-semibold text-primary" href={item.href}>
+                  Enter pathway
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </SectionNarrative>
+  );
+}
+
+function HowItWorksSection() {
+  return (
+    <SectionNarrative
+      description="Society Lab is built to help people move from fragmented facts to shared understanding and then toward better decisions."
+      eyebrow="How Society Lab works"
+      side={
+        <p>
+          The platform is meant to condense complexity for ordinary citizens, not force them to become full-time researchers.
+        </p>
+      }
+      title="A civic atlas, not another content feed"
+    >
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
+        <div className="space-y-6">
+          <p className="atlas-display max-w-2xl text-3xl leading-tight text-slate-900 sm:text-4xl">
+            Understand the model. Test the consequences. Improve the proposal.
+          </p>
+          <div className="space-y-4 text-base leading-8 text-slate-600">
+            <p>
+              Most platforms stop at either information or opinion. Society Lab is designed as a connected civic journey
+              where people can learn how systems behave, stress-test ideas, and then work on better public choices
+              together.
+            </p>
+            <p>
+              The aim is not just to make users consume content. It is to help them see patterns across money, cities,
+              ecology, governance, and information, and then give them a practical route into experimentation and
+              decision-making.
+            </p>
+          </div>
+
+          <InsightBlock
+            description="When a user asks a hard civic question, the platform should help them map the system, see tradeoffs, test scenarios, and carry the insight forward."
+            icon={<Compass className="h-5 w-5" />}
+            title="The core promise"
+            tone="gold"
+          />
+        </div>
+
+        <div className="relative pl-5 sm:pl-7">
+          <div className="absolute left-2 top-2 bottom-2 w-px atlas-mapline sm:left-3" />
+          <div className="space-y-8">
+            {howItWorks.map((step, index) => (
+              <div className="relative space-y-2" key={step.title}>
+                <div className="absolute -left-[1.1rem] top-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(28,36,48,0.14)] bg-white text-[11px] font-semibold text-slate-700 shadow-sm sm:-left-[1.45rem] sm:h-7 sm:w-7">
+                  {index + 1}
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Stage {index + 1}</p>
+                <h3 className="atlas-display text-2xl text-slate-900">{step.title}</h3>
+                <p className="atlas-copy max-w-2xl text-sm">{step.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </SectionNarrative>
+  );
+}
+
+function FeaturedWorld3() {
+  const [selectedScenario, setSelectedScenario] = useState<ScenarioId>("business");
+  const currentScenario = world3Scenarios[selectedScenario];
+
+  return (
+    <SectionNarrative
+      description="The World3 simulator is where systems thinking becomes tangible. Adjust a path, then watch how resources, output, pollution, food, and population react across two centuries."
+      eyebrow="Featured experience"
+      side={<p>Use it as a shared civic sandbox: people can argue about assumptions while looking at the same system.</p>}
+      title="World3 Civilization Simulator"
+    >
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] xl:items-start">
+        <SoftPanel className="space-y-6" tone="blue">
+          <div className="space-y-3">
+            <p className="atlas-display text-3xl leading-tight text-slate-900">Explore 200 years in one view.</p>
+            <p className="atlas-copy text-sm">
+              Test four broad futures, compare their trajectories, then open the full simulator to shape your own
+              assumptions in detail.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(world3Scenarios) as ScenarioId[]).map((scenario) => (
+              <button
+                className={cn(
+                  "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                  selectedScenario === scenario
+                    ? "border-primary bg-primary text-white"
+                    : "border-[rgba(28,36,48,0.1)] bg-white/80 text-slate-600 hover:border-[rgba(28,36,48,0.18)] hover:text-slate-900",
+                )}
+                key={scenario}
+                onClick={() => setSelectedScenario(scenario)}
+                type="button"
+              >
+                {world3Scenarios[scenario].label}
+              </button>
+            ))}
+          </div>
+
+          <p className="atlas-copy text-sm">{currentScenario.description}</p>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            {currentScenario.metrics.map((metric) => (
+              <div className="space-y-2 border-t border-[rgba(28,36,48,0.08)] pt-4" key={metric.label}>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{metric.label}</p>
+                <p className="atlas-display text-2xl text-slate-900">{metric.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <Link href="/simulator/world3">
+                Launch World3
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/simulator">Browse simulators</Link>
+            </Button>
+          </div>
+        </SoftPanel>
+
+        <SoftPanel className="space-y-5 overflow-hidden" tone="gold">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Global outcomes over time</p>
+              <p className="atlas-copy mt-2 text-sm">All curves are normalised for comparison, so the shape of the system is easier to read at a glance.</p>
+            </div>
+            <Link className="hidden text-sm font-semibold text-primary lg:inline-flex" href="/simulator/world3">
+              Open full controls
+            </Link>
+          </div>
+
+          <div className="h-[22rem] sm:h-[26rem]">
+            <ResponsiveContainer height="100%" width="100%">
+              <LineChart data={currentScenario.points} margin={{ bottom: 12, left: -18, right: 6, top: 8 }}>
+                <CartesianGrid stroke="rgba(28,36,48,0.08)" strokeDasharray="3 4" vertical={false} />
+                <XAxis dataKey="year" fontSize={12} stroke="#6B7280" tickLine={false} />
+                <YAxis domain={[0, 100]} fontSize={12} stroke="#6B7280" tickLine={false} width={34} />
+                <Tooltip
+                  contentStyle={{
+                    background: "rgba(255,253,248,0.96)",
+                    border: "1px solid rgba(28,36,48,0.08)",
+                    borderRadius: "18px",
+                    boxShadow: "0 18px 36px rgba(28,36,48,0.12)",
+                  }}
+                />
+                <Line dataKey="population" dot={false} name="Population" stroke="#3B82F6" strokeWidth={3} type="monotone" />
+                <Line dataKey="food" dot={false} name="Food per capita" stroke="#4CAF50" strokeWidth={3} type="monotone" />
+                <Line dataKey="output" dot={false} name="Industrial output" stroke="#1C2430" strokeWidth={3} type="monotone" />
+                <Line dataKey="pollution" dot={false} name="Pollution" stroke="#D9655A" strokeWidth={3} type="monotone" />
+                <Line dataKey="resources" dot={false} name="Resources" stroke="#D4A84F" strokeWidth={3} type="monotone" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </SoftPanel>
+      </div>
+    </SectionNarrative>
+  );
+}
+
+function FeaturedLearningJourney() {
+  return (
+    <SectionNarrative
+      description="The most important learning journeys should feel like guided pathways rather than giant walls of modules. Here is the kind of path a new user can follow today."
+      eyebrow="Featured learning journey"
+      side={<p>Start with money, move to wellbeing, then widen the frame until ecology and political power become visible together.</p>}
+      title="From modern money to wellbeing and limits"
+    >
+      <SoftPanel className="grid gap-8 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] xl:items-start" tone="gold">
+        <div className="space-y-5">
+          <p className="atlas-display text-3xl leading-tight text-slate-900 sm:text-4xl">
+            A connected path for people who want the big picture without drowning in theory.
+          </p>
+          <p className="atlas-copy text-base">
+            This journey begins with how money is created, then asks what economies should actually optimise for,
+            before introducing ecological limits and tipping points. It is designed to make the later political and
+            governance material far easier to understand.
+          </p>
+
+          <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 px-3 py-2">Systems thinking</span>
+            <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 px-3 py-2">Economy</span>
+            <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 px-3 py-2">Ecology</span>
+            <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 px-3 py-2">Wellbeing</span>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <Link href="/learn">
+                Start learning
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/study">Open study library</Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
+          <div className="relative pl-6">
+            <div className="absolute left-2 top-3 bottom-3 w-px atlas-mapline" />
+            <div className="space-y-6">
+              {journeyStops.map((stop, index) => (
+                <div className="relative space-y-2 border-b border-[rgba(28,36,48,0.08)] pb-5 last:border-b-0 last:pb-0" key={stop.title}>
+                  <div className="absolute -left-6 top-1.5 h-4 w-4 rounded-full border border-[rgba(28,36,48,0.14)] bg-white shadow-sm" />
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="atlas-display text-2xl text-slate-900">{stop.title}</h3>
+                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{stop.duration}</span>
+                  </div>
+                  <p className="atlas-copy text-sm">{stop.summary}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Stop {index + 1}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <InsightBlock
+            className="self-start"
+            description="By the end of this journey, users can connect bank money creation, wellbeing metrics, ecological boundaries, and the reasons politics struggles to respond."
+            icon={<Sparkles className="h-5 w-5" />}
+            title="What this unlocks"
+            tone="blue"
+          />
+        </div>
+      </SoftPanel>
+    </SectionNarrative>
+  );
+}
+
+function FeaturedGovernanceLab() {
+  return (
+    <SectionNarrative
+      description="Governance should feel like the place where informed citizens refine ideas together, not a dead-end comment feed."
+      eyebrow="Featured governance lab"
+      side={<p>Learning and simulation matter more when they feed into visible proposals, tradeoffs, and collective choice.</p>}
+      title="Turn shared understanding into proposals"
+    >
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        <SoftPanel className="space-y-6" tone="green">
+          <FeatureStrip
+            items={[
+              { label: "Proposals", value: "128" },
+              { label: "Votes", value: "42.6K" },
+              { label: "Contributors", value: "3.2K" },
+              { label: "Active themes", value: "28" },
+            ]}
+          />
+
+          <div className="space-y-4">
+            {governanceProposals.map((proposal) => (
+              <div
+                className="grid gap-4 border-b border-[rgba(28,36,48,0.08)] pb-4 last:border-b-0 last:pb-0 sm:grid-cols-[minmax(0,1fr)_auto]"
+                key={proposal.title}
+              >
+                <div className="space-y-2">
+                  <p className="atlas-display text-2xl text-slate-900">{proposal.title}</p>
+                  <p className="atlas-copy text-sm">{proposal.summary}</p>
+                </div>
+                <div className="flex items-start justify-between gap-4 sm:flex-col sm:items-end">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Support</p>
+                    <p className="atlas-display text-2xl text-slate-900">{proposal.votes}</p>
+                  </div>
+                  <Button asChild variant="outline">
+                    <Link href="/governance">View</Link>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SoftPanel>
+
+        <SoftPanel className="space-y-5" tone="gold">
+          <div className="space-y-2">
+            <p className="atlas-display text-3xl leading-tight text-slate-900">How the lab should feel</p>
+            <p className="atlas-copy text-sm">
+              A proposal should move through a clear civic sequence instead of disappearing into a pile of reactions.
+            </p>
+          </div>
+
+          <div className="space-y-5">
+            {[
+              { icon: ScrollText, label: "Propose", text: "Frame the public problem and state the intended outcome clearly." },
+              { icon: Scale, label: "Evaluate", text: "Bring in evidence, simulations, tradeoffs, and counterarguments." },
+              { icon: Users, label: "Refine", text: "Improve the proposal through structured discussion and critique." },
+              { icon: Vote, label: "Decide", text: "Move strong proposals toward collective choice and experimentation." },
+            ].map((step, index) => {
+              const Icon = step.icon;
+
+              return (
+                <div className="flex gap-4" key={step.label}>
+                  <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.1)] bg-white/80 text-slate-700">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      Step {index + 1}
+                    </p>
+                    <p className="atlas-display text-2xl text-slate-900">{step.label}</p>
+                    <p className="atlas-copy text-sm">{step.text}</p>
+                  </div>
+                </div>
               );
             })}
           </div>
-        </section>
 
-        {/* ══ INTERACTIVE DEMO ════════════════════════════════════════════════ */}
-        <section id="demo-section" className="pb-16 space-y-5">
-          <div className="text-center space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a51c30] dark:text-amber-400">Live demo</p>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Explore &amp; experiment</h2>
-          </div>
-
-          <div className="rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
-            {/* Tabs */}
-            <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-4 gap-1 pt-3">
-              {tabs.map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2.5 text-sm font-medium rounded-t-xl transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-white dark:bg-slate-900 text-[#a51c30] dark:text-amber-400 border-t border-x border-slate-200 dark:border-slate-700 -mb-px"
-                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                  }`}>
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="p-5 md:p-8">
-
-              {/* Systems Map */}
-              {activeTab === "map" && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {systems.map(s => {
-                    const Icon = s.icon;
-                    return (
-                      <div key={s.key} className={`rounded-2xl border p-5 space-y-3 ${s.cardBg} ${s.border}`}>
-                        <div className="flex items-center gap-3">
-                          <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${s.iconBg}`}>
-                            <Icon className={`h-4 w-4 ${s.accent}`} />
-                          </div>
-                          <h3 className="font-bold text-slate-900 dark:text-slate-100">{s.title}</h3>
-                        </div>
-                        <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
-                          <p><span className="font-semibold text-rose-600 dark:text-rose-400">Bug:</span> {s.bug}</p>
-                          <p><span className="font-semibold text-emerald-600 dark:text-emerald-400">Alternative:</span> {s.alt}</p>
-                          <p><span className="font-semibold text-amber-600 dark:text-amber-300">Question:</span> {s.question}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Simulation */}
-              {activeTab === "sim" && (
-                <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-                  <div className="space-y-5">
-                    <div>
-                      <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Policy Sandbox</h2>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Adjust levers and watch indicators respond.</p>
-                    </div>
-                    <div className="space-y-4">
-                      <SliderControl label="Baseline economic security" value={ubi} setValue={setUbi} />
-                      <SliderControl label="Work hours per week" min={25} max={55} suffix="h" value={workweek} setValue={setWork} />
-                      <SliderControl label="Institutional transparency" value={transparency} setValue={setTrans} />
-                      <SliderControl label="Green cities / public space" value={greenCities} setValue={setGreen} />
-                      <SliderControl label="Critical education" value={education} setValue={setEdu} />
-                      <SliderControl label="Community participation" value={community} setValue={setCom} />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      <MetricCard icon={Users}      title="Wellbeing"  value={metrics.wellbeing} />
-                      <MetricCard icon={Vote}       title="Democracy"  value={metrics.democracy} />
-                      <MetricCard icon={ShieldCheck} title="Stability" value={metrics.stability} />
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
-                      <h3 className="mb-4 text-sm font-bold text-slate-800 dark:text-slate-100">Eight-year trajectory</h3>
-                      <div className="h-48">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={metrics.timeline}>
-                            <XAxis dataKey="year" stroke="#94a3b8" tick={{ fontSize: 11 }} />
-                            <YAxis domain={[0, 100]} stroke="#94a3b8" tick={{ fontSize: 11 }} />
-                            <Tooltip contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, fontSize: 12 }} />
-                            <Line dataKey="Wellbeing" dot={false} stroke="#a51c30" strokeWidth={2} type="monotone" />
-                            <Line dataKey="Stability"  dot={false} stroke="#f59e0b" strokeWidth={2} type="monotone" />
-                            <Line dataKey="Ecology"    dot={false} stroke="#34d399" strokeWidth={2} type="monotone" />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
-                        <h3 className="mb-3 text-sm font-bold text-slate-800 dark:text-slate-100">System radar</h3>
-                        <div className="h-44">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart data={radarData}>
-                              <PolarGrid stroke="#e2e8f0" />
-                              <PolarAngleAxis dataKey="metric" tick={{ fill: "#64748b", fontSize: 10 }} />
-                              <PolarRadiusAxis axisLine={false} domain={[0, 100]} tick={false} />
-                              <Radar dataKey="value" fill="#a51c30" fillOpacity={0.2} stroke="#a51c30" strokeWidth={1.5} />
-                            </RadarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
-                        <h3 className="mb-3 text-sm font-bold text-slate-800 dark:text-slate-100">Trade-offs</h3>
-                        <div className="h-44">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={[
-                              { name: "Inequality", value: Math.round(metrics.inequality) },
-                              { name: "Innovation", value: Math.round(metrics.innovation) },
-                              { name: "Ecology",    value: Math.round(metrics.ecology)    },
-                            ]}>
-                              <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 11 }} />
-                              <YAxis domain={[0, 100]} stroke="#94a3b8" tick={{ fontSize: 11 }} />
-                              <Tooltip contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, fontSize: 12 }} />
-                              <Bar dataKey="value" fill="#a51c30" radius={[6, 6, 0, 0]} opacity={0.8} />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Quiz */}
-              {activeTab === "quiz" && (
-                <div className="mx-auto max-w-2xl space-y-5">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Systems Thinking Quiz</h2>
-                    <span className="rounded-full bg-[#a51c30]/10 border border-[#a51c30]/20 px-3 py-1 text-xs font-semibold text-[#a51c30] dark:text-rose-300">
-                      Score {quizScore}
-                    </span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800">
-                    <div className="h-1.5 rounded-full bg-[#a51c30] transition-all"
-                      style={{ width: `${((quizIndex + 1) / quizQuestions.length) * 100}%` }} />
-                  </div>
-                  <p className="text-base font-medium text-slate-800 dark:text-slate-100">
-                    {quizQuestions[quizIndex].question}
-                  </p>
-                  <div className="space-y-3">
-                    {quizQuestions[quizIndex].options.map((opt, i) => (
-                      <button key={opt} onClick={() => answerQuiz(i)}
-                        className={`w-full text-left rounded-2xl border px-5 py-3.5 text-sm font-medium transition-all ${
-                          selAns === i
-                            ? "border-[#a51c30] bg-[#a51c30]/8 text-[#a51c30]"
-                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-[#a51c30]/40"
-                        }`}>
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Dialogue */}
-              {activeTab === "forum" && (
-                <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
-                  <div className="space-y-3">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Structured dialogue</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-5">
-                      Each contribution should connect to a problem, evidence, a counterargument, and a possible test.
-                    </p>
-                    <input
-                      className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 outline-none focus:border-[#a51c30] transition"
-                      placeholder="Topic or proposal title" />
-                    <textarea
-                      className="w-full min-h-24 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 outline-none focus:border-[#a51c30] transition resize-none"
-                      onChange={e => setNewPost(e.target.value)}
-                      placeholder="Write a proposal, question, or counterpoint..."
-                      value={newPost} />
-                    <button onClick={addPost}
-                      className="w-full rounded-2xl bg-[#a51c30] px-4 py-3 text-sm font-semibold text-white hover:bg-[#8b1a2b] transition-colors">
-                      Publish
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {discussion.map(post => (
-                      <div key={post.id}
-                        className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{post.name}</span>
-                          <span className="rounded-full border border-slate-200 dark:border-slate-700 px-2.5 py-0.5 text-[10px] text-slate-500 dark:text-slate-400">{post.tag}</span>
-                        </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-300">{post.text}</p>
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {["Evidence", "Counterargument", "Simulation", "Action"].map(l => (
-                            <span key={l} className="rounded-lg border border-slate-200 dark:border-slate-600 px-2 py-0.5 text-[10px] text-slate-500 dark:text-slate-400">+ {l}</span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </div>
-          </div>
-        </section>
-
+          <Button asChild size="lg">
+            <Link href="/governance">
+              Go to governance lab
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </SoftPanel>
       </div>
-    </div>
+    </SectionNarrative>
+  );
+}
+
+export function SocietyLabLanding() {
+  return (
+    <AtlasPage className="space-y-16 pb-24 md:space-y-20">
+      <HomeHeader />
+
+      <section className="grid gap-8 rounded-[2.75rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(245,240,229,0.82)_42%,rgba(231,239,244,0.72))] p-6 shadow-[0_32px_90px_rgba(28,36,48,0.08)] sm:p-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:p-10">
+        <div className="flex flex-col justify-between gap-8">
+          <div className="space-y-6">
+            <p className="atlas-kicker">Civic learning for complex societies</p>
+            <div className="space-y-4">
+              <h1 className="atlas-display max-w-3xl text-5xl leading-[0.92] text-slate-900 sm:text-6xl xl:text-7xl">
+                Understand the systems. Design better futures together.
+              </h1>
+              <p className="atlas-lede max-w-2xl">
+                Society Lab turns civic education into a connected atlas. Learn how systems work, run futures in
+                simulation, discuss tradeoffs in public, and move strong ideas toward governance.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <Link href="/learn">
+                  Start learning
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/simulator/world3">
+                  Explore World3
+                  <Play className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="ghost">
+                <Link href="/map">
+                  Open the systems map
+                  <Map className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <FeatureStrip
+            className="bg-white/72"
+            items={[
+              {
+                description: "Condensed pathways instead of scattered reading lists.",
+                icon: <BookOpenText className="h-4 w-4" />,
+                label: "Learning modules",
+                value: "29",
+              },
+              {
+                description: "From personal finance to World3 civilisation dynamics.",
+                icon: <FlaskConical className="h-4 w-4" />,
+                label: "Simulators",
+                value: "12",
+              },
+              {
+                description: "A simple journey from understanding into civic action.",
+                icon: <Compass className="h-4 w-4" />,
+                label: "Primary pathways",
+                value: "4",
+              },
+              {
+                description: "Shared visual context for inequality, wellbeing, and power.",
+                icon: <Map className="h-4 w-4" />,
+                label: "Atlas map",
+                value: "1",
+              },
+            ]}
+          />
+        </div>
+
+        <CivilizationIllustration className="min-h-[25rem] lg:min-h-[38rem]" />
+      </section>
+
+      <PathwaysSection />
+
+      <HowItWorksSection />
+
+      <FeaturedWorld3 />
+
+      <SectionNarrative
+        description="The homepage should make it obvious where to go next without forcing every experience into the same card grid."
+        eyebrow="Featured routes"
+        side={<p>These are the three flagship areas that make the platform feel coherent: deep learning, systems simulation, and collaborative governance.</p>}
+        title="Start with the part that matches your question"
+      >
+        <div className="grid gap-6 xl:grid-cols-3">
+          <InsightBlock
+            description="Move through curated learning journeys that connect money, inequality, ecology, power, and media into one readable picture."
+            icon={<BookOpenText className="h-5 w-5" />}
+            title="Learning journeys"
+            tone="blue"
+          />
+          <InsightBlock
+            description="Use simulators to test how delay, feedback, scarcity, policy, and behaviour change long-run outcomes."
+            icon={<FlaskConical className="h-5 w-5" />}
+            title="Systems simulations"
+            tone="gold"
+          />
+          <InsightBlock
+            description="Bring strong ideas into proposals, public reasoning, and shared refinement rather than leaving them as private opinions."
+            icon={<Landmark className="h-5 w-5" />}
+            title="Governance lab"
+            tone="green"
+          />
+        </div>
+      </SectionNarrative>
+
+      <FeaturedLearningJourney />
+
+      <FeaturedGovernanceLab />
+
+      <SoftPanel className="grid gap-6 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(245,240,229,0.9)_55%,rgba(232,240,228,0.92))] xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center" tone="green">
+        <div className="space-y-3">
+          <p className="atlas-kicker">Begin anywhere, stay connected</p>
+          <p className="atlas-display max-w-3xl text-4xl leading-tight text-slate-900 sm:text-5xl">
+            A better society starts with people who can see the system they are inside.
+          </p>
+          <p className="atlas-copy max-w-2xl text-base">
+            Learn the model, test the future, discuss the tradeoffs, and help design better public choices.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button asChild size="lg">
+            <Link href="/learn">Enter the atlas</Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/study">Browse resources</Link>
+          </Button>
+        </div>
+      </SoftPanel>
+    </AtlasPage>
   );
 }

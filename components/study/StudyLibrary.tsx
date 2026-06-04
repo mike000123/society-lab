@@ -1,8 +1,9 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState, type ReactNode } from "react";
+import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ExternalLink, LibraryBig, Search, SlidersHorizontal } from "lucide-react";
 
+import { SoftPanel } from "@/components/atlas/SoftPanel";
 import { Button } from "@/components/ui/button";
 import {
   STUDY_CATEGORIES,
@@ -27,28 +28,28 @@ const accentStyles: Record<
   }
 > = {
   amber: {
-    badge: "border-amber-300/25 bg-amber-400/10 text-amber-100",
-    card: "hover:border-amber-300/40",
-    surface: "bg-amber-400/12",
-    text: "text-amber-200",
+    badge: "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-100",
+    card: "hover:border-amber-300/70",
+    surface: "bg-amber-50 dark:bg-amber-400/12",
+    text: "text-amber-700 dark:text-amber-200",
   },
   cyan: {
-    badge: "border-cyan-300/25 bg-cyan-400/10 text-cyan-100",
-    card: "hover:border-cyan-300/40",
-    surface: "bg-cyan-400/12",
-    text: "text-cyan-200",
+    badge: "border-cyan-300 bg-cyan-50 text-cyan-700 dark:border-cyan-400/25 dark:bg-cyan-400/10 dark:text-cyan-100",
+    card: "hover:border-cyan-300/70",
+    surface: "bg-cyan-50 dark:bg-cyan-400/12",
+    text: "text-cyan-700 dark:text-cyan-200",
   },
   emerald: {
-    badge: "border-emerald-300/25 bg-emerald-400/10 text-emerald-100",
-    card: "hover:border-emerald-300/40",
-    surface: "bg-emerald-400/12",
-    text: "text-emerald-200",
+    badge: "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-400/10 dark:text-emerald-100",
+    card: "hover:border-emerald-300/70",
+    surface: "bg-emerald-50 dark:bg-emerald-400/12",
+    text: "text-emerald-700 dark:text-emerald-200",
   },
   rose: {
-    badge: "border-rose-300/25 bg-rose-400/10 text-rose-100",
-    card: "hover:border-rose-300/40",
-    surface: "bg-rose-400/12",
-    text: "text-rose-200",
+    badge: "border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-100",
+    card: "hover:border-rose-300/70",
+    surface: "bg-rose-50 dark:bg-rose-400/12",
+    text: "text-rose-700 dark:text-rose-200",
   },
 };
 
@@ -86,8 +87,8 @@ function FilterChip({
       className={cn(
         "rounded-full border px-3 py-2 text-xs font-medium transition sm:text-sm",
         active
-          ? "border-cyan-300/35 bg-cyan-400/12 text-cyan-100"
-          : "border-slate-700 bg-slate-900/70 text-slate-300 hover:border-slate-600 hover:bg-slate-800",
+          ? "border-[rgba(59,130,246,0.28)] bg-[rgba(59,130,246,0.1)] text-slate-900 dark:text-cyan-100"
+          : "border-[rgba(28,36,48,0.12)] bg-white/80 text-slate-600 hover:border-[rgba(59,130,246,0.26)] hover:bg-white hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:bg-slate-800",
       )}
       onClick={onClick}
       type="button"
@@ -107,60 +108,51 @@ function ResourceCard({
   const styles = accentStyles[accent];
 
   return (
-    <article
-      className={cn(
-        "group flex h-full flex-col rounded-[1.6rem] border border-slate-800 bg-panel/90 p-5 shadow-[0_18px_50px_rgba(2,8,23,0.24)] transition",
-        styles.card,
-      )}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-300">
-              {resource.format}
-            </span>
-            <span className="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-[11px] font-medium text-slate-300">
-              {resource.level}
-            </span>
-            <span className={cn("rounded-full border px-3 py-1 text-[11px] font-medium", styles.badge)}>
-              {resource.access}
-            </span>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{resource.source}</p>
-            <h3 className="mt-2 text-xl font-semibold text-slate-50">{resource.title}</h3>
-          </div>
+    <article className="grid gap-4 py-5 first:pt-0 last:pb-0 xl:grid-cols-[minmax(0,1fr)_10rem]">
+      <div>
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/90 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-600 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-300">
+            {resource.format}
+          </span>
+          <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/90 px-3 py-1 text-[11px] font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-300">
+            {resource.level}
+          </span>
+          <span className={cn("rounded-full border px-3 py-1 text-[11px] font-medium", styles.badge)}>
+            {resource.access}
+          </span>
         </div>
 
+        <p className="mt-3 text-xs uppercase tracking-[0.22em] text-slate-500">{resource.source}</p>
+        <h3 className="mt-2 text-xl font-semibold leading-7 text-slate-900 dark:text-slate-50">{resource.title}</h3>
+        <p className="mt-3 atlas-copy text-sm">{resource.summary}</p>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {resource.tags.map((tag) => (
+            <span
+              className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/88 px-3 py-1 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-400"
+              key={tag}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-start justify-between gap-3 xl:flex-col xl:items-end">
+        <span className={cn("rounded-full border px-3 py-1 text-xs font-medium", styles.badge)}>{resource.source}</span>
         <a
           aria-label={`Open ${resource.title}`}
           className={cn(
-            "inline-flex h-10 w-10 flex-none items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/70 text-slate-300 transition hover:text-slate-50",
+            "inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:text-slate-900 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-300 dark:hover:text-slate-50",
             styles.surface,
           )}
           href={resource.url}
           rel="noreferrer"
           target="_blank"
         >
+          Open
           <ExternalLink className="h-4 w-4" />
         </a>
-      </div>
-
-      <p className="mt-4 text-sm leading-6 text-slate-300">{resource.summary}</p>
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        {resource.tags.map((tag) => (
-          <span
-            className="rounded-full border border-slate-800 bg-slate-950/60 px-3 py-1 text-xs text-slate-400"
-            key={tag}
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      <div className={cn("mt-5 text-sm font-medium", styles.text)}>
-        {resource.source}
       </div>
     </article>
   );
@@ -170,41 +162,46 @@ function CategorySection({ category }: { category: StudyCategory }) {
   const styles = accentStyles[category.accent];
 
   return (
-    <section
-      className="rounded-[1.85rem] border border-slate-800 bg-slate-950/80 p-5 shadow-[0_24px_80px_rgba(2,8,23,0.32)] sm:p-6"
-      id={category.id}
-    >
+    <SoftPanel className="space-y-6" id={category.id}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
           <span className={cn("inline-flex rounded-full border px-3 py-1 text-xs font-medium", styles.badge)}>
             {category.items.length} resources
           </span>
-          <h2 className="mt-3 text-2xl font-semibold text-slate-50 sm:text-3xl">{category.title}</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-300 sm:text-base">{category.description}</p>
+          <h2 className="mt-3 atlas-display text-3xl text-slate-900 sm:text-4xl dark:text-slate-50">{category.title}</h2>
+          <p className="mt-3 atlas-copy text-sm sm:text-base">{category.description}</p>
         </div>
         <a
-          className={cn("text-sm font-medium transition hover:text-slate-50", styles.text)}
+          className={cn("text-sm font-medium transition hover:text-slate-900 dark:hover:text-slate-50", styles.text)}
           href={`#${category.id}`}
         >
           Jump here
         </a>
       </div>
 
-      <div className="mt-6 grid gap-4 xl:grid-cols-2">
+      <div className="divide-y divide-[rgba(28,36,48,0.08)] rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white/72 px-5 dark:border-slate-700 dark:bg-slate-950/40">
         {category.items.map((resource) => (
           <ResourceCard accent={category.accent} key={resource.id} resource={resource} />
         ))}
       </div>
-    </section>
+    </SoftPanel>
   );
 }
 
-export function StudyLibrary() {
+export function StudyLibrary({
+  initialCategory = "all",
+}: {
+  initialCategory?: "all" | StudyCategory["id"];
+}) {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<"all" | StudyCategory["id"]>("all");
   const [selectedFormat, setSelectedFormat] = useState<"All" | StudyFormat>("All");
   const [selectedAccess, setSelectedAccess] = useState<"All" | StudyAccess>("All");
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
+
+  useEffect(() => {
+    setSelectedCategory(initialCategory);
+  }, [initialCategory]);
 
   const filteredCategories = useMemo(() => {
     return STUDY_CATEGORIES.map((category) => {
@@ -230,46 +227,46 @@ export function StudyLibrary() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-slate-800 bg-slate-950/85 p-5 shadow-[0_24px_80px_rgba(2,8,23,0.35)] sm:p-6">
+      <SoftPanel className="space-y-6">
         <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs font-medium text-slate-200">
-              <LibraryBig className="h-4 w-4 text-cyan-300" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-white/80 px-3 py-1 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+              <LibraryBig className="h-4 w-4 text-primary" />
               Filter the library
             </div>
             <div>
-              <h2 className="text-2xl font-semibold text-slate-50 sm:text-3xl">Browse by topic, type, or depth</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+              <h2 className="atlas-display text-3xl text-slate-900 sm:text-4xl dark:text-slate-50">Browse by topic, type, or depth</h2>
+              <p className="mt-3 max-w-2xl atlas-copy text-sm sm:text-base">
                 Mix starter explainers with deeper books, papers, and datasets. The goal is to help people keep
                 learning after each module instead of bouncing back to generic search results.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[1.35rem] border border-slate-800 bg-panel/85 px-4 py-4">
+              <div className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white/82 px-4 py-4 dark:border-slate-700 dark:bg-panel/85">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Matches</p>
-                <p className="mt-2 text-2xl font-black text-slate-50">{matchedResourceCount}</p>
+                <p className="mt-2 atlas-display text-3xl text-slate-900 dark:text-slate-50">{matchedResourceCount}</p>
               </div>
-              <div className="rounded-[1.35rem] border border-slate-800 bg-panel/85 px-4 py-4">
+              <div className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white/82 px-4 py-4 dark:border-slate-700 dark:bg-panel/85">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Visible topics</p>
-                <p className="mt-2 text-2xl font-black text-slate-50">{filteredCategories.length}</p>
+                <p className="mt-2 atlas-display text-3xl text-slate-900 dark:text-slate-50">{filteredCategories.length}</p>
               </div>
-              <div className="rounded-[1.35rem] border border-slate-800 bg-panel/85 px-4 py-4">
+              <div className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white/82 px-4 py-4 dark:border-slate-700 dark:bg-panel/85">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Formats</p>
-                <p className="mt-2 text-2xl font-black text-slate-50">{STUDY_FORMATS.length}</p>
+                <p className="mt-2 atlas-display text-3xl text-slate-900 dark:text-slate-50">{STUDY_FORMATS.length}</p>
               </div>
             </div>
           </div>
 
-          <div className="space-y-5 rounded-[1.7rem] border border-slate-800 bg-panel/85 p-4 sm:p-5">
+          <div className="space-y-5 rounded-[1.7rem] border border-[rgba(28,36,48,0.08)] bg-white/82 p-4 sm:p-5 dark:border-slate-700 dark:bg-panel/85">
             <label className="block">
-              <span className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-slate-200">
-                <Search className="h-4 w-4 text-cyan-300" />
+              <span className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                <Search className="h-4 w-4 text-primary" />
                 Search the library
               </span>
               <div className="relative">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
-                  className="w-full rounded-[1.35rem] border border-slate-700 bg-slate-950/80 py-3 pl-11 pr-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400"
+                  className="w-full rounded-[1.35rem] border border-[rgba(28,36,48,0.12)] bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-primary dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100"
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search by topic, source, tag, or format"
                   value={query}
@@ -279,8 +276,8 @@ export function StudyLibrary() {
 
             <div className="space-y-4">
               <div>
-                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-200">
-                  <SlidersHorizontal className="h-4 w-4 text-cyan-300" />
+                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                  <SlidersHorizontal className="h-4 w-4 text-primary" />
                   Format
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -300,7 +297,7 @@ export function StudyLibrary() {
               </div>
 
               <div>
-                <div className="mb-2 text-sm font-medium text-slate-200">Access</div>
+                <div className="mb-2 text-sm font-medium text-slate-800 dark:text-slate-200">Access</div>
                 <div className="flex flex-wrap gap-2">
                   {ACCESS_OPTIONS.map((access) => (
                     <FilterChip
@@ -315,7 +312,7 @@ export function StudyLibrary() {
               </div>
 
               <div>
-                <div className="mb-2 text-sm font-medium text-slate-200">Topic</div>
+                <div className="mb-2 text-sm font-medium text-slate-800 dark:text-slate-200">Topic</div>
                 <div className="flex flex-wrap gap-2">
                   <FilterChip active={selectedCategory === "all"} onClick={() => setSelectedCategory("all")}>
                     All topics
@@ -335,7 +332,7 @@ export function StudyLibrary() {
 
             {hasFilters ? (
               <Button
-                className="rounded-2xl"
+                className="rounded-full"
                 onClick={() => {
                   setQuery("");
                   setSelectedAccess("All");
@@ -349,7 +346,7 @@ export function StudyLibrary() {
             ) : null}
           </div>
         </div>
-      </section>
+      </SoftPanel>
 
       {filteredCategories.length > 0 ? (
         <div className="space-y-5">
@@ -358,12 +355,12 @@ export function StudyLibrary() {
           ))}
         </div>
       ) : (
-        <section className="rounded-[1.8rem] border border-dashed border-slate-700 bg-slate-950/75 px-6 py-10 text-center">
-          <p className="text-lg font-semibold text-slate-100">No resources match those filters yet.</p>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
+        <SoftPanel className="border-dashed px-6 py-10 text-center">
+          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">No resources match those filters yet.</p>
+          <p className="mt-2 atlas-copy text-sm">
             Try a broader keyword or clear one of the format, access, or topic filters.
           </p>
-        </section>
+        </SoftPanel>
       )}
     </div>
   );

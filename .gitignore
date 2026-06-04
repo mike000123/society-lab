@@ -1,11 +1,11 @@
 node_modules/
 .next/
+Uploaded_on_github/
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-*.log
 tsconfig.tsbuildinfo
 tmp_visual/
 tmp_visual_dev/

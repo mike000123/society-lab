@@ -1,88 +1,95 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Globe2, BarChart2, TrendingDown, Smile } from "lucide-react";
+import { BarChart2, Globe2, Smile, TrendingDown } from "lucide-react";
+
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import { IllustratedTabHero } from "@/components/atlas/IllustratedTabHero";
+import { SoftPanel } from "@/components/atlas/SoftPanel";
 
 const WorldMap = dynamic(() => import("@/components/map/WorldMap"), {
   ssr: false,
   loading: () => (
-    <div className="rounded-[2rem] border border-slate-800 bg-slate-950/85 p-8 text-center">
-      <p className="text-slate-400 animate-pulse">Loading world map...</p>
+    <div className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white/84 p-8 text-center text-sm text-slate-500 shadow-[0_18px_40px_rgba(28,36,48,0.05)]">
+      Loading world map...
     </div>
   ),
 });
 
 const INDICATORS = [
   {
-    icon: <TrendingDown className="h-4 w-4 text-rose-300" />,
+    icon: TrendingDown,
     label: "Gini Index",
-    desc: "Income inequality — higher = more unequal",
-    color: "border-rose-800/40",
+    description: "Income inequality, where higher values mean a more unequal society.",
+    tone: "border-rose-200 bg-rose-50 text-rose-700",
   },
   {
-    icon: <BarChart2 className="h-4 w-4 text-amber-300" />,
-    label: "Corruption Index",
-    desc: "Perceived public sector corruption (CPI)",
-    color: "border-amber-800/40",
+    icon: BarChart2,
+    label: "Corruption",
+    description: "Perceived public-sector corruption and institutional capture.",
+    tone: "border-amber-200 bg-amber-50 text-amber-700",
   },
   {
-    icon: <Globe2 className="h-4 w-4 text-cyan-300" />,
+    icon: Globe2,
     label: "Press Freedom",
-    desc: "RSF Press Freedom Index — lower rank = more free",
-    color: "border-cyan-800/40",
+    description: "The openness of the information environment and the media system.",
+    tone: "border-cyan-200 bg-cyan-50 text-cyan-700",
   },
   {
-    icon: <Smile className="h-4 w-4 text-violet-300" />,
+    icon: Smile,
     label: "Wellbeing Gap",
-    desc: "Distance from optimal wellbeing (0 = optimal)",
-    color: "border-violet-800/40",
+    description: "How far daily life outcomes sit from a stronger social baseline.",
+    tone: "border-emerald-200 bg-emerald-50 text-emerald-700",
   },
 ];
 
 export default function MapPage() {
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-10">
-
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-cyan-400/10 via-cyan-400/3 to-transparent" />
-        <div className="relative space-y-4">
-          <span className="inline-flex rounded-full border border-cyan-300/25 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
-            Global systems map
-          </span>
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="space-y-3">
-              <h1 className="text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">
-                How does your country compare?
-              </h1>
-              <p className="max-w-2xl text-sm leading-6 text-slate-300">
-                Four indicators that reveal how systems actually perform across 180+ countries.
-                Inequality, corruption, press freedom, and wellbeing are not random — they are
-                outputs of deliberate policy choices. Click any country to explore its data.
-              </p>
+    <AtlasPage className="space-y-8 pb-14">
+      <IllustratedTabHero
+        description="Compare how countries perform across inequality, corruption, press freedom, and wellbeing. The goal is not to rank for sport, but to see how different systems produce different lived outcomes."
+        eyebrow="Global Systems Map"
+        imageAlt="A world map showing different performance patterns across countries."
+        imageClassName="object-cover object-center"
+        imageSrc="/atlas/map-hero.png"
+        title="See how systems differ across countries"
+      >
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {INDICATORS.map(({ description, icon: Icon, label, tone }) => (
+            <div
+              className="rounded-[1.4rem] border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4 shadow-[0_14px_32px_rgba(28,36,48,0.04)]"
+              key={label}
+            >
+              <div className={`inline-flex rounded-full border p-2 ${tone}`}>
+                <Icon className="h-4 w-4" />
+              </div>
+              <p className="mt-3 text-sm font-semibold text-slate-900">{label}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
             </div>
-
-            {/* Indicator legend */}
-            <div className="grid grid-cols-2 gap-2">
-              {INDICATORS.map(({ icon, label, desc, color }) => (
-                <div
-                  key={label}
-                  className={`flex flex-col gap-1.5 rounded-2xl border bg-slate-900/60 p-3 ${color}`}
-                >
-                  <div className="flex items-center gap-2">
-                    {icon}
-                    <span className="text-xs font-semibold text-slate-200">{label}</span>
-                  </div>
-                  <p className="text-[11px] leading-4 text-slate-500">{desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
-      </section>
+      </IllustratedTabHero>
 
-      {/* Map */}
       <WorldMap />
-    </div>
+
+      <div className="grid gap-4 lg:grid-cols-4">
+        <SoftPanel tone="green">
+          <p className="atlas-kicker">Top wellbeing</p>
+          <p className="mt-2 text-sm leading-7 text-slate-700">Countries like Finland, Denmark, and the Netherlands tend to combine stronger safety nets with broader trust.</p>
+        </SoftPanel>
+        <SoftPanel tone="gold">
+          <p className="atlas-kicker">Highest inequality</p>
+          <p className="mt-2 text-sm leading-7 text-slate-700">South Africa, Namibia, Brazil, and Colombia show how structural concentration can persist across very different histories.</p>
+        </SoftPanel>
+        <SoftPanel tone="blue">
+          <p className="atlas-kicker">Large improvements</p>
+          <p className="mt-2 text-sm leading-7 text-slate-700">Several countries in Eastern Europe and parts of Asia improved quickly once institutions, media space, and public investment shifted together.</p>
+        </SoftPanel>
+        <SoftPanel>
+          <p className="atlas-kicker">Use the atlas</p>
+          <p className="mt-2 text-sm leading-7 text-slate-700">Click a country, then jump into the linked modules to understand which policies and structures may be driving the pattern.</p>
+        </SoftPanel>
+      </div>
+    </AtlasPage>
   );
 }

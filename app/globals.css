@@ -2,155 +2,428 @@
 @tailwind components;
 @tailwind utilities;
 
-/* DARK THEME (default) */
-:root,
-html.dark {
-  color-scheme: dark;
+@layer base {
+  :root,
+  html.light {
+    color-scheme: light;
+    --atlas-bg: 251 249 245;
+    --atlas-surface: 255 254 251;
+    --atlas-panel: 255 255 255;
+    --atlas-line: 224 219 208;
+    --atlas-ink: 28 36 48;
+    --atlas-ink-soft: 71 84 102;
+    --atlas-muted: 107 114 128;
+    --atlas-primary: 59 130 246;
+    --atlas-gold: 212 168 79;
+    --atlas-green: 76 175 80;
+    --atlas-shadow: 0 20px 60px rgba(28, 36, 48, 0.07);
+    --atlas-shadow-soft: 0 10px 30px rgba(28, 36, 48, 0.05);
+    --atlas-sans: "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --atlas-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    --atlas-bg: 11 17 29;
+    --atlas-surface: 17 24 39;
+    --atlas-panel: 15 23 37;
+    --atlas-line: 51 65 85;
+    --atlas-ink: 241 245 249;
+    --atlas-ink-soft: 203 213 225;
+    --atlas-muted: 148 163 184;
+    --atlas-primary: 96 165 250;
+    --atlas-gold: 217 180 88;
+    --atlas-green: 110 231 183;
+    --atlas-shadow: 0 24px 70px rgba(2, 8, 23, 0.35);
+    --atlas-shadow-soft: 0 16px 40px rgba(2, 8, 23, 0.25);
+  }
+
+  html {
+    background: rgb(var(--atlas-bg));
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(212, 168, 79, 0.1), transparent 24%),
+      radial-gradient(circle at 88% 14%, rgba(59, 130, 246, 0.08), transparent 24%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0)),
+      rgb(var(--atlas-bg));
+    color: rgb(var(--atlas-ink));
+    font-family: var(--atlas-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: rgb(var(--atlas-ink));
+    font-family: var(--atlas-display);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+
+  p,
+  li,
+  button,
+  input,
+  textarea,
+  select,
+  label {
+    font-family: var(--atlas-sans);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    background: rgba(59, 130, 246, 0.18);
+    color: rgb(var(--atlas-ink));
+  }
 }
 
-body {
-  @apply bg-background text-slate-100 antialiased;
+@layer components {
+  .atlas-display {
+    font-family: var(--atlas-display);
+    letter-spacing: -0.05em;
+  }
+
+  .atlas-kicker {
+    color: rgba(var(--atlas-primary), 0.92);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .atlas-lede {
+    color: rgb(var(--atlas-ink-soft));
+    font-size: 1.05rem;
+    line-height: 1.85;
+  }
+
+  .atlas-copy {
+    color: rgb(var(--atlas-ink-soft));
+    line-height: 1.8;
+  }
+
+  .atlas-rule {
+    border-color: rgba(var(--atlas-line), 0.9);
+  }
+
+  .atlas-surface {
+    background: rgba(var(--atlas-surface), 0.84);
+    border: 1px solid rgba(var(--atlas-line), 0.72);
+    box-shadow: var(--atlas-shadow-soft);
+    backdrop-filter: blur(12px);
+  }
+
+  .atlas-panel {
+    background: rgba(var(--atlas-panel), 0.92);
+    border: 1px solid rgba(var(--atlas-line), 0.72);
+    box-shadow: var(--atlas-shadow);
+  }
+
+  .atlas-grid {
+    background-image:
+      linear-gradient(to right, rgba(var(--atlas-line), 0.2) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(var(--atlas-line), 0.2) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+
+  .atlas-mapline {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--atlas-primary), 0.25),
+      rgba(var(--atlas-gold), 0.35),
+      rgba(var(--atlas-green), 0.28)
+    );
+  }
 }
 
 .grid-overlay {
   background-image:
-    linear-gradient(to right,  rgb(30 41 59 / .35) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(30 41 59 / .35) 1px, transparent 1px);
-  background-size: 30px 30px;
+    linear-gradient(to right, rgba(var(--atlas-line), 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--atlas-line), 0.18) 1px, transparent 1px);
+  background-size: 34px 34px;
 }
 
-/* LIGHT THEME — Harvard Crimson / cream / silver */
-html.light {
-  color-scheme: light;
+html.dark body {
+  background:
+    radial-gradient(circle at top left, rgba(212, 168, 79, 0.08), transparent 26%),
+    radial-gradient(circle at 85% 14%, rgba(59, 130, 246, 0.1), transparent 20%),
+    rgb(var(--atlas-bg));
 }
 
 html.light body {
-  @apply antialiased;
-  background-color: #f5f0ea;
-  color: #1a1614;
+  color: rgb(var(--atlas-ink));
 }
 
-html.light .grid-overlay {
+html.dark .grid-overlay {
   background-image:
-    linear-gradient(to right,  rgb(165 28 48 / .06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(165 28 48 / .06) 1px, transparent 1px);
-  background-size: 30px 30px;
+    linear-gradient(to right, rgba(var(--atlas-line), 0.24) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--atlas-line), 0.24) 1px, transparent 1px);
 }
 
-/* bg-background / bg-panel overrides */
-html.light .bg-background    { background-color: #f5f0ea !important; }
-html.light .bg-background\/90 { background-color: rgb(245 240 234 / 0.90) !important; }
-html.light .bg-background\/92 { background-color: rgb(245 240 234 / 0.92) !important; }
-html.light .bg-background\/95 { background-color: rgb(245 240 234 / 0.95) !important; }
-html.light .bg-panel    { background-color: #ffffff !important; }
-html.light .bg-panel\/80 { background-color: rgb(255 255 255 / 0.80) !important; }
-html.light .bg-panel\/85 { background-color: rgb(255 255 255 / 0.85) !important; }
-html.light .bg-panel\/90 { background-color: rgb(255 255 255 / 0.90) !important; }
+html.light .bg-background,
+html.light .bg-background\/80,
+html.light .bg-background\/85,
+html.light .bg-background\/90,
+html.light .bg-background\/95 {
+  background-color: rgb(var(--atlas-bg)) !important;
+}
 
-/* text-primary (cyan -> crimson) */
-html.light .text-primary   { color: #a51c30 !important; }
-html.light .bg-primary\/10 { background-color: rgb(165 28 48 / 0.08) !important; }
+html.light .bg-panel,
+html.light .bg-panel\/80,
+html.light .bg-panel\/85,
+html.light .bg-panel\/90 {
+  background-color: rgba(var(--atlas-panel), 0.92) !important;
+}
 
-/* Text — invert the slate scale */
-html.light .text-slate-50  { color: #0f0d0c !important; }
-html.light .text-slate-100 { color: #1a1614 !important; }
-html.light .text-slate-200 { color: #2d2926 !important; }
-html.light .text-slate-300 { color: #4a4540 !important; }
-html.light .text-slate-400 { color: #6b6560 !important; }
-html.light .text-slate-500 { color: #908982 !important; }
-html.light .text-slate-600 { color: #b8b0a6 !important; }
-html.light .text-slate-700 { color: #ccc4ba !important; }
-html.light .text-slate-900 { color: #f5f0ea !important; }
-html.light .text-slate-950 { color: #f8f4ef !important; }
+html.light .text-primary {
+  color: rgb(var(--atlas-primary)) !important;
+}
 
-/* Backgrounds — slate-950 = white, scale up to silver */
-html.light .bg-slate-950     { background-color: #ffffff !important; }
-html.light .bg-slate-950\/40 { background-color: rgb(255 255 255 / 0.40) !important; }
-html.light .bg-slate-950\/50 { background-color: rgb(255 255 255 / 0.50) !important; }
-html.light .bg-slate-950\/55 { background-color: rgb(255 255 255 / 0.55) !important; }
-html.light .bg-slate-950\/60 { background-color: rgb(255 255 255 / 0.60) !important; }
-html.light .bg-slate-950\/65 { background-color: rgb(255 255 255 / 0.65) !important; }
-html.light .bg-slate-950\/70 { background-color: rgb(255 255 255 / 0.70) !important; }
-html.light .bg-slate-950\/75 { background-color: rgb(255 255 255 / 0.75) !important; }
-html.light .bg-slate-950\/80 { background-color: rgb(255 255 255 / 0.80) !important; }
-html.light .bg-slate-950\/85 { background-color: rgb(255 255 255 / 0.85) !important; }
-html.light .bg-slate-950\/90 { background-color: rgb(255 255 255 / 0.90) !important; }
-html.light .bg-slate-950\/95 { background-color: rgb(255 255 255 / 0.95) !important; }
-html.light .bg-slate-900     { background-color: #f2ece4 !important; }
-html.light .bg-slate-900\/40 { background-color: rgb(242 236 228 / 0.40) !important; }
-html.light .bg-slate-900\/50 { background-color: rgb(242 236 228 / 0.50) !important; }
-html.light .bg-slate-900\/60 { background-color: rgb(242 236 228 / 0.60) !important; }
-html.light .bg-slate-900\/70 { background-color: rgb(242 236 228 / 0.70) !important; }
-html.light .bg-slate-900\/80 { background-color: rgb(242 236 228 / 0.80) !important; }
-html.light .bg-slate-900\/95 { background-color: rgb(242 236 228 / 0.95) !important; }
-html.light .bg-slate-800     { background-color: #e8e2da !important; }
-html.light .bg-slate-800\/30 { background-color: rgb(232 226 218 / 0.30) !important; }
-html.light .bg-slate-800\/60 { background-color: rgb(232 226 218 / 0.60) !important; }
-html.light .bg-slate-800\/80 { background-color: rgb(232 226 218 / 0.80) !important; }
-html.light .bg-slate-700     { background-color: #d8d0c5 !important; }
-html.light .bg-slate-500     { background-color: #a89f96 !important; }
+html.light .text-slate-50,
+html.light .text-slate-100 {
+  color: rgb(var(--atlas-ink)) !important;
+}
 
-/* Borders */
-html.light .border-slate-800     { border-color: #ddd8cf !important; }
-html.light .border-slate-800\/80 { border-color: rgb(221 216 207 / 0.80) !important; }
-html.light .border-slate-700     { border-color: #cec7bc !important; }
-html.light .border-slate-600     { border-color: #bbb4a8 !important; }
+html.light .text-slate-200 {
+  color: rgb(41 52 68) !important;
+}
 
-/* Cyan -> Crimson brand overrides */
-html.light .bg-cyan-400\/10  { background-color: rgb(165 28 48 / 0.08) !important; }
-html.light .bg-cyan-400\/12  { background-color: rgb(165 28 48 / 0.10) !important; }
-html.light .bg-cyan-400\/15  { background-color: rgb(165 28 48 / 0.12) !important; }
-html.light .bg-cyan-400\/20  { background-color: rgb(165 28 48 / 0.16) !important; }
-html.light .text-cyan-400    { color: #a51c30 !important; }
-html.light .text-cyan-300    { color: #c41e3a !important; }
-html.light .text-cyan-200    { color: #8b1a2b !important; }
-html.light .text-cyan-100    { color: #fde8ea !important; }
-html.light .border-cyan-400\/20 { border-color: rgb(165 28 48 / 0.20) !important; }
-html.light .border-cyan-400\/30 { border-color: rgb(165 28 48 / 0.28) !important; }
-html.light .border-cyan-400\/40 { border-color: rgb(165 28 48 / 0.36) !important; }
-html.light .border-cyan-300\/20 { border-color: rgb(165 28 48 / 0.18) !important; }
-html.light .border-cyan-300\/25 { border-color: rgb(165 28 48 / 0.22) !important; }
-html.light .from-cyan-400\/12 { --tw-gradient-from: rgb(165 28 48 / 0.10) var(--tw-gradient-from-position) !important; }
-html.light .from-cyan-400\/14 { --tw-gradient-from: rgb(165 28 48 / 0.12) var(--tw-gradient-from-position) !important; }
-html.light .via-cyan-400\/4   { --tw-gradient-via:  rgb(165 28 48 / 0.03) var(--tw-gradient-via-position)  !important; }
-html.light .via-cyan-400\/5   { --tw-gradient-via:  rgb(165 28 48 / 0.04) var(--tw-gradient-via-position)  !important; }
+html.light .text-slate-300,
+html.light .text-slate-400 {
+  color: rgb(var(--atlas-ink-soft)) !important;
+}
 
-/* Glossy card effects */
+html.light .text-slate-500,
+html.light .text-slate-600,
+html.light .text-slate-700 {
+  color: rgb(var(--atlas-muted)) !important;
+}
+
+html.light .text-slate-900,
+html.light .text-slate-950 {
+  color: rgb(var(--atlas-ink)) !important;
+}
+
+html.light .bg-slate-950,
+html.light .bg-slate-950\/40,
+html.light .bg-slate-950\/50,
+html.light .bg-slate-950\/55,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/65,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/75,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/85,
+html.light .bg-slate-950\/90,
+html.light .bg-slate-950\/95 {
+  background-color: rgba(var(--atlas-panel), 0.92) !important;
+}
+
+html.light .bg-slate-900,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/95 {
+  background-color: rgba(var(--atlas-surface), 0.9) !important;
+}
+
+html.light .bg-slate-800,
+html.light .bg-slate-800\/30,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/80 {
+  background-color: rgba(233, 228, 218, 0.9) !important;
+}
+
+html.light .bg-slate-700,
+html.light .bg-slate-500 {
+  background-color: rgba(207, 199, 186, 0.9) !important;
+}
+
+html.light .border-slate-800,
+html.light .border-slate-800\/80,
+html.light .border-slate-700,
+html.light .border-slate-600 {
+  border-color: rgba(var(--atlas-line), 0.82) !important;
+}
+
+html.light .bg-cyan-400\/10,
+html.light .bg-cyan-400\/12,
+html.light .bg-cyan-400\/15,
+html.light .bg-cyan-400\/20 {
+  background-color: rgba(var(--atlas-primary), 0.11) !important;
+}
+
+html.light .text-cyan-400,
+html.light .text-cyan-300,
+html.light .text-cyan-200 {
+  color: rgb(var(--atlas-primary)) !important;
+}
+
+html.light .text-emerald-400,
+html.light .text-emerald-300,
+html.light .text-emerald-200 {
+  color: rgb(var(--atlas-green)) !important;
+}
+
+html.light .text-amber-400,
+html.light .text-amber-300,
+html.light .text-amber-200 {
+  color: rgb(var(--atlas-gold)) !important;
+}
+
+html.light .text-rose-400,
+html.light .text-rose-300,
+html.light .text-rose-200 {
+  color: rgb(185 86 86) !important;
+}
+
+html.light .border-cyan-400\/20,
+html.light .border-cyan-400\/30,
+html.light .border-cyan-400\/40,
+html.light .border-cyan-300\/20,
+html.light .border-cyan-300\/25 {
+  border-color: rgba(var(--atlas-primary), 0.24) !important;
+}
+
+html.light .from-cyan-400\/12,
+html.light .from-cyan-400\/14 {
+  --tw-gradient-from: rgba(var(--atlas-primary), 0.11) var(--tw-gradient-from-position) !important;
+}
+
+html.light .via-cyan-400\/4,
+html.light .via-cyan-400\/5 {
+  --tw-gradient-via: rgba(var(--atlas-primary), 0.035) var(--tw-gradient-via-position) !important;
+}
+
 html.light .rounded-\[1\.75rem\],
 html.light .rounded-\[2rem\],
+html.light .rounded-\[1\.85rem\],
+html.light .rounded-\[1\.7rem\],
+html.light .rounded-\[1\.6rem\],
 html.light .rounded-\[1\.5rem\] {
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.9) inset,
-    0 2px 6px  rgb(0 0 0 / 0.05),
-    0 8px 28px rgb(0 0 0 / 0.07);
+  box-shadow: var(--atlas-shadow-soft);
 }
 
-/* Sticky header: cream glass + crimson top stripe */
-html.light header.sticky {
-  background-color: rgb(245 240 234 / 0.94) !important;
-  border-color: #ddd8cf !important;
-  box-shadow: 0 1px 0 rgb(255 255 255 / 0.7) inset, 0 1px 12px rgb(0 0 0 / 0.06);
-  position: relative;
+html.light .simulator-atlas .bg-panel,
+html.light .simulator-atlas .bg-panel\/80,
+html.light .simulator-atlas .bg-panel\/90,
+html.light .simulator-atlas .bg-slate-950\/60,
+html.light .simulator-atlas .bg-slate-950\/70,
+html.light .simulator-atlas .bg-slate-950\/80,
+html.light .simulator-atlas .bg-slate-950\/85,
+html.light .simulator-atlas .bg-slate-900\/60,
+html.light .simulator-atlas .bg-slate-900\/70,
+html.light .simulator-atlas .bg-slate-900\/80,
+html.light .simulator-atlas .bg-slate-800\/30,
+html.light .simulator-atlas .bg-slate-800\/50,
+html.light .simulator-atlas .bg-slate-800\/80 {
+  background-color: rgba(var(--atlas-panel), 0.92) !important;
+  border-color: rgba(var(--atlas-line), 0.82) !important;
+  box-shadow: var(--atlas-shadow-soft);
 }
+
+html.light .simulator-atlas .border-slate-800,
+html.light .simulator-atlas .border-slate-700,
+html.light .simulator-atlas .border-slate-600 {
+  border-color: rgba(var(--atlas-line), 0.82) !important;
+}
+
+html.light .simulator-atlas .bg-amber-400\/5,
+html.light .simulator-atlas .bg-amber-400\/8,
+html.light .simulator-atlas .bg-cyan-400\/5,
+html.light .simulator-atlas .bg-emerald-400\/5,
+html.light .simulator-atlas .bg-orange-400\/5,
+html.light .simulator-atlas .bg-rose-400\/5,
+html.light .simulator-atlas .bg-rose-400\/8,
+html.light .simulator-atlas .bg-violet-400\/5 {
+  box-shadow: var(--atlas-shadow-soft);
+}
+
+html.light .simulator-atlas .text-slate-50,
+html.light .simulator-atlas .text-slate-100,
+html.light .simulator-atlas .text-slate-200 {
+  color: rgba(var(--atlas-text), 0.98) !important;
+}
+
+html.light .simulator-atlas .text-slate-300 {
+  color: rgba(var(--atlas-text), 0.86) !important;
+}
+
+html.light .simulator-atlas .text-slate-400 {
+  color: rgba(var(--atlas-text), 0.68) !important;
+}
+
+html.light .simulator-atlas .text-slate-500 {
+  color: rgba(var(--atlas-text), 0.58) !important;
+}
+
+html.light .simulator-atlas .text-slate-600 {
+  color: rgba(var(--atlas-text), 0.5) !important;
+}
+
+html.light .simulator-atlas .text-slate-700 {
+  color: rgba(var(--atlas-text), 0.4) !important;
+}
+
+html.light header.sticky {
+  background-color: rgba(var(--atlas-bg), 0.88) !important;
+  border-color: rgba(var(--atlas-line), 0.82) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 10px 28px rgba(28, 36, 48, 0.05);
+}
+
 html.light header.sticky::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #8b1a2b 0%, #a51c30 40%, #ce2b3f 60%, #a51c30 100%);
-  border-radius: 0 0 2px 2px;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(var(--atlas-primary), 0.1), rgba(var(--atlas-gold), 0.7), rgba(var(--atlas-primary), 0.1));
 }
 
-/* Recharts in light mode */
-html.light .recharts-cartesian-grid line { stroke: #e5dfd6 !important; }
-html.light .recharts-text { fill: #908982 !important; }
+html.light .recharts-cartesian-grid line,
+html.light .recharts-polar-grid line,
+html.light .recharts-polar-grid-concentric-polygon {
+  stroke: rgba(var(--atlas-line), 0.8) !important;
+}
 
-/* Scrollbar */
-html.light ::-webkit-scrollbar        { width: 6px; height: 6px; }
-html.light ::-webkit-scrollbar-track  { background: #ede8e0; }
-html.light ::-webkit-scrollbar-thumb  { background: #c8bfb4; border-radius: 3px; }
-html.light ::-webkit-scrollbar-thumb:hover { background: #a51c30; }
+html.light .recharts-text {
+  fill: rgb(var(--atlas-muted)) !important;
+}
 
-/* Selection + focus */
-html.light ::selection   { background: rgb(165 28 48 / 0.15); color: #1a1614; }
-html.light *:focus-visible { outline-color: #a51c30; }
+html.light ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: rgba(230, 225, 215, 0.7);
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(var(--atlas-primary), 0.28);
+  border-radius: 999px;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--atlas-primary), 0.44);
+}
+
+html.dark .atlas-surface,
+html.dark .atlas-panel {
+  border-color: rgba(var(--atlas-line), 0.7);
+}

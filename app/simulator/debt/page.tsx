@@ -15,6 +15,15 @@ import {
   YAxis,
 } from "recharts";
 
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import {
+  SimulatorActionRow,
+  SimulatorCallout,
+  SimulatorChartPanel,
+  SimulatorHero,
+  SimulatorSidebarPanel,
+} from "@/components/simulator/SimulatorAtlas";
+
 // ─── Model ────────────────────────────────────────────────────────────────────
 interface DebtParams {
   // Debt side
@@ -134,12 +143,11 @@ function ChartTooltip({ active, payload, label }: {
 
 function ChartPanel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-panel p-4">
-      <p className="mb-3 text-xs font-semibold text-slate-400">{title}</p>
+    <SimulatorChartPanel title={title}>
       <ResponsiveContainer width="100%" height={220}>
         {children as React.ReactElement}
       </ResponsiveContainer>
-    </div>
+    </SimulatorChartPanel>
   );
 }
 
@@ -183,63 +191,25 @@ export default function DebtSimulatorPage() {
   }, [params]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      {/* Header */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-rose-400/12 via-rose-400/4 to-transparent" />
-        <div className="relative">
-          <span className="inline-flex rounded-full border border-rose-300/25 bg-rose-400/10 px-3 py-1 text-xs font-medium text-rose-100">
-            Debt & Compound Interest Model
-          </span>
-          <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">
-            Debt vs Savings
-          </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-300">
-            Compound interest is the most powerful force in personal finance — and it works against you on debt while working for you on savings. See how interest rates, payment sizes and time interact to shape your net worth.
-          </p>
-        </div>
-      </section>
+    <AtlasPage className="simulator-atlas space-y-6 pb-12">
+      <SimulatorHero
+        actions={<SimulatorActionRow primaryHref="#debt-lab" primaryLabel="Open the lab" secondaryHref="#debt-ideas" secondaryLabel="Read the lessons" />}
+        description="Compound interest helps savings and punishes debt. See how interest rates, monthly payments, and time reshape your net worth — and how much future wealth is lost when expensive debt crowds out investing."
+        eyebrow="Debt and Compound Interest"
+        imageAlt="Debt and savings simulation landscape"
+        imageSrc="/atlas/simulator-hero.png"
+        metrics={[
+          { label: "Debt-free year", value: debtFreeYear ? String(debtFreeYear.year) : "30+ yrs", description: debtFreeYear ? `${debtFreeYear.year - TODAY_YEAR} years from now.` : "This plan never clears the balance within 30 years." },
+          { label: "Interest paid", value: `€${(lastYear?.totalInterestPaid ?? 0).toLocaleString()}`, description: "The total cost of borrowing on top of the principal." },
+          { label: "Debt burden", value: `${debtPaymentPct}%`, description: "Share of monthly income devoted to repayments." },
+          { label: "Ending net worth", value: `€${(lastYear?.netWorth ?? 0).toLocaleString()}`, description: "Savings minus remaining debt after 30 years." },
+        ]}
+        title="Debt vs Savings"
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]" id="debt-lab">
         {/* ── Charts ── */}
         <div className="space-y-4">
-
-          {/* Summary cards */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              {
-                label: "Debt-free in",
-                value: debtFreeYear ? String(debtFreeYear.year) : "30+ yrs",
-                sub: debtFreeYear ? `${debtFreeYear.year - TODAY_YEAR} years` : "Not within 30 years",
-                color: debtFreeYear ? "text-emerald-400" : "text-rose-400",
-              },
-              {
-                label: "Total interest paid",
-                value: `€${(lastYear?.totalInterestPaid ?? 0).toLocaleString()}`,
-                sub: `${Math.round(((lastYear?.totalInterestPaid ?? 0) / params.debtAmount) * 100)}% of principal`,
-                color: "text-rose-400",
-              },
-              {
-                label: "Net worth in 30 years",
-                value: `€${(lastYear?.netWorth ?? 0).toLocaleString()}`,
-                sub: lastYear?.netWorth && lastYear.netWorth > 0 ? "Positive equity" : "Still in debt",
-                color: (lastYear?.netWorth ?? 0) > 0 ? "text-emerald-400" : "text-rose-400",
-              },
-              {
-                label: "Debt payment burden",
-                value: `${debtPaymentPct}%`,
-                sub: "of monthly income",
-                color: debtPaymentPct > 35 ? "text-rose-400" : debtPaymentPct > 25 ? "text-amber-400" : "text-emerald-400",
-              },
-            ].map((c) => (
-              <div key={c.label} className="rounded-2xl border border-slate-800 bg-panel p-4">
-                <p className="text-xs text-slate-500">{c.label}</p>
-                <p className={`mt-1 text-lg font-black leading-tight ${c.color}`}>{c.value}</p>
-                <p className="text-xs text-slate-600">{c.sub}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Debt balance vs savings over time */}
           <ChartPanel title="Debt balance vs savings over time">
             <LineChart data={data}>
@@ -292,38 +262,27 @@ export default function DebtSimulatorPage() {
 
           {/* Interest rate impact callout */}
           {params.debtInterestRate > 7 && (
-            <div className="rounded-2xl border border-rose-400/20 bg-rose-400/5 p-5">
-              <p className="text-xs font-semibold text-rose-300 mb-2">
-                ⚠️ High interest rate — debt is very expensive at {params.debtInterestRate}%
-              </p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title={`High interest turns debt into a compounding trap at ${params.debtInterestRate}%`} tone="rose">
                 At {params.debtInterestRate}%, your monthly interest charge on €{params.debtAmount.toLocaleString()} is
                 €{Math.round(params.debtAmount * params.debtInterestRate / 100 / 12).toLocaleString()}.
                 {params.monthlyDebtPayment <= params.debtAmount * params.debtInterestRate / 100 / 12
                   ? " Your current payment doesn't cover the interest — the debt is growing, not shrinking. This is a debt trap."
                   : ` Only €${Math.round(params.monthlyDebtPayment - params.debtAmount * params.debtInterestRate / 100 / 12).toLocaleString()} of your monthly payment reduces the principal.`}
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
 
           {debtPaymentPct > 35 && (
-            <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5">
-              <p className="text-xs font-semibold text-amber-300 mb-2">
-                ⚠️ Debt payment burden: {debtPaymentPct}% of income
-              </p>
-              <p className="text-xs text-slate-300 leading-5">
+            <SimulatorCallout title={`Debt service is consuming ${debtPaymentPct}% of income`} tone="gold">
                 Financial stress typically starts above 30–35% of income committed to debt service. At {debtPaymentPct}%,
                 any income shock (job loss, medical costs, energy price spike) could tip you into arrears.
                 Banks and central banks monitor this — it&apos;s a key driver of housing market fragility.
-              </p>
-            </div>
+            </SimulatorCallout>
           )}
         </div>
 
         {/* ── Controls ── */}
         <div className="space-y-4">
-          <div className="rounded-[1.75rem] border border-rose-400/20 bg-panel p-5 space-y-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-300">Debt</p>
+          <SimulatorSidebarPanel kicker="Debt" title="Borrowing conditions" tone="gold">
             {([
               { key: "debtAmount",          label: "Debt amount",           icon: "💸", min: 1000,   max: 500000, step: 1000,  fmt: (v: number) => `€${v.toLocaleString()}` },
               { key: "debtInterestRate",    label: "Interest rate",         icon: "📈", min: 0.5,    max: 25,     step: 0.25,  fmt: (v: number) => `${v}%` },
@@ -332,18 +291,17 @@ export default function DebtSimulatorPage() {
             ] as const).map((sl) => (
               <label key={sl.key} className="block">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-300">{sl.icon} {sl.label}</span>
-                  <span className="font-mono font-bold text-rose-300">{sl.fmt(params[sl.key])}</span>
+                  <span className="text-slate-800 dark:text-slate-100">{sl.icon} {sl.label}</span>
+                  <span className="font-mono font-bold text-[rgb(var(--atlas-gold))]">{sl.fmt(params[sl.key])}</span>
                 </div>
                 <input type="range" min={sl.min} max={sl.max} step={sl.step}
                   value={params[sl.key]} onChange={(e) => setP(sl.key, Number(e.target.value))}
-                  className="w-full accent-rose-400" />
+                  className="w-full accent-[rgb(var(--atlas-gold))]" />
               </label>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
 
-          <div className="rounded-[1.75rem] border border-emerald-400/20 bg-panel p-5 space-y-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">Savings</p>
+          <SimulatorSidebarPanel kicker="Savings" title="Build the cushion" tone="green">
             {([
               { key: "initialSavings",         label: "Starting savings",        icon: "🏦", min: 0,     max: 100000, step: 1000, fmt: (v: number) => `€${v.toLocaleString()}` },
               { key: "monthlySavingsDeposit",  label: "Monthly savings deposit", icon: "💰", min: 0,     max: 2000,   step: 50,   fmt: (v: number) => `€${v.toLocaleString()}` },
@@ -351,46 +309,45 @@ export default function DebtSimulatorPage() {
             ] as const).map((sl) => (
               <label key={sl.key} className="block">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-300">{sl.icon} {sl.label}</span>
-                  <span className="font-mono font-bold text-emerald-300">{sl.fmt(params[sl.key])}</span>
+                  <span className="text-slate-800 dark:text-slate-100">{sl.icon} {sl.label}</span>
+                  <span className="font-mono font-bold text-[rgb(var(--atlas-green))]">{sl.fmt(params[sl.key])}</span>
                 </div>
                 <input type="range" min={sl.min} max={sl.max} step={sl.step}
                   value={params[sl.key]} onChange={(e) => setP(sl.key, Number(e.target.value))}
-                  className="w-full accent-emerald-400" />
+                  className="w-full accent-[rgb(var(--atlas-green))]" />
               </label>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
 
           {/* Presets */}
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Scenarios</p>
+          <SimulatorSidebarPanel kicker="Scenarios" title="Load a preset">
             {PRESETS.map((preset) => (
               <button key={preset.label}
                 onClick={() => setParams((p) => ({ ...p, ...preset.params }))}
-                className="w-full rounded-2xl border border-slate-800 p-3 text-left hover:border-slate-600 transition-colors"
+                className="w-full rounded-2xl border border-[rgba(28,36,48,0.08)] bg-white/76 p-3 text-left transition hover:border-[rgba(28,36,48,0.18)] dark:border-slate-800 dark:bg-slate-900/65"
                 style={{ borderLeftColor: preset.color, borderLeftWidth: 3 }}>
                 <p className="text-xs font-semibold" style={{ color: preset.color }}>{preset.label}</p>
                 <p className="mt-0.5 text-xs text-slate-500">{preset.description}</p>
               </button>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
 
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Key mechanisms</p>
+          <SimulatorSidebarPanel kicker="Key mechanisms" title="System lessons" className="space-y-3">
             {[
               { title: "Front-loaded interest", text: "Early loan payments are mostly interest. On a 30-year mortgage at 6%, over half your total payments in the first decade go to the bank, not to your equity.", color: "text-rose-300" },
               { title: "Rate sensitivity", text: "A 2% interest rate increase on a €200,000 mortgage adds ~€250/month — €3,000/year. Multiplied across millions of households, this is how central banks slow economies.", color: "text-amber-300" },
               { title: "Debt trap threshold", text: "When your monthly payment barely covers the interest charge, the principal never shrinks. Payday loans and credit cards at 20%+ are designed around this dynamic.", color: "text-rose-300" },
               { title: "Opportunity cost", text: "Every euro servicing expensive debt is a euro not compounding in investments. The gap between your debt rate and savings rate is the real cost of borrowing.", color: "text-cyan-300" },
             ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div key={item.title} className="rounded-xl border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.58)] p-3 dark:border-slate-800 dark:bg-slate-900/60">
                 <p className={`text-xs font-semibold ${item.color}`}>{item.title}</p>
                 <p className="mt-1 text-xs text-slate-400">{item.text}</p>
               </div>
             ))}
-          </div>
+          </SimulatorSidebarPanel>
         </div>
       </div>
-    </div>
+      <div id="debt-ideas" />
+    </AtlasPage>
   );
 }

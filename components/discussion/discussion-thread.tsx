@@ -12,30 +12,29 @@ type PostKind = Database["public"]["Enums"]["post_kind"];
 type PostRow = Database["public"]["Tables"]["posts"]["Row"];
 
 interface LivePost {
-  id: string;
-  kind: PostKind;
+  author_label: string;
   content: string;
   created_at: string;
-  author_label: string;
+  id: string;
+  kind: PostKind;
 }
 
 const KIND_LABELS: Record<PostKind, string> = {
   claim: "Claim",
-  evidence: "Evidence",
   counterpoint: "Counterpoint",
+  evidence: "Evidence",
   question: "Question",
   synthesis: "Synthesis",
 };
 
-const KIND_COLORS: Record<PostKind, string> = {
-  claim: "text-cyan-300",
-  evidence: "text-emerald-300",
-  counterpoint: "text-rose-300",
-  question: "text-amber-300",
-  synthesis: "text-violet-300",
+const KIND_TONES: Record<PostKind, string> = {
+  claim: "border-amber-200 bg-amber-50 text-amber-700",
+  counterpoint: "border-rose-200 bg-rose-50 text-rose-700",
+  evidence: "border-cyan-200 bg-cyan-50 text-cyan-700",
+  question: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  synthesis: "border-violet-200 bg-violet-50 text-violet-700",
 };
 
-// Static fallback shown when Supabase is not connected
 const SEED_POSTS: LivePost[] = [
   {
     id: "seed-1",
@@ -58,39 +57,128 @@ const SEED_POSTS: LivePost[] = [
     created_at: new Date().toISOString(),
     author_label: "Policy Analyst",
   },
+  {
+    id: "seed-4",
+    kind: "synthesis",
+    content: "Both supply and financing matter, but the thread suggests the current system rewards asset appreciation faster than housing access.",
+    created_at: new Date().toISOString(),
+    author_label: "Civic Designer",
+  },
 ];
 
-// ─── Fallback (no Supabase env) ───────────────────────────────────────────────
-function StaticThread() {
+function timeAgo(iso: string) {
+  const delta = Date.now() - new Date(iso).getTime();
+  const hours = Math.max(1, Math.floor(delta / (1000 * 60 * 60)));
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function ThreadShell({
+  children,
+  footer,
+}: {
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+}) {
   return (
-    <section className="space-y-3">
-      <p className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-2 text-xs text-amber-200">
-        Connect Supabase to enable live discussions. Showing example posts.
-      </p>
-      {SEED_POSTS.map((post) => (
-        <PostCard key={post.id} post={post} />
-      ))}
-    </section>
+    <div className="rounded-[1.7rem] border border-[rgba(28,36,48,0.08)] bg-white/92 shadow-[0_14px_32px_rgba(28,36,48,0.04)]">
+      <div className="divide-y divide-[rgba(28,36,48,0.08)] px-5">{children}</div>
+      {footer ? <div className="border-t border-[rgba(28,36,48,0.08)] px-5 py-5">{footer}</div> : null}
+    </div>
   );
 }
 
-// ─── Shared post card ─────────────────────────────────────────────────────────
-function PostCard({ post }: { post: LivePost }) {
+function PostRow({ post }: { post: LivePost }) {
   return (
-    <article className="rounded-2xl border border-slate-800 bg-panel p-4">
-      <div className="flex items-center gap-2">
-        <span className={`text-xs font-semibold ${KIND_COLORS[post.kind]}`}>
+    <article className="grid gap-3 py-4 md:grid-cols-[8rem_minmax(0,1fr)]">
+      <div className="space-y-2">
+        <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${KIND_TONES[post.kind]}`}>
           {KIND_LABELS[post.kind]}
         </span>
-        <span className="text-xs text-slate-500">·</span>
-        <span className="text-xs text-slate-400">{post.author_label}</span>
+        <div className="text-xs text-slate-500">
+          <div className="font-medium text-slate-700">{post.author_label}</div>
+          <div>{timeAgo(post.created_at)}</div>
+        </div>
       </div>
-      <p className="mt-2 text-sm leading-6 text-slate-200">{post.content}</p>
+
+      <p className="text-sm leading-7 text-slate-700">{post.content}</p>
     </article>
   );
 }
 
-// ─── Live thread (Supabase connected) ────────────────────────────────────────
+function Composer({
+  content,
+  disabled,
+  kind,
+  onKindChange,
+  onSubmit,
+  onContentChange,
+  submitting,
+}: {
+  content: string;
+  disabled: boolean;
+  kind: PostKind;
+  onContentChange: (value: string) => void;
+  onKindChange: (value: PostKind) => void;
+  onSubmit: (event: React.FormEvent) => void;
+  submitting: boolean;
+}) {
+  return (
+    <form className="space-y-4" onSubmit={onSubmit}>
+      <div className="flex flex-wrap gap-2">
+        {(Object.keys(KIND_LABELS) as PostKind[]).map((value) => (
+          <button
+            className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition ${
+              kind === value
+                ? KIND_TONES[value]
+                : "border-[rgba(28,36,48,0.08)] bg-white/90 text-slate-500 hover:text-slate-800"
+            }`}
+            key={value}
+            onClick={() => onKindChange(value)}
+            type="button"
+          >
+            {KIND_LABELS[value]}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        className="w-full rounded-[1.35rem] border border-[rgba(28,36,48,0.12)] bg-[rgba(251,249,245,0.95)] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[rgb(var(--atlas-primary))] resize-none"
+        onChange={(event) => onContentChange(event.target.value)}
+        placeholder={`Add a ${KIND_LABELS[kind].toLowerCase()}...`}
+        rows={3}
+        value={content}
+      />
+
+      <div className="flex justify-end">
+        <Button className="rounded-full gap-2 px-5" disabled={disabled} type="submit">
+          <Send className="h-3.5 w-3.5" />
+          {submitting ? "Posting..." : "Post"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function StaticThread() {
+  return (
+    <div className="space-y-3">
+      <p className="rounded-[1.1rem] border border-amber-200 bg-amber-50/80 px-4 py-3 text-xs text-amber-700">
+        Connect Supabase to enable live discussions. Showing example posts for now.
+      </p>
+
+      <ThreadShell>
+        {SEED_POSTS.map((post) => (
+          <PostRow key={post.id} post={post} />
+        ))}
+      </ThreadShell>
+    </div>
+  );
+}
+
 function LiveThread({ threadId }: { threadId: string }) {
   const [posts, setPosts] = useState<LivePost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,8 +197,7 @@ function LiveThread({ threadId }: { threadId: string }) {
         .select("username, full_name")
         .eq("id", row.author_id)
         .single();
-      const author_label =
-        profile?.username ?? profile?.full_name ?? "Anonymous";
+      const author_label = profile?.username ?? profile?.full_name ?? "Anonymous";
       return {
         id: row.id,
         kind: row.kind,
@@ -122,15 +209,18 @@ function LiveThread({ threadId }: { threadId: string }) {
     [supabase],
   );
 
-  // Initial load
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       setLoading(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!cancelled) setUserId(user?.id ?? null);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!cancelled) {
+        setUserId(user?.id ?? null);
+      }
 
       const { data: rows } = await supabase
         .from("posts")
@@ -139,7 +229,9 @@ function LiveThread({ threadId }: { threadId: string }) {
         .order("created_at", { ascending: true })
         .limit(100);
 
-      if (cancelled || !rows) return;
+      if (cancelled || !rows) {
+        return;
+      }
 
       const display = await Promise.all(rows.map(toDisplayPost));
       if (!cancelled) {
@@ -149,10 +241,11 @@ function LiveThread({ threadId }: { threadId: string }) {
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [threadId, supabase, toDisplayPost]);
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel(`thread:${threadId}`)
@@ -166,21 +259,28 @@ function LiveThread({ threadId }: { threadId: string }) {
         },
         async (payload) => {
           const newPost = await toDisplayPost(payload.new as PostRow);
-          setPosts((prev) => {
-            if (prev.some((p) => p.id === newPost.id)) return prev;
-            return [...prev, newPost];
+          setPosts((previous) => {
+            if (previous.some((post) => post.id === newPost.id)) {
+              return previous;
+            }
+            return [...previous, newPost];
           });
           setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
         },
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [threadId, supabase, toDisplayPost]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!content.trim() || !userId) return;
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!content.trim() || !userId) {
+      return;
+    }
+
     setSubmitting(true);
     await supabase.from("posts").insert({
       thread_id: threadId,
@@ -193,58 +293,40 @@ function LiveThread({ threadId }: { threadId: string }) {
   }
 
   return (
-    <section className="space-y-3">
+    <ThreadShell
+      footer={
+        userId ? (
+          <Composer
+            content={content}
+            disabled={submitting || !content.trim()}
+            kind={kind}
+            onContentChange={setContent}
+            onKindChange={setKind}
+            onSubmit={handleSubmit}
+            submitting={submitting}
+          />
+        ) : (
+          <p className="text-center text-sm text-slate-500">
+            <a className="font-medium text-[rgb(var(--atlas-primary))] hover:underline" href="/auth">
+              Sign in
+            </a>{" "}
+            to join the discussion.
+          </p>
+        )
+      }
+    >
       {loading ? (
-        <p className="text-sm text-slate-500">Loading discussion…</p>
+        <p className="py-4 text-sm text-slate-500">Loading discussion...</p>
       ) : posts.length === 0 ? (
-        <p className="text-sm text-slate-500">No posts yet — be the first to add a claim.</p>
+        <p className="py-4 text-sm text-slate-500">No posts yet. Be the first to add a claim.</p>
       ) : (
-        posts.map((post) => <PostCard key={post.id} post={post} />)
+        posts.map((post) => <PostRow key={post.id} post={post} />)
       )}
       <div ref={bottomRef} />
-
-      {userId ? (
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-700 bg-panel p-4 space-y-3">
-          <div className="flex flex-wrap gap-2">
-            {(Object.keys(KIND_LABELS) as PostKind[]).map((k) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => setKind(k)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  kind === k
-                    ? `border-current ${KIND_COLORS[k]} bg-white/5`
-                    : "border-slate-700 text-slate-500 hover:border-slate-500"
-                }`}
-              >
-                {KIND_LABELS[k]}
-              </button>
-            ))}
-          </div>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder={`Add a ${KIND_LABELS[kind].toLowerCase()}…`}
-            rows={3}
-            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none"
-          />
-          <div className="flex justify-end">
-            <Button type="submit" disabled={submitting || !content.trim()} className="rounded-2xl gap-2">
-              <Send className="h-3.5 w-3.5" />
-              {submitting ? "Posting…" : "Post"}
-            </Button>
-          </div>
-        </form>
-      ) : (
-        <p className="text-xs text-slate-500 text-center py-2">
-          <a href="/auth" className="text-cyan-400 hover:underline">Sign in</a> to join the discussion.
-        </p>
-      )}
-    </section>
+    </ThreadShell>
   );
 }
 
-// ─── Public export ────────────────────────────────────────────────────────────
 export function DiscussionThread({ threadId }: { threadId?: string }) {
   if (!hasSupabaseEnv) {
     return <StaticThread />;
@@ -252,12 +334,13 @@ export function DiscussionThread({ threadId }: { threadId?: string }) {
 
   if (!threadId) {
     return (
-      <section className="space-y-3">
+      <div className="space-y-3">
         <p className="text-sm text-slate-500">
-          No thread selected. Pass a <code className="text-cyan-300">threadId</code> prop to load a live discussion.
+          No thread selected. Pass a <code className="font-semibold text-slate-700">threadId</code> prop to load a
+          live discussion.
         </p>
         <StaticThread />
-      </section>
+      </div>
     );
   }
 

@@ -1,6 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
+import {
+  ArrowRight,
+  Compass,
+  FlaskConical,
+  Globe2,
+  Leaf,
+  LineChart as LineChartIcon,
+  SlidersHorizontal,
+  Sparkles,
+} from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -14,6 +25,16 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import { FeatureStrip } from "@/components/atlas/FeatureStrip";
+import { IllustratedTabHero } from "@/components/atlas/IllustratedTabHero";
+import { InsightBlock } from "@/components/atlas/InsightBlock";
+import { SectionNarrative } from "@/components/atlas/SectionNarrative";
+import { SoftPanel } from "@/components/atlas/SoftPanel";
+import { SimulatorPrimer } from "@/components/simulator/SimulatorAtlas";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 // ─── World3-inspired system dynamics model ────────────────────────────────────
 interface World3State {
@@ -226,15 +247,25 @@ const SLIDERS: SliderConfig[] = [
   { key: "mortalityReduction",      label: "Public health investment",  min: 1,   max: 1.5, step: 0.05, icon: "💊",  group: "Welfare",      tooltip: "Directly boosts life expectancy through targeted health spending and disease prevention." },
 ];
 
-const GROUPS = ["Resources", "Environment", "Population", "Food", "Welfare"];
+const PRIMARY_SLIDER_KEYS: ParamKey[] = [
+  "resourceEfficiency",
+  "pollutionControl",
+  "landYieldTech",
+  "fertilityControl",
+  "serviceCapitalPriority",
+  "mortalityReduction",
+];
+const SECONDARY_SLIDER_KEYS: ParamKey[] = ["resourceReserveMultiplier", "erosionControl"];
 
-type TabId = "overview" | "population" | "welfare" | "resources" | "food";
+type TabId = "overview" | "population" | "industrial" | "food" | "pollution" | "resources" | "welfare";
 const TABS: { id: TabId; label: string }[] = [
-  { id: "overview",    label: "Overview"    },
-  { id: "population",  label: "Population"  },
-  { id: "welfare",     label: "Welfare"     },
-  { id: "resources",   label: "Resources"   },
-  { id: "food",        label: "Food & Land" },
+  { id: "overview", label: "Overview" },
+  { id: "population", label: "Population" },
+  { id: "industrial", label: "Industrial Output" },
+  { id: "food", label: "Food per Capita" },
+  { id: "pollution", label: "Pollution" },
+  { id: "resources", label: "Resources" },
+  { id: "welfare", label: "Welfare Index" },
 ];
 
 // ─── Custom tooltip ───────────────────────────────────────────────────────────
@@ -245,10 +276,10 @@ function ChartTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-xs shadow-xl">
-      <p className="mb-2 font-bold text-slate-200">{label}</p>
+    <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white/96 px-4 py-3 text-xs shadow-[0_16px_30px_rgba(28,36,48,0.08)] dark:border-slate-700 dark:bg-slate-950/95">
+      <p className="mb-2 font-bold text-slate-900 dark:text-slate-100">{label}</p>
       {payload.map((e) => (
-        <p key={e.name} style={{ color: e.color }}>
+        <p className="text-slate-700 dark:text-slate-200" key={e.name} style={{ color: e.color }}>
           {e.name}: <span className="font-semibold">{e.value}</span>
         </p>
       ))}
@@ -257,11 +288,24 @@ function ChartTooltip({ active, payload, label }: {
 }
 
 // ─── Chart panel ─────────────────────────────────────────────────────────────
-function ChartPanel({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartPanel({
+  title,
+  description,
+  children,
+  height = 360,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  height?: number;
+}) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-panel p-4">
-      <p className="mb-3 text-xs font-semibold text-slate-400">{title}</p>
-      <ResponsiveContainer width="100%" height={220}>
+    <div className="rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/94 p-5 shadow-[0_18px_34px_rgba(28,36,48,0.05)] dark:border-slate-800 dark:bg-slate-950/80">
+      <div className="mb-4 space-y-1">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{title}</p>
+        {description ? <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">{description}</p> : null}
+      </div>
+      <ResponsiveContainer width="100%" height={height}>
         {children as React.ReactElement}
       </ResponsiveContainer>
     </div>
@@ -280,6 +324,36 @@ function DeltaBadge({ value, baseline, unit = "", lowerIsBetter = false }: {
       {delta > 0 ? "+" : ""}{unit === "%" ? delta.toFixed(1) : Math.round(delta * 10) / 10}{unit}
     </span>
   );
+}
+
+function OutcomeMetric({
+  label,
+  value,
+  detail,
+  delta,
+}: {
+  label: string;
+  value: string;
+  detail?: string;
+  delta?: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white/92 px-4 py-4 shadow-[0_10px_24px_rgba(28,36,48,0.04)] dark:border-slate-800 dark:bg-slate-950/80">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <div className="mt-2 flex items-end gap-2">
+        <p className="atlas-display text-3xl leading-none text-slate-900 dark:text-slate-50">{value}</p>
+        {delta ? <div className="pb-1">{delta}</div> : null}
+      </div>
+      {detail ? <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{detail}</p> : null}
+    </div>
+  );
+}
+
+function formatSliderValue(config: SliderConfig, value: number) {
+  if (config.key === "pollutionControl" || config.key === "fertilityControl" || config.key === "erosionControl") {
+    return `${Math.round(value * 100)}%`;
+  }
+  return `${value.toFixed(config.step < 0.1 ? 2 : 1)}x`;
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -314,10 +388,10 @@ export default function SimulatorPage() {
     );
   }, []);
 
-  // Build chart data (every 5 years from 1970)
+  // Build chart data (every 5 years from the present window)
   const chartData = useMemo(() => {
     const years: number[] = [];
-    for (let y = 1970; y <= endYear; y += 5) years.push(y);
+    for (let y = 2025; y <= endYear; y += 5) years.push(y);
     return years.map((year) => {
       const row: Record<string, number | string> = { year };
       const b = bauData.find((s) => s.year === year);
@@ -356,6 +430,20 @@ export default function SimulatorPage() {
       return row;
     });
   }, [bauData, yourData, presetData, activePresets, endYear]);
+
+  const overviewData = useMemo(
+    () =>
+      chartData.map((row) => ({
+        year: row.year,
+        population: Math.min(100, Number(row.Your_pop ?? 0) / 12 * 100),
+        industrial: Math.min(100, Number(row.Your_iop ?? 0) / 20 * 100),
+        food: Math.min(100, Number(row.Your_food ?? 0) / 3.5 * 100),
+        pollution: Math.min(100, Number(row.Your_poll ?? 0) / 5 * 100),
+        resources: Number(row.Your_nr ?? 0),
+        welfare: Number(row.Your_hwi ?? 0),
+      })),
+    [chartData],
+  );
 
   // Lines to render per chart
   function renderLines(suffix: string) {
@@ -398,9 +486,9 @@ export default function SimulatorPage() {
       label={{ value: "Today", fill: "#64748b", fontSize: 9, position: "insideTopLeft" }} />
   );
 
-  const gridProps = { strokeDasharray: "3 3", stroke: "#1e293b" };
-  const xAxisProps = { dataKey: "year", tick: { fill: "#64748b", fontSize: 10 } };
-  const yAxisProps = { tick: { fill: "#64748b", fontSize: 10 } };
+  const gridProps = { strokeDasharray: "3 3", stroke: "#ddd6c8" };
+  const xAxisProps = { dataKey: "year", tick: { fill: "#6b7280", fontSize: 10 } };
+  const yAxisProps = { tick: { fill: "#6b7280", fontSize: 10 } };
   const legendProps = { wrapperStyle: { fontSize: 10 } };
 
   // Terminal snapshots
@@ -410,307 +498,558 @@ export default function SimulatorPage() {
   // Check if custom differs from BAU
   const isModified = JSON.stringify(customParams) !== JSON.stringify(BASE);
 
+  const currentPresetIndex = PRESETS.findIndex((preset) => JSON.stringify(preset.params) === JSON.stringify(customParams));
+  const primarySliders = SLIDERS.filter((slider) => PRIMARY_SLIDER_KEYS.includes(slider.key));
+  const secondarySliders = SLIDERS.filter((slider) => SECONDARY_SLIDER_KEYS.includes(slider.key));
+
+  const scenarioSnapshots = useMemo(
+    () =>
+      PRESETS.map((preset) => {
+        const result = runWorld3(preset.params, endYear);
+        const terminal = result.find((state) => state.year === endYear) ?? result[result.length - 1];
+        return { ...preset, terminal };
+      }),
+    [endYear],
+  );
+
+  const driverSummary = useMemo(() => {
+    const welfareDelta = termYour.human_welfare_index - termBau.human_welfare_index;
+    const resourceDelta = termYour.nonrenewable_resources - termBau.nonrenewable_resources;
+    const pollutionDelta = termYour.pollution - termBau.pollution;
+
+    if (welfareDelta > 8 && resourceDelta > 8 && pollutionDelta < -0.5) {
+      return "Your current setup bends the system toward a later, gentler peak: welfare rises, resources deplete more slowly, and pollution stays better contained than under business as usual.";
+    }
+    if (welfareDelta > 6 && pollutionDelta < -0.25) {
+      return "This run improves human welfare and health outcomes, but it still depends on keeping resource use and pollution from catching up later in the century.";
+    }
+    if (resourceDelta > 10 && welfareDelta < 4) {
+      return "Your scenario conserves material limits better than business as usual, but it is not yet converting enough of that breathing room into broad human wellbeing.";
+    }
+    if (pollutionDelta > 0.4 || welfareDelta < -4) {
+      return "The current mix still behaves like overshoot: output and population keep pressing forward while pollution or declining welfare signal the system is outrunning its buffers.";
+    }
+    return "This scenario stays close to the default path. Small improvements appear, but the model is still behaving like a growth-first system unless several levers move together.";
+  }, [termBau, termYour]);
+
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      {/* Header */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-emerald-400/12 via-emerald-400/4 to-transparent" />
-        <div className="relative">
-          <span className="inline-flex rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-100">
-            World3 System Dynamics Model
-          </span>
-          <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">
-            Civilisation Simulator
-          </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-300">
-            Move the sliders to shape the future. See how policy and technology choices change the trajectory of population, welfare, and resources compared to business as usual.
-          </p>
-          <p className="mt-2 text-xs text-slate-500">
-            Based on the World3 system dynamics model (Meadows et al., <em>Limits to Growth</em>). Educational simplification — the original has ~200 variables.
-          </p>
+    <AtlasPage className="space-y-8 pb-14">
+      <IllustratedTabHero
+        actions={
+          <>
+            <Button asChild className="rounded-full px-5">
+              <a href="#world3-lab">Open the lab</a>
+            </Button>
+            <Button asChild className="rounded-full px-5" variant="outline">
+              <a href="#world3-briefing">How to read this model</a>
+            </Button>
+          </>
+        }
+        description="Explore 200 years of civilization. Adjust the main drivers, compare futures, and watch how population, output, food, pollution, resources, and welfare move together."
+        eyebrow="Simulation Lab"
+        imageAlt="World3 civilization landscape"
+        imageSrc="/atlas/simulator-hero.png"
+        title="World3 Civilization Simulator"
+      >
+        <FeatureStrip
+          items={[
+            {
+              label: "Forecast horizon",
+              value: String(endYear),
+              description: "Every run follows the same system from 2025 into the century ahead.",
+              icon: <Compass className="h-4 w-4" />,
+            },
+            {
+              label: "Welfare",
+              value: `${termYour.human_welfare_index}/100`,
+              description: `Compared with ${termBau.human_welfare_index}/100 under business as usual.`,
+              icon: <Sparkles className="h-4 w-4" />,
+            },
+            {
+              label: "Resources left",
+              value: `${termYour.nonrenewable_resources}%`,
+              description: `Business as usual ends at ${termBau.nonrenewable_resources}%.`,
+              icon: <Leaf className="h-4 w-4" />,
+            },
+            {
+              label: "Population",
+              value: `${termYour.population}B`,
+              description: `Life expectancy reaches ${termYour.life_expectancy} years in this run.`,
+              icon: <Globe2 className="h-4 w-4" />,
+            },
+          ]}
+        />
+      </IllustratedTabHero>
+
+      <SimulatorPrimer
+        aside="A good first exercise is to keep business as usual in view while you move only one or two levers. World3 becomes much easier to understand when you compare trajectories rather than chasing one ideal future in a single jump."
+        items={[
+          {
+            title: "Look for delays, not instant reactions.",
+            text: "In World3, policies often help at first and hurt later, or seem weak at first and matter decades later. The most important part of the model is the lag between cause and visible effect.",
+          },
+          {
+            title: "Watch welfare against material pressure.",
+            text: "A run can increase output for a while while still eroding long-run welfare through pollution, depletion, or food stress. Rising production is not the same as a stable civilization.",
+          },
+          {
+            title: "Use the chart tabs as one system seen from many angles.",
+            text: "Population, industrial output, resources, food, and pollution are not separate stories. Turning points usually appear across several lines at once, which is why comparison matters so much here.",
+          },
+        ]}
+        summary="World3 is the atlas flagship because it teaches the pattern underneath many civic crises: feedback loops, delays, overshoot, and tradeoffs between short-term gains and long-term stability. The point is not narrow prediction, but systems intuition."
+        title="Read World3 as a civilization pattern"
+      />
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {PRESETS.map((preset, idx) => {
+            const active = currentPresetIndex === idx;
+            return (
+              <button
+                className={cn(
+                  "rounded-full border px-4 py-2 text-sm font-semibold transition",
+                  active
+                    ? "border-[rgba(59,130,246,0.22)] bg-[rgba(59,130,246,0.12)] text-[rgb(var(--atlas-primary))]"
+                    : "border-[rgba(28,36,48,0.08)] bg-white/85 text-slate-600 hover:border-[rgba(28,36,48,0.16)] hover:text-slate-900",
+                )}
+                key={preset.label}
+                onClick={() => loadPreset(idx)}
+                type="button"
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+          {isModified && currentPresetIndex === -1 ? (
+            <span className="inline-flex items-center rounded-full border border-[rgba(212,168,79,0.22)] bg-[rgba(212,168,79,0.1)] px-4 py-2 text-sm font-semibold text-[rgb(var(--atlas-gold))]">
+              Custom scenario
+            </span>
+          ) : null}
+        </div>
+        <p className="max-w-4xl text-sm leading-6 text-slate-600 dark:text-slate-300">{driverSummary}</p>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]" id="world3-lab">
+        <div className="space-y-4 xl:sticky xl:top-24 xl:self-start">
+          <SoftPanel className="space-y-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="atlas-kicker">Variables</p>
+                <h2 className="atlas-display text-2xl text-slate-900">Shape the future</h2>
+              </div>
+              {isModified ? (
+                <button
+                  className="rounded-full border border-[rgba(28,36,48,0.12)] px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
+                  onClick={() => setCustomParams({ ...BASE })}
+                  type="button"
+                >
+                  Reset all
+                </button>
+              ) : null}
+            </div>
+
+            <div className="space-y-5">
+              {primarySliders.map((slider) => {
+                const value = customParams[slider.key] as number;
+                return (
+                  <label className="block" key={slider.key}>
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                        {slider.icon} {slider.label}
+                      </span>
+                      <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[rgb(var(--atlas-primary))]">
+                        {formatSliderValue(slider, value)}
+                      </span>
+                    </div>
+                    <input
+                      className="h-2 w-full cursor-pointer accent-[rgb(var(--atlas-primary))]"
+                      max={slider.max}
+                      min={slider.min}
+                      onChange={(event) => setParam(slider.key, Number(event.target.value))}
+                      step={slider.step}
+                      type="range"
+                      value={value}
+                    />
+                    <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{slider.tooltip}</p>
+                  </label>
+                );
+              })}
+            </div>
+          </SoftPanel>
+
+          <SoftPanel className="space-y-4" tone="blue">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="atlas-kicker">Run settings</p>
+                <h3 className="atlas-display text-2xl text-slate-900">Scope of the forecast</h3>
+              </div>
+              <FlaskConical className="h-5 w-5 text-[rgb(var(--atlas-primary))]" />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <label className="space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">End year</span>
+                <select
+                  className="w-full rounded-[1rem] border border-[rgba(28,36,48,0.1)] bg-white px-3 py-3 text-sm text-slate-800 outline-none transition focus:border-[rgba(59,130,246,0.25)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  onChange={(event) => setEndYear(Number(event.target.value))}
+                  value={endYear}
+                >
+                  {[2050, 2075, 2100, 2150].map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-white/75 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300">
+                The forecast updates live as you move the sliders, so you can see turning points as soon as they appear.
+              </div>
+            </div>
+
+            <details className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/78 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/70">
+              <summary className="cursor-pointer list-none text-sm font-semibold text-slate-800 dark:text-slate-100">
+                Advanced assumptions
+              </summary>
+              <div className="mt-4 space-y-4">
+                {secondarySliders.map((slider) => {
+                  const value = customParams[slider.key] as number;
+                  return (
+                    <label className="block" key={slider.key}>
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                          {slider.icon} {slider.label}
+                        </span>
+                        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                          {formatSliderValue(slider, value)}
+                        </span>
+                      </div>
+                      <input
+                        className="h-2 w-full cursor-pointer accent-[rgb(var(--atlas-gold))]"
+                        max={slider.max}
+                        min={slider.min}
+                        onChange={(event) => setParam(slider.key, Number(event.target.value))}
+                        step={slider.step}
+                        type="range"
+                        value={value}
+                      />
+                      <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{slider.tooltip}</p>
+                    </label>
+                  );
+                })}
+              </div>
+            </details>
+          </SoftPanel>
+        </div>
+
+        <div className="space-y-5">
+          <SoftPanel className="space-y-5 overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="space-y-2">
+                <p className="atlas-kicker">Chart focus</p>
+                <div className="flex flex-wrap gap-2">
+                  {TABS.map((item) => (
+                    <button
+                      className={cn(
+                        "rounded-full border px-4 py-2 text-sm font-semibold transition",
+                        tab === item.id
+                          ? "border-[rgba(59,130,246,0.22)] bg-[rgba(59,130,246,0.12)] text-[rgb(var(--atlas-primary))]"
+                          : "border-[rgba(28,36,48,0.08)] bg-white/80 text-slate-600 hover:border-[rgba(28,36,48,0.16)] hover:text-slate-900",
+                      )}
+                      key={item.id}
+                      onClick={() => setTab(item.id)}
+                      type="button"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/75 px-4 py-2 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300">
+                Comparing against <span className="font-semibold text-slate-900 dark:text-slate-100">Business as usual</span>
+              </div>
+            </div>
+
+            {tab === "overview" ? (
+              <ChartPanel
+                description="The overview normalizes the main variables so you can read the broad system pattern at a glance."
+                height={430}
+                title="Global outcomes over time"
+              >
+                <LineChart data={overviewData}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis {...xAxisProps} />
+                  <YAxis {...yAxisProps} domain={[0, 100]} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Legend {...legendProps} />
+                  <Line activeDot={{ r: 4 }} dataKey="population" dot={false} name="Population" stroke="#3b82f6" strokeWidth={2.4} type="monotone" />
+                  <Line activeDot={{ r: 4 }} dataKey="industrial" dot={false} name="Industrial output" stroke="#f97316" strokeWidth={2.4} type="monotone" />
+                  <Line activeDot={{ r: 4 }} dataKey="food" dot={false} name="Food per capita" stroke="#10b981" strokeWidth={2.4} type="monotone" />
+                  <Line activeDot={{ r: 4 }} dataKey="pollution" dot={false} name="Pollution" stroke="#d946ef" strokeWidth={2.4} type="monotone" />
+                  <Line activeDot={{ r: 4 }} dataKey="resources" dot={false} name="Resources" stroke="#f59e0b" strokeWidth={2.4} type="monotone" />
+                  <Line activeDot={{ r: 4 }} dataKey="welfare" dot={false} name="Welfare index" stroke="#14b8a6" strokeWidth={2.4} type="monotone" />
+                </LineChart>
+              </ChartPanel>
+            ) : null}
+
+            {tab === "population" ? (
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+                <ChartPanel description="Population stays higher when food, health, and output keep expanding together." title="Population trajectory">
+                  <LineChart data={chartData}>
+                    {renderLines("pop")}
+                    {todayLine}
+                    <CartesianGrid {...gridProps} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Legend {...legendProps} />
+                  </LineChart>
+                </ChartPanel>
+                <ChartPanel description="Health and services matter because they delay mortality shocks and support welfare." title="Life expectancy">
+                  <LineChart data={chartData}>
+                    {renderLines("le")}
+                    {todayLine}
+                    <CartesianGrid {...gridProps} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} domain={[20, 95]} />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Legend {...legendProps} />
+                  </LineChart>
+                </ChartPanel>
+              </div>
+            ) : null}
+
+            {tab === "industrial" ? (
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+                <ChartPanel description="Industrial output rises when capital, resources, and pollution constraints stay aligned." title="Industrial output per capita">
+                  <LineChart data={chartData}>
+                    {renderLines("iop")}
+                    {todayLine}
+                    <CartesianGrid {...gridProps} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Legend {...legendProps} />
+                  </LineChart>
+                </ChartPanel>
+                <ChartPanel description="Welfare is broader than output. It combines health, food, and living standards." title="Welfare index">
+                  <AreaChart data={chartData}>
+                    {renderAreas("hwi")}
+                    {todayLine}
+                    <CartesianGrid {...gridProps} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} domain={[0, 100]} />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Legend {...legendProps} />
+                  </AreaChart>
+                </ChartPanel>
+              </div>
+            ) : null}
+
+            {tab === "food" ? (
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+                <ChartPanel description="Food per capita weakens when land, resources, and pollution no longer support agricultural productivity." title="Food per capita">
+                  <AreaChart data={chartData}>
+                    {renderAreas("food")}
+                    {todayLine}
+                    <CartesianGrid {...gridProps} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Legend {...legendProps} />
+                  </AreaChart>
+                </ChartPanel>
+                <ChartPanel description="This overlay makes the agriculture versus pollution tension explicit inside your current run." title="Food and pollution together">
+                  <LineChart data={chartData}>
+                    <Line activeDot={{ r: 4 }} dataKey="Your_food" dot={false} name="Food" stroke="#10b981" strokeWidth={2.2} type="monotone" />
+                    <Line activeDot={{ r: 4 }} dataKey="Your_poll" dot={false} name="Pollution" stroke="#ef4444" strokeWidth={2.2} type="monotone" />
+                    {todayLine}
+                    <CartesianGrid {...gridProps} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Legend {...legendProps} />
+                  </LineChart>
+                </ChartPanel>
+              </div>
+            ) : null}
+
+            {tab === "pollution" ? (
+              <ChartPanel description="Pollution does not just rise directly from industry. It also feeds back through health and food, weakening the rest of the system." height={420} title="Pollution index">
+                <LineChart data={chartData}>
+                  {renderLines("poll")}
+                  {todayLine}
+                  <CartesianGrid {...gridProps} />
+                  <XAxis {...xAxisProps} />
+                  <YAxis {...yAxisProps} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Legend {...legendProps} />
+                </LineChart>
+              </ChartPanel>
+            ) : null}
+
+            {tab === "resources" ? (
+              <ChartPanel description="Resources fall more slowly when efficiency improves or when the system stabilizes before chasing every last unit of output." height={420} title="Nonrenewable resources remaining">
+                <AreaChart data={chartData}>
+                  {renderAreas("nr")}
+                  {todayLine}
+                  <CartesianGrid {...gridProps} />
+                  <XAxis {...xAxisProps} />
+                  <YAxis {...yAxisProps} domain={[0, 100]} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Legend {...legendProps} />
+                </AreaChart>
+              </ChartPanel>
+            ) : null}
+
+            {tab === "welfare" ? (
+              <ChartPanel description="Welfare rises when food, health, and material output reinforce each other instead of forcing tradeoffs too early." height={420} title="Human welfare index">
+                <AreaChart data={chartData}>
+                  {renderAreas("hwi")}
+                  {todayLine}
+                  <CartesianGrid {...gridProps} />
+                  <XAxis {...xAxisProps} />
+                  <YAxis {...yAxisProps} domain={[0, 100]} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Legend {...legendProps} />
+                </AreaChart>
+              </ChartPanel>
+            ) : null}
+          </SoftPanel>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <OutcomeMetric label="Year" value={String(endYear)} detail="The end-state snapshot below the main chart." />
+            <OutcomeMetric label="Population" value={`${termYour.population}B`} detail="Business as usual baseline" delta={<DeltaBadge baseline={termBau.population} value={termYour.population} />} />
+            <OutcomeMetric label="Industrial output" value={`${termYour.industrial_output_pc}`} detail="Per-capita output index" delta={<DeltaBadge baseline={termBau.industrial_output_pc} value={termYour.industrial_output_pc} />} />
+            <OutcomeMetric label="Food per capita" value={`${termYour.food_per_capita}`} detail="Agricultural sufficiency index" delta={<DeltaBadge baseline={termBau.food_per_capita} value={termYour.food_per_capita} />} />
+            <OutcomeMetric label="Pollution" value={`${termYour.pollution}`} detail="Lower is better" delta={<DeltaBadge baseline={termBau.pollution} lowerIsBetter value={termYour.pollution} />} />
+            <OutcomeMetric label="Welfare index" value={`${termYour.human_welfare_index}/100`} detail="Combined life, food, and income outcome" delta={<DeltaBadge baseline={termBau.human_welfare_index} value={termYour.human_welfare_index} />} />
+          </div>
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        {/* ── Left: Charts ── */}
-        <div className="space-y-4">
-          {/* Tab bar + year range */}
-          <div className="flex items-center gap-2">
-            <div className="flex flex-1 gap-1 rounded-2xl border border-slate-800 bg-panel p-1.5">
-              {TABS.map((t) => (
-                <button key={t.id} onClick={() => setTab(t.id)}
-                  className={`flex-1 rounded-xl py-1.5 text-xs font-medium transition-colors ${
-                    tab === t.id ? "bg-slate-700 text-slate-50" : "text-slate-500 hover:text-slate-300"
-                  }`}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-            <select value={endYear} onChange={(e) => setEndYear(Number(e.target.value))}
-              className="rounded-xl border border-slate-800 bg-panel px-3 py-2 text-xs text-slate-300">
-              {[2050, 2075, 2100, 2150].map((y) => <option key={y} value={y}>to {y}</option>)}
-            </select>
-          </div>
-
-          {/* Charts */}
-          {tab === "overview" && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ChartPanel title="Population (billions)">
-                <LineChart data={chartData}>
-                  {renderLines("pop")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </LineChart>
-              </ChartPanel>
-              <ChartPanel title="Human Welfare Index (0–100)">
-                <AreaChart data={chartData}>
-                  {renderAreas("hwi")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} domain={[0, 100]} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </AreaChart>
-              </ChartPanel>
-              <ChartPanel title="Nonrenewable Resources (% remaining)">
-                <AreaChart data={chartData}>
-                  {renderAreas("nr")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} domain={[0, 100]} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </AreaChart>
-              </ChartPanel>
-              <ChartPanel title="Pollution Index">
-                <LineChart data={chartData}>
-                  {renderLines("poll")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </LineChart>
-              </ChartPanel>
-            </div>
-          )}
-
-          {tab === "population" && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ChartPanel title="Population (billions)">
-                <LineChart data={chartData}>
-                  {renderLines("pop")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </LineChart>
-              </ChartPanel>
-              <ChartPanel title="Life Expectancy (years)">
-                <LineChart data={chartData}>
-                  {renderLines("le")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} domain={[20, 95]} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </LineChart>
-              </ChartPanel>
-            </div>
-          )}
-
-          {tab === "welfare" && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ChartPanel title="Human Welfare Index (0–100)">
-                <AreaChart data={chartData}>
-                  {renderAreas("hwi")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} domain={[0, 100]} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </AreaChart>
-              </ChartPanel>
-              <ChartPanel title="Industrial Output per Capita">
-                <LineChart data={chartData}>
-                  {renderLines("iop")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </LineChart>
-              </ChartPanel>
-            </div>
-          )}
-
-          {tab === "resources" && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ChartPanel title="Nonrenewable Resources (% remaining)">
-                <AreaChart data={chartData}>
-                  {renderAreas("nr")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} domain={[0, 100]} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </AreaChart>
-              </ChartPanel>
-              <ChartPanel title="Pollution Index">
-                <LineChart data={chartData}>
-                  {renderLines("poll")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </LineChart>
-              </ChartPanel>
-            </div>
-          )}
-
-          {tab === "food" && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ChartPanel title="Food per Capita (index)">
-                <AreaChart data={chartData}>
-                  {renderAreas("food")}{todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </AreaChart>
-              </ChartPanel>
-              <ChartPanel title="Food & Pollution (Your Scenario)">
-                <LineChart data={chartData}>
-                  <Line type="monotone" dataKey="Your_food" name="Food" stroke="#34d399" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Your_poll" name="Pollution" stroke="#f87171" strokeWidth={2} dot={false} />
-                  {todayLine}
-                  <CartesianGrid {...gridProps} /><XAxis {...xAxisProps} /><YAxis {...yAxisProps} />
-                  <Tooltip content={<ChartTooltip />} /><Legend {...legendProps} />
-                </LineChart>
-              </ChartPanel>
-            </div>
-          )}
-
-          {/* ── Outcome comparison cards ── */}
-          {termBau && termYour && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-slate-700 bg-panel p-4" style={{ borderLeftColor: "#f87171", borderLeftWidth: 3 }}>
-                <p className="text-xs font-semibold text-rose-400">Business as Usual — {endYear}</p>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-200">
-                  <span>Population</span><span className="font-bold text-right">{termBau.population}B</span>
-                  <span>Welfare index</span><span className="font-bold text-right">{termBau.human_welfare_index}/100</span>
-                  <span>Resources left</span><span className="font-bold text-right">{termBau.nonrenewable_resources}%</span>
-                  <span>Life expectancy</span><span className="font-bold text-right">{termBau.life_expectancy}y</span>
-                </div>
-              </div>
-              <div className={`rounded-2xl border bg-panel p-4 ${isModified ? "border-violet-400/50" : "border-slate-700"}`} style={{ borderLeftColor: "#a78bfa", borderLeftWidth: 3 }}>
-                <p className="text-xs font-semibold text-violet-400">Your Scenario — {endYear}</p>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-200">
-                  <span>Population</span>
-                  <span className="font-bold text-right">
-                    {termYour.population}B
-                    <DeltaBadge value={termYour.population} baseline={termBau.population} />
-                  </span>
-                  <span>Welfare index</span>
-                  <span className="font-bold text-right">
-                    {termYour.human_welfare_index}/100
-                    <DeltaBadge value={termYour.human_welfare_index} baseline={termBau.human_welfare_index} />
-                  </span>
-                  <span>Resources left</span>
-                  <span className="font-bold text-right">
-                    {termYour.nonrenewable_resources}%
-                    <DeltaBadge value={termYour.nonrenewable_resources} baseline={termBau.nonrenewable_resources} unit="%" />
-                  </span>
-                  <span>Life expectancy</span>
-                  <span className="font-bold text-right">
-                    {termYour.life_expectancy}y
-                    <DeltaBadge value={termYour.life_expectancy} baseline={termBau.life_expectancy} unit="y" />
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+      <SectionNarrative
+        className="pt-4"
+        description="World3 matters because it links economic growth, population, food, resources, and pollution into one system. The key question is not whether growth exists, but whether reinforcing loops hit balancing limits before societies redesign the path."
+        eyebrow="Interpretation"
+        side={
+          <p>
+            Based on the World3 system dynamics model from <em>Limits to Growth</em>. This is a simplified educational version, but the logic of interacting feedback loops is preserved.
+          </p>
+        }
+        title="What this run is really showing"
+      >
+        <div className="grid gap-4 lg:grid-cols-3" id="world3-briefing">
+          <InsightBlock
+            description="Industrial growth is a reinforcing loop: more capital creates more output, which funds more capital. But it only looks stable while resources and ecological buffers still absorb the strain."
+            icon={<LineChartIcon className="h-5 w-5" />}
+            title="Growth loop"
+            tone="blue"
+          />
+          <InsightBlock
+            description="Resource depletion and pollution are balancing loops. They do not stop growth immediately, but once they bite, they drag down food, health, and output together."
+            icon={<Leaf className="h-5 w-5" />}
+            title="Limits loop"
+            tone="gold"
+          />
+          <InsightBlock
+            description="Education, healthcare, and cleaner production matter because they help the system peak later and softer, rather than racing into overshoot and collapse dynamics."
+            icon={<SlidersHorizontal className="h-5 w-5" />}
+            title="Stabilization loop"
+            tone="green"
+          />
         </div>
+      </SectionNarrative>
 
-        {/* ── Right: Controls ── */}
-        <div className="space-y-4">
-          {/* Sliders */}
-          <div className="rounded-[1.75rem] border border-violet-400/20 bg-panel p-5 space-y-5">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-[0.2em] text-violet-300">Shape the future</p>
-              {isModified && (
-                <button onClick={() => setCustomParams({ ...BASE })}
-                  className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-500 hover:text-slate-300 transition-colors">
-                  Reset
-                </button>
-              )}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)]">
+        <SoftPanel className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="atlas-kicker">Scenarios</p>
+              <h2 className="atlas-display text-3xl text-slate-900">Compare futures at a glance</h2>
             </div>
-
-            {GROUPS.map((group) => {
-              const groupSliders = SLIDERS.filter((s) => s.group === group);
-              return (
-                <div key={group}>
-                  <p className="mb-2 text-xs font-semibold text-slate-500">{group}</p>
-                  <div className="space-y-3">
-                    {groupSliders.map((sl) => {
-                      const val = customParams[sl.key] as number;
-                      const baseVal = BASE[sl.key] as number;
-                      const pct = ((val - sl.min) / (sl.max - sl.min)) * 100;
-                      const changed = Math.abs(val - baseVal) > 0.001;
-                      return (
-                        <label key={sl.key} className="block">
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-slate-300">{sl.icon} {sl.label}</span>
-                            <span className={`font-mono font-bold tabular-nums ${changed ? "text-violet-300" : "text-slate-500"}`}>
-                              {val.toFixed(sl.step < 0.1 ? 2 : 1)}
-                              {changed && <span className="ml-1 text-slate-600 font-normal">(was {baseVal})</span>}
-                            </span>
-                          </div>
-                          <div className="relative">
-                            <input
-                              type="range"
-                              min={sl.min}
-                              max={sl.max}
-                              step={sl.step}
-                              value={val}
-                              onChange={(e) => setParam(sl.key, Number(e.target.value))}
-                              className="w-full accent-violet-400 h-1.5"
-                              style={{ cursor: "pointer" }}
-                            />
-                          </div>
-                          <p className="mt-0.5 text-xs text-slate-600">{sl.tooltip}</p>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+            <span className="rounded-full border border-[rgba(28,36,48,0.08)] px-4 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+              Toggle lines directly from the table
+            </span>
           </div>
 
-          {/* Load preset */}
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Load a preset</p>
-            <p className="text-xs text-slate-500">Fill the sliders with a predefined scenario, or toggle it as a comparison line in the charts.</p>
-            {PRESETS.map((preset, idx) => (
-              <div key={preset.label} className="flex items-start gap-2">
+          <div className="overflow-hidden rounded-[1.6rem] border border-[rgba(28,36,48,0.08)]">
+            <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,0.75fr)_minmax(0,0.75fr)_auto] gap-3 bg-[rgba(246,244,238,0.82)] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:bg-slate-900/70">
+              <span>Scenario</span>
+              <span>Resources</span>
+              <span>Welfare</span>
+              <span>Overlay</span>
+            </div>
+            {scenarioSnapshots.map((scenario, idx) => (
+              <div
+                className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,0.75fr)_minmax(0,0.75fr)_auto] items-center gap-3 border-t border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4 dark:border-slate-800 dark:bg-slate-950/75"
+                key={scenario.label}
+              >
+                <button className="text-left" onClick={() => loadPreset(idx)} type="button">
+                  <p className="text-sm font-semibold" style={{ color: scenario.color }}>
+                    {scenario.label}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{scenario.description}</p>
+                </button>
+                <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{scenario.terminal.nonrenewable_resources}%</span>
+                <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{scenario.terminal.human_welfare_index}/100</span>
                 <button
-                  onClick={() => loadPreset(idx)}
-                  className="flex-1 rounded-2xl border border-slate-800 p-3 text-left text-sm transition-colors hover:border-slate-600"
-                  style={{ borderLeftColor: preset.color, borderLeftWidth: 3 }}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                    idx === 0
+                      ? "border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.7)] text-slate-400"
+                      : activePresets.includes(idx)
+                        ? "border-[rgba(59,130,246,0.2)] bg-[rgba(59,130,246,0.12)] text-[rgb(var(--atlas-primary))]"
+                        : "border-[rgba(28,36,48,0.12)] bg-white text-slate-600 hover:border-[rgba(28,36,48,0.2)] hover:text-slate-900",
+                  )}
+                  disabled={idx === 0}
+                  onClick={() => togglePreset(idx)}
+                  type="button"
                 >
-                  <p className="text-xs font-semibold" style={{ color: preset.color }}>{preset.label}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">{preset.description}</p>
+                  {idx === 0 ? "Base" : activePresets.includes(idx) ? "Visible" : "Compare"}
                 </button>
-                {idx !== 0 && (
-                  <button
-                    onClick={() => togglePreset(idx)}
-                    title="Toggle as chart overlay"
-                    className={`mt-1 rounded-xl border px-2.5 py-2 text-xs transition-colors ${
-                      activePresets.includes(idx)
-                        ? "border-current font-semibold"
-                        : "border-slate-700 text-slate-600 hover:text-slate-400"
-                    }`}
-                    style={activePresets.includes(idx) ? { color: preset.color } : {}}
-                  >
-                    {activePresets.includes(idx) ? "✓" : "+"}
-                  </button>
-                )}
               </div>
             ))}
           </div>
+        </SoftPanel>
 
-          {/* Key feedback loops */}
-          <div className="rounded-[1.75rem] border border-slate-800 bg-panel p-5 space-y-2">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Key feedback loops</p>
-            {[
-              { label: "R1 — Industrial growth",   desc: "Capital → output → investment → more capital (reinforcing)",           color: "text-cyan-300"    },
-              { label: "B1 — Resource depletion",  desc: "Output → resource use → depletion → output falls (balancing)",         color: "text-amber-300"   },
-              { label: "B2 — Pollution sink",      desc: "Industry → pollution → health & ag damage → output falls",             color: "text-rose-300"    },
-              { label: "B3 — Population pressure", desc: "Rising welfare → lower birth rate → population stabilises",            color: "text-emerald-300" },
-              { label: "R2 — Food feedback",       desc: "Ag capital → food → lower mortality → more population → food demand",  color: "text-violet-300"  },
-            ].map((f) => (
-              <div key={f.label} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-                <p className={`text-xs font-semibold ${f.color}`}>{f.label}</p>
-                <p className="mt-0.5 text-xs text-slate-400">{f.desc}</p>
-              </div>
-            ))}
+        <SoftPanel className="space-y-4" tone="gold">
+          <div>
+            <p className="atlas-kicker">Feedback loops</p>
+            <h2 className="atlas-display text-3xl text-slate-900">The logic underneath the chart</h2>
           </div>
-        </div>
+          {[
+            {
+              label: "R1 — Industrial growth",
+              desc: "Capital creates output, output funds investment, and investment creates more capital.",
+            },
+            {
+              label: "B1 — Resource depletion",
+              desc: "Higher output consumes resources faster, so later growth becomes harder to sustain.",
+            },
+            {
+              label: "B2 — Pollution sink",
+              desc: "Industry and agriculture create pollution, which pushes back through health and food.",
+            },
+            {
+              label: "B3 — Demographic transition",
+              desc: "Welfare, education, and health eventually lower birth rates and stabilize population pressure.",
+            },
+          ].map((loop) => (
+            <div className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white/70 px-4 py-4 dark:border-slate-700 dark:bg-slate-900/65" key={loop.label}>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{loop.label}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{loop.desc}</p>
+            </div>
+          ))}
+          <Link
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[rgb(var(--atlas-primary))] transition hover:text-slate-900"
+            href="/learn/how-pollution-builds-up-until-systems-tip"
+          >
+            Continue into the ecology lessons
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </SoftPanel>
       </div>
-    </div>
+    </AtlasPage>
   );
 }

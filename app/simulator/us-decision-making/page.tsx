@@ -1,9 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import {
+  SimulatorActionRow,
+  SimulatorHero,
+  SimulatorPrimer,
+  SimulatorSidebarPanel,
+} from "@/components/simulator/SimulatorAtlas";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -418,51 +424,63 @@ export default function USDecisionSimulator() {
   const vTx={emerald:"text-emerald-200",amber:"text-amber-200",rose:"text-rose-200"};
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 pb-12">
+    <AtlasPage className="simulator-atlas space-y-5 pb-12">
+      <SimulatorHero
+        actions={<SimulatorActionRow primaryHref="#us-lab" primaryLabel="Open the lab" secondaryHref="/learn/how-the-us-government-makes-decisions" secondaryLabel="Read module" />}
+        description="The U.S. process is not one decision point but a chain of gates: committees, House margins, Senate cloture, conference bargaining, and presidential action. Use the sliders to see how polarization, veto risk, and majority size reshape the odds of a bill becoming law."
+        eyebrow="US legislative process"
+        imageAlt="United States governance simulation landscape"
+        imageSrc="/atlas/simulator-hero.png"
+        metrics={[
+          { label: "Enactment chance", value: `${Math.round(result.overallSuccessProb)}%`, description: "Overall probability of the bill making it through the full process." },
+          { label: "Legislative speed", value: `${Math.round(result.legislativeSpeed)}%`, description: "How quickly conventional passage can happen." },
+          { label: "Gridlock risk", value: `${Math.round(result.gridlockRisk)}%`, description: "How likely the bill is to stall procedurally." },
+          { label: "Bipartisan score", value: `${Math.round(result.bipartisanScore)}%`, description: "How much cross-party support exists in the scenario." },
+        ]}
+        title="US Decision-Making Simulator"
+      />
 
-      {/* Compact header */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 px-6 py-5 sm:px-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-amber-400/10 to-transparent"/>
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <Link href="/simulator" className="text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1">
-                <ArrowLeft className="h-3 w-3"/> Simulators
-              </Link>
-              <span className="text-slate-700">·</span>
-              <span className="inline-flex rounded-full border border-amber-300/25 bg-amber-400/10 px-2.5 py-0.5 text-[10px] font-medium text-amber-100">US legislative process</span>
-            </div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-50">US Decision-Making Simulator</h1>
-            <p className="text-[11px] text-slate-500 max-w-xl">
-              Adjust sliders → watch Senate and House seat maps update live. Click any flowchart stage to see why it passes or fails at your current settings.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href="/learn/how-the-us-government-makes-decisions" className="inline-flex items-center gap-1 rounded-xl border border-amber-400/30 px-3 py-1.5 text-[11px] font-medium text-amber-300 hover:bg-amber-400/10 transition-colors">
-              Read module
-            </Link>
-            <button onClick={reset} className="inline-flex items-center gap-1 rounded-xl border border-slate-700 px-3 py-1.5 text-[11px] text-slate-400 hover:text-slate-200 transition-colors">
-              Reset
-            </button>
-          </div>
-        </div>
-      </section>
+      <SimulatorPrimer
+        aside="One useful strategy is to compare conventional passage against workarounds. Keep the same issue environment, then lower the cloture threshold or raise executive-action tendency to see when Congress gives way to alternate routes."
+        items={[
+          {
+            title: "The Senate is often the choke point, but not the only one.",
+            text: "A bill can die in committee, on the House floor, at cloture, in conference, or at the president's desk. The simulator helps show which gate is doing the blocking in your scenario.",
+          },
+          {
+            title: "Polarization changes the whole path, not just one vote.",
+            text: "As polarization rises, defections become rarer, filibuster threats become more credible, and veto overrides become almost impossible. The system becomes slower everywhere at once.",
+          },
+          {
+            title: "Gridlock often shifts power rather than ending politics.",
+            text: "When ordinary legislation stalls, actors move toward executive orders, agency rulemaking, court fights, and budget reconciliation. That is why a blocked Congress still produces policy conflict.",
+          },
+        ]}
+        summary="This lab works as a map of institutional friction in the United States. It shows how the same proposal can face very different prospects depending on chamber margins, filibuster rules, party polarization, and presidential incentives."
+        title="Read the US process as a sequence of gates"
+      />
+
+      <div className="flex justify-end">
+        <button onClick={reset} className="inline-flex items-center gap-1 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-4 py-2 text-xs font-medium text-slate-600 transition hover:border-[rgba(28,36,48,0.2)] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-slate-100">
+          Reset
+        </button>
+      </div>
 
       {/* Main grid */}
-      <div className="grid gap-5 lg:grid-cols-[340px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[340px_1fr]" id="us-lab">
 
         {/* ── Left: guide + scenarios + sliders ── */}
         <div className="space-y-4">
 
           {/* How to use */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3 space-y-2">
+          <SimulatorSidebarPanel kicker="How to use" title="Read the chambers" className="space-y-2">
             <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">How to use</p>
             <ol className="space-y-1 text-[11px] text-slate-400 list-none">
               <li className="flex gap-2"><span className="text-amber-500 font-bold flex-shrink-0">①</span>Load a scenario preset below or start from defaults</li>
               <li className="flex gap-2"><span className="text-amber-500 font-bold flex-shrink-0">②</span>Drag sliders to change political & procedural conditions</li>
               <li className="flex gap-2"><span className="text-amber-500 font-bold flex-shrink-0">③</span>Watch Senate/House maps and flowchart update live</li>
             </ol>
-          </div>
+          </SimulatorSidebarPanel>
 
           {/* Scenario presets */}
           <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3 space-y-2">
@@ -540,6 +558,6 @@ export default function USDecisionSimulator() {
         </div>
       </details>
 
-    </div>
+    </AtlasPage>
   );
 }

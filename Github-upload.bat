@@ -6,7 +6,7 @@ REM CONFIGURATION
 REM ============================================
 
 REM === LOCAL PROJECT FOLDER ===
-set PROJECT_DIR=C:\Users\dimzo\Documents\ENTERTAINMENT\Coding\new_society\Uploaded_on_github
+set PROJECT_DIR=C:\Users\dimzo\Documents\ENTERTAINMENT\Coding\new_society-backup_github\Uploaded_on_github
 
 REM === GITHUB REPOSITORY URL ===
 set REPO_URL=https://github.com/mike000123/society-lab.git

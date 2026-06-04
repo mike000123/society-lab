@@ -6,6 +6,14 @@ import {
   ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar,
 } from "recharts";
 
+import { AtlasPage } from "@/components/atlas/AtlasPage";
+import {
+  SimulatorActionRow,
+  SimulatorHero,
+  SimulatorPrimer,
+  SimulatorSidebarPanel,
+} from "@/components/simulator/SimulatorAtlas";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MacroParams {
   // Fiscal
@@ -363,49 +371,68 @@ export default function MacroEconomyPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-14">
-      {/* ── Header ────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950/85 p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-emerald-400/12 via-emerald-400/4 to-transparent" />
-        <div className="relative space-y-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-100">
-            Macro Economy Simulator · IS-LM / New Keynesian Model
-          </span>
-          <h1 className="text-3xl font-black tracking-tight text-slate-50 sm:text-4xl">
-            Macroeconomy Lab
-          </h1>
-          <p className="max-w-3xl text-sm leading-6 text-slate-300">
-            A quarterly New Keynesian model covering fiscal policy, monetary policy, the Phillips curve,
-            Okun&apos;s law, exchange rates, and government debt dynamics. Adjust the levers below to
-            see how the economy responds over a 10-year horizon.
-          </p>
-        </div>
-        {/* Preset strip */}
-        <div className="relative mt-5 flex flex-wrap gap-2">
-          {PRESETS.map((pr, i) => (
-            <button
-              key={pr.label}
-              onClick={() => loadPreset(i)}
-              className={`rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
-                activePreset === i
-                  ? "border-slate-500 bg-slate-700 text-slate-100"
-                  : "border-slate-700 bg-slate-900/60 text-slate-400 hover:text-slate-200 hover:border-slate-600"
-              }`}
-            >
-              <span
-                className="mr-1.5 inline-block h-2 w-2 rounded-full"
-                style={{ background: pr.color }}
-              />
-              {pr.label}
-            </button>
-          ))}
-        </div>
-        {activePreset !== null && (
-          <p className="relative mt-2 text-xs text-slate-500">
-            {PRESETS[activePreset].description}
-          </p>
-        )}
-      </section>
+    <AtlasPage className="simulator-atlas space-y-6 pb-14">
+      <SimulatorHero
+        actions={<SimulatorActionRow primaryHref="#macro-lab" primaryLabel="Open the lab" secondaryHref="#macro-presets" secondaryLabel="Explore scenarios" />}
+        description="This quarterly macro model lets you test fiscal policy, monetary policy, supply shocks, exchange regimes, and debt dynamics together. Instead of isolated indicators, it shows how inflation, unemployment, output, and public debt move as one system."
+        eyebrow="Macro Economy Simulator · IS-LM / New Keynesian Model"
+        imageAlt="Macroeconomy simulation landscape"
+        imageSrc="/atlas/simulator-hero.png"
+        metrics={[
+          { label: "GDP growth", value: `${gdpGrowthAnnual.toFixed(1)}%`, description: "Average annual real GDP growth over the full simulation." },
+          { label: "Final inflation", value: `${last.inflation.toFixed(1)}%`, description: `Compared with a ${params.inflationTarget}% target.` },
+          { label: "Debt / GDP", value: `${last.debtPct.toFixed(0)}%`, description: "Public debt ratio at the end of the run." },
+          { label: "Output gap", value: `${last.outputGap.toFixed(1)}pp`, description: last.outputGap > 0 ? "Economy ends above potential output." : "Economy ends below potential output." },
+        ]}
+        title="Macroeconomy Lab"
+      />
+
+      <SimulatorPrimer
+        aside="If you want a clean reading strategy, start with a preset, then move only one family of levers at a time: fiscal, monetary, supply, or external. The model becomes much easier to interpret when you isolate the source of the change."
+        items={[
+          {
+            title: "Read output, inflation, and unemployment together.",
+            text: "No single chart tells the story. A demand boost may raise GDP first, then tighten the labour market, then push inflation, then provoke a rate response that cools the expansion later.",
+          },
+          {
+            title: "Treat debt as an outcome of the whole system.",
+            text: "Debt rises or falls not only because governments spend more, but because growth, inflation, and interest rates change the denominator and the financing burden at the same time.",
+          },
+          {
+            title: "Use the presets as historical lenses.",
+            text: "The 1970s, 2008, and post-COVID paths are useful because they show different failure modes: supply shock, demand collapse, and stimulus colliding with constraints.",
+          },
+        ]}
+        summary="This is the broadest economic lab in the platform. Its purpose is not to produce one perfect forecast, but to show how several macro mechanisms move together and why policy tradeoffs almost always come with delayed side effects."
+        title="Read the economy as a moving system"
+      />
+
+      <div id="macro-presets">
+        <SimulatorSidebarPanel kicker="Historical scenarios" title="Choose a macro regime" className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {PRESETS.map((pr, i) => (
+              <button
+                key={pr.label}
+                onClick={() => loadPreset(i)}
+                className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
+                  activePreset === i
+                    ? "border-[rgba(28,36,48,0.18)] bg-white text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-50"
+                    : "border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.58)] text-slate-600 hover:border-[rgba(28,36,48,0.16)] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:text-slate-100"
+                }`}
+              >
+                <span
+                  className="mr-2 inline-block h-2 w-2 rounded-full"
+                  style={{ background: pr.color }}
+                />
+                {pr.label}
+              </button>
+            ))}
+          </div>
+          {activePreset !== null ? (
+            <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">{PRESETS[activePreset].description}</p>
+          ) : null}
+        </SimulatorSidebarPanel>
+      </div>
 
       {/* ── KPI cards ─────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
@@ -444,7 +471,7 @@ export default function MacroEconomyPage() {
       </div>
 
       {/* ── Charts + Controls ──────────────────────────────────────────────────── */}
-      <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_340px]" id="macro-lab">
         {/* Charts */}
         <div className="space-y-5">
 
@@ -709,6 +736,6 @@ export default function MacroEconomyPage() {
           </div>
         </aside>
       </div>
-    </div>
+    </AtlasPage>
   );
 }

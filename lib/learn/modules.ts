@@ -1468,33 +1468,64 @@ export const learningModules: LearningModule[] = [
       valueMax: 100,
       valueMin: 0,
     },
-    readingTime: "6 min",
+    readingTime: "8 min",
     realWorldExamples: [
       {
         insight:
-          "The fastest-growing content is often the most emotionally combustible, not the most accurate.",
+          "MIT researchers found that false news on Twitter spread farther, faster, deeper, and more broadly than true news, especially in politics.",
         outcome:
-          "Recommendation systems frequently amplify posts that trigger anger, disgust, or status defense.",
-        title: "Feeds optimize for reaction speed",
+          "Novelty and emotional charge had a structural edge in the attention market, helping falsehood outperform correction even without assuming a giant army of bots caused the whole effect.",
+        title: "False news outruns true news",
       },
       {
         insight:
-          "A correction usually travels slower than the original inflammatory claim.",
+          "Yale researchers showed that likes and shares can train people to express more moral outrage online because outrage gets socially rewarded on platforms.",
         outcome:
-          "Once outrage anchors a narrative, later nuance struggles to catch up.",
+          "People are not only reacting to outrage. They are learning that outrage is a successful performance inside the system.",
+        title: "The feed teaches outrage",
+      },
+      {
+        insight:
+          "A Nature Human Behaviour study of headline experiments found that negative words increase click-through rates in online news.",
+        outcome:
+          "Editors and publishers face a measurable incentive to make headlines darker, sharper, and more threatening than calmer wording would be.",
+        title: "Negative headlines get rewarded",
+      },
+      {
+        insight:
+          "Once a hot claim wins the first round of attention, later corrections usually reach a smaller and less emotionally primed audience.",
+        outcome:
+          "Even when the record is fixed later, the first outrage object often remains what people remember and organize around.",
         title: "Corrections lose the race",
       },
+    ],
+    evidenceLinks: [
       {
-        insight:
-          "Journalistic and creator incentives can shift toward performance of certainty rather than careful ambiguity.",
-        outcome:
-          "People learn to speak in maximally polarizing frames because softer truths often get less reach.",
-        title: "Narrative intensity becomes a career strategy",
+        note:
+          "A canonical study showing that false stories can outperform true ones in reach and speed inside social platforms.",
+        source: "MIT News / Science",
+        title: "Study: On Twitter, false news travels faster than true stories",
+        url: "https://news.mit.edu/2018/study-twitter-false-news-travels-faster-true-stories-0308",
+      },
+      {
+        note:
+          "Helpful for the mechanism: platform feedback does not just reward outrage, it can train users to produce more of it.",
+        source: "Yale News",
+        title: "Likes and shares teach people to express more outrage online",
+        url: "https://news.yale.edu/2021/08/13/likes-and-shares-teach-people-express-more-outrage-online",
+      },
+      {
+        note:
+          "Useful for headline economics: negativity wins clicks even when outlets are running large-scale tests rather than guessing.",
+        source: "Nature Human Behaviour",
+        title: "Negativity drives online news consumption",
+        url: "https://www.nature.com/articles/s41562-023-01538-4",
       },
     ],
     relatedFrameworks: [
       "Attention economics",
       "Incentive design",
+      "Moral contagion",
       "System dynamics",
       "Information ecology",
     ],
@@ -1519,6 +1550,254 @@ export const learningModules: LearningModule[] = [
       title: "System bug: what is profitable to amplify is not always healthy to absorb",
     },
     title: "How media incentives produce outrage",
+  },
+  {
+    accent: "rose",
+    betterMetrics: [
+      {
+        description:
+          "How much repeated persuasive messaging reaches people before they can meaningfully opt out or compare alternatives?",
+        label: "Exposure concentration",
+      },
+      {
+        description:
+          "Can people easily tell whether a message is grassroots speech, journalism, sponsorship, or paid image management?",
+        label: "Source transparency",
+      },
+      {
+        description:
+          "How much commercial persuasion is aimed at youth or identity formation rather than narrow product information?",
+        label: "Identity targeting",
+      },
+      {
+        description:
+          "Do public-health, civic, and educational institutions have enough reach to answer well-funded corporate narratives?",
+        label: "Countervailing capacity",
+      },
+    ],
+    betterMetricsTitle: "What a healthier public-opinion system would track",
+    causalLoop: {
+      description:
+        "When a company can repeatedly attach a product to freedom, status, belonging, or modernity, the product feels culturally normal rather than commercially pushed. Higher sales then fund even more image management and lobbying.",
+      edges: [
+        { from: "marketingBudget", label: "funds", polarity: "positive", to: "symbolicCampaigns" },
+        { from: "movementSymbols", label: "supplies", polarity: "positive", to: "symbolicCampaigns" },
+        { from: "symbolicCampaigns", label: "shape", polarity: "positive", to: "culturalMeaning" },
+        { from: "culturalMeaning", label: "normalizes", polarity: "positive", to: "socialAcceptance" },
+        { from: "socialAcceptance", label: "raises", polarity: "positive", to: "sales" },
+        { from: "sales", label: "expands", polarity: "positive", to: "marketingBudget" },
+        { from: "sales", label: "finances", polarity: "positive", to: "prAndLobbyPower" },
+        { from: "prAndLobbyPower", label: "weakens", polarity: "negative", to: "publicGuardrails" },
+        { from: "publicGuardrails", label: "limits", polarity: "negative", to: "symbolicCampaigns" },
+      ],
+      loops: [
+        "Reinforcing: symbolic campaigns -> cultural meaning -> social acceptance -> sales -> larger marketing budgets -> more symbolic campaigns",
+        "Balancing: scrutiny, health rules, and transparency can interrupt the loop, but often only after a norm has already been stabilized",
+      ],
+      nodes: [
+        { id: "marketingBudget", label: "Marketing budget", tone: "amber", x: 18, y: 18 },
+        { id: "movementSymbols", label: "Borrowed social symbols", tone: "cyan", x: 18, y: 52 },
+        { id: "symbolicCampaigns", label: "Identity campaigns", tone: "rose", x: 50, y: 30 },
+        { id: "culturalMeaning", label: "Product meaning", tone: "rose", x: 82, y: 18 },
+        { id: "socialAcceptance", label: "Social acceptance", tone: "emerald", x: 82, y: 52 },
+        { id: "sales", label: "Sales growth", tone: "amber", x: 50, y: 82 },
+        { id: "prAndLobbyPower", label: "PR and lobbying power", tone: "rose", x: 18, y: 84 },
+        { id: "publicGuardrails", label: "Public guardrails", tone: "emerald", x: 82, y: 84 },
+      ],
+      title: "The norm-engineering loop",
+    },
+    counterArguments: [
+      {
+        point:
+          "Advertising mostly responds to preferences people already have. It does not create them from nothing.",
+        response:
+          "That is partly true. But repeated campaigns can still decide which preferences feel normal, modern, respectable, rebellious, or desirable. Marketing often shapes the meaning around a product rather than only describing the product itself.",
+        title: "Ads only mirror demand",
+      },
+      {
+        point:
+          "People are not passive. Culture is too complex to be engineered by a company campaign.",
+        response:
+          "People do interpret messages actively. The structural issue is asymmetry: firms can repeat a story across media, celebrities, events, and sponsorships until it starts to feel like common sense. That does not guarantee control, but it does buy disproportionate influence over the symbolic environment.",
+        title: "Culture cannot be engineered from above",
+      },
+    ],
+    difficulty: "Intermediate",
+    discussionPrompt:
+      "When does marketing stop being ordinary persuasion and start functioning like political engineering of public norms, identities, and movements?",
+    evidenceLinks: [
+      {
+        note:
+          "Useful for the big-picture biography: Bernays was Sigmund Freud's nephew and a foundational figure in public relations, not just a tobacco ad man.",
+        source: "Britannica",
+        title: "Edward Bernays",
+        url: "https://www.britannica.com/biography/Edward-Bernays",
+      },
+      {
+        note:
+          "This public-health history tracks how smoking among women was recoded from taboo to freedom and modernity through promotional strategy.",
+        source: "Tobacco Control",
+        title: "From social taboo to 'torch of freedom'",
+        url: "https://tobaccocontrol.bmj.com/content/8/2/136",
+      },
+      {
+        note:
+          "Helpful for showing that marketing can create cultural expectations, not just boost short-term sales: De Beers helped turn the diamond engagement ring into a mass social norm.",
+        source: "Britannica",
+        title: "How Did the Tradition of Wedding Rings Start?",
+        url: "https://www.britannica.com/topic/How-Did-the-Tradition-of-Wedding-Rings-Start",
+      },
+      {
+        note:
+          "A strong case of blame-shifting: anti-litter campaigns and corporate partnerships often moved responsibility from producers of disposable waste onto individual consumers.",
+        source: "Tobacco Control",
+        title: "Covering Their Butts: Responses to the Cigarette Litter Problem",
+        url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3209806/",
+      },
+      {
+        note:
+          "Useful for the street-space example: the auto industry did not only sell cars, it helped redefine who streets were for and made pedestrian behavior seem backward or irresponsible.",
+        source: "JSTOR Daily",
+        title: "\"Jay Walking\" and the Fight for the Streets",
+        url: "https://daily.jstor.org/jay-walking-and-the-fight-for-the-streets/",
+      },
+      {
+        note:
+          "Useful for a modern climate-era example: BP's green advertising helped soften consumer punishment, while later research found a mismatch between clean-energy discourse and actual investment patterns.",
+        source: "American Economic Association",
+        title: "Advertising and Environmental Stewardship: Evidence from the BP Oil Spill",
+        url: "https://www.aeaweb.org/articles?id=10.1257/pol.20160555",
+      },
+      {
+        note:
+          "A broader greenwashing lens on oil majors: BP and peers sharply increased climate discourse without matching it with a comparable shift in underlying business models.",
+        source: "PLOS One",
+        title: "The clean energy claims of BP, Chevron, ExxonMobil and Shell",
+        url: "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0263596",
+      },
+      {
+        note:
+          "A broader health lens showing how the tobacco industry deliberately targeted women through symbolism, glamour, slimness, and emancipation themes.",
+        source: "National Cancer Institute / NCBI",
+        title: "Women and Smoking",
+        url: "https://www.ncbi.nlm.nih.gov/books/NBK53022/",
+      },
+    ],
+    eyebrow: "Public opinion design",
+    heroHighlights: [
+      "Modern marketing often sells meanings first and products second: freedom, status, adulthood, rebellion, care, or belonging.",
+      "Companies can borrow the language of real social change and redirect it toward commercial ends.",
+      "The same techniques can also shift blame away from producers and toward consumers, making structural problems look personal.",
+      "Once a norm is culturally stabilized, higher sales and lobbying power help keep the narrative in place.",
+    ],
+    miniLesson: {
+      accent: "rose",
+      conclusion:
+        "The deepest marketing campaigns do not ask, 'How do we describe this product?' They ask, 'What identity, fear, aspiration, or movement can this product attach itself to?'",
+      metrics: [
+        {
+          description:
+            "Whether the campaign sells a feature or links the product to freedom, adulthood, beauty, rebellion, or belonging",
+          high: "Identity, emotion, and movement symbolism",
+          label: "Symbolic hook",
+          low: "Mostly factual product information",
+          signal: "stronger hook -> deeper norm shift",
+        },
+        {
+          description:
+            "How many channels can repeat the same frame until it feels natural",
+          high: "Celebrities, events, press, sponsorship, retail, schools",
+          label: "Repetition power",
+          low: "One-off ads with limited reach",
+          signal: "more repetition -> stronger cultural normalization",
+        },
+        {
+          description:
+            "Whether journalism, health institutions, and civic education can contest the frame in time",
+          high: "Strong transparency and public-interest pushback",
+          label: "Public resistance",
+          low: "Weak scrutiny and captured regulation",
+          signal: "stronger resistance -> weaker manipulation loop",
+        },
+      ],
+      subtitle: "Why the sale often happens through meaning rather than utility",
+      title: "Mini lesson: sell the identity, not just the object",
+    },
+    readingTime: "10 min",
+    realWorldExamples: [
+      {
+        insight:
+          "In 1929 Edward Bernays staged the 'Torches of Freedom' publicity event during New York's Easter Parade for the American Tobacco Company, borrowing women's emancipation imagery to make public smoking feel modern and defiant.",
+        outcome:
+          "The stunt did not create feminism or the first feminist protest. It showed how a company could appropriate the symbolism of a real social movement to expand a market among women.",
+        title: "Bernays, Lucky Strike, and 'Torches of Freedom'",
+      },
+      {
+        insight:
+          "De Beers did not invent engagement rings, but its 1947 'A Diamond Is Forever' campaign helped make the diamond ring feel like the natural proof of love, permanence, and seriousness across the mass market.",
+        outcome:
+          "A purchasable luxury became a cultural expectation. The campaign did not merely sell stones; it reshaped romance, social pressure, and what counted as a 'proper' proposal.",
+        title: "De Beers and the manufactured romance norm",
+      },
+      {
+        insight:
+          "Corporate-backed anti-litter campaigns such as Keep America Beautiful encouraged people to see waste mainly as the result of irresponsible individuals rather than of disposable packaging systems designed by producers.",
+        outcome:
+          "The culture of blame shifted toward personal behavior, which softened pressure for stronger regulation of packaging waste and corporate accountability.",
+        title: "Keep America Beautiful and the individualization of waste",
+      },
+      {
+        insight:
+          "Auto interests in the 1920s did not only lobby for infrastructure. They also helped popularize the term 'jaywalking' and recast streets as places that naturally belonged to fast-moving cars rather than shared public space.",
+        outcome:
+          "What had once looked like dangerous driving was gradually reframed as improper pedestrian behavior. The culture of the street shifted in favor of car dominance, and that shift later shaped law, planning, and everyday common sense.",
+        title: "Motordom, jaywalking, and the remaking of the street",
+      },
+      {
+        insight:
+          "BP's 'Beyond Petroleum' branding and promotion of individual carbon-footprint thinking helped present the company as climate-aware while redirecting part of the public conversation toward consumer behavior.",
+        outcome:
+          "Later research found that green discourse and advertising can reduce reputational damage even when the underlying fossil-fuel business model changes much less than the messaging suggests.",
+        title: "BP, green branding, and climate blame-shifting",
+      },
+      {
+        insight:
+          "Across tobacco, diamonds, cars, packaging, and fossil fuels, the common move is not just 'buy this.' It is 'be this,' 'love this,' 'feel guilty this way,' or 'see the system through this frame.'",
+        outcome:
+          "Public opinion is steered not only by arguments and facts, but by meanings that are made to feel natural, moral, aspirational, or inevitable.",
+        title: "The wider pattern across industries",
+      },
+    ],
+    relatedFrameworks: [
+      "Public relations and propaganda",
+      "Agenda setting and framing",
+      "Greenwashing and blame-shifting",
+      "Identity marketing",
+      "Movement co-option",
+    ],
+    simulationPrompt:
+      "Compare two societies: one where commercial actors can freely tie products to identity and public causes, and one with strong transparency rules, youth protections, and publicly trusted counter-messaging.",
+    simulatorSlug: "social-movements",
+    simpleExplanation: [
+      "Marketing is often described as simple persuasion: a company explains what a product does, and consumers decide whether to buy it. In reality, the deepest campaigns do something larger. They attach products to meaning. A cigarette becomes freedom. A car becomes adulthood. A brand becomes self-expression. A purchase becomes membership in a way of life.",
+      "That is why the Edward Bernays story matters. Bernays, who was Sigmund Freud's nephew and one of the early architects of public relations, did not organize the first feminist protest. Women had been organizing and protesting for decades. What he did in 1929 was stage a publicity event that borrowed the symbolism of women's emancipation to help normalize smoking in public and open a larger market for cigarettes among women.",
+      "The same structure appears far beyond tobacco. De Beers made diamonds feel essential to romance. Anti-litter campaigns made consumers feel mainly responsible for packaging waste. Auto interests helped make car-dominated streets feel natural. Fossil-fuel companies used green branding to soften scrutiny and redirect attention toward individual footprints.",
+      "Once a company succeeds at rewriting cultural meaning, the effect is bigger than a single ad campaign. Sales rise, more money flows into publicity and lobbying, and the new norm starts to feel natural. People experience themselves as choosing freely, even when the symbolic environment around the choice has been carefully engineered.",
+    ],
+    slug: "how-companies-engineer-public-opinion-through-marketing",
+    summary:
+      "Corporate marketing can do more than sell products: it can borrow movement language, shape norms, and reorganize public opinion by tying consumption to identity and freedom.",
+    systemBug: {
+      signals: [
+        "Commercial campaigns frame products as liberation, belonging, or moral identity rather than as things to evaluate on their merits.",
+        "Paid image management becomes hard to distinguish from grassroots sentiment or everyday common sense.",
+        "Higher sales feed bigger PR and lobbying budgets, making the narrative harder to challenge once it is normalized.",
+      ],
+      summary:
+        "Actors with large budgets can buy symbolic influence at scale, shaping what feels normal or desirable long before the public has clearly recognized the manipulation.",
+      title: "System bug: markets can purchase cultural influence, not just attention",
+    },
+    title: "How companies engineer public opinion through marketing",
   },
   {
     accent: "amber",
@@ -2514,7 +2793,7 @@ export const learningModules: LearningModule[] = [
       valueMax: 100,
       valueMin: 0,
     },
-    readingTime: "7 min",
+    readingTime: "9 min",
     realWorldExamples: [
       {
         insight: "Facebook's own internal research showed its algorithm's preference for engagement systematically amplified outrage and divisive content.",
@@ -2522,20 +2801,61 @@ export const learningModules: LearningModule[] = [
         title: "Facebook's internal research on amplification",
       },
       {
-        insight: "YouTube's recommendation system was shown to route users toward increasingly extreme content because extremity correlates with watch time.",
-        outcome: "Researchers documented radicalization pathways from mainstream political content to conspiracy and extremist material through automated recommendations.",
-        title: "YouTube's radicalization pipeline",
+        insight: "The Cambridge Analytica scandal showed how platform data could be harvested, profiled, and merged with voter records to build behavior-targeting tools at political scale.",
+        outcome: "The case made visible that surveillance capitalism is not just about selling products. The same behavioral infrastructure can be repurposed for political persuasion and voter manipulation.",
+        title: "Cambridge Analytica and behavioral targeting",
       },
       {
-        insight: "The 2016 Cambridge Analytica operation showed behavioral profiles built on platform data could be used for precision political targeting at scale.",
-        outcome: "87 million Facebook profiles were harvested without meaningful consent and used to build voter manipulation tools for political clients.",
-        title: "Cambridge Analytica and behavioral targeting",
+        insight: "Data brokers such as X-Mode/Outlogic were found to sell precise location data that could reveal visits to clinics, shelters, and religious sites.",
+        outcome: "Surveillance capitalism extends far beyond social-media feeds. It creates a market where intimate movement patterns become tradable commercial intelligence.",
+        title: "Data brokers and location surveillance",
+      },
+      {
+        insight: "The ad-tech system known as real-time bidding broadcasts user information across many actors in order to auction attention in milliseconds.",
+        outcome: "Even when no single app feels oppressive, the background market architecture can still expose personal data so widely that meaningful consent becomes close to fictional.",
+        title: "Real-time bidding as background surveillance",
+      },
+      {
+        insight: "Facebook whistleblower Frances Haugen's testimony showed the company understood how engagement ranking could spread divisive content, harm young users, and erode privacy while still defending the underlying business model.",
+        outcome: "The scandal made the system-level point clear: if profit depends on extracting data and maximizing engagement, safety reforms will keep colliding with the incentives of the business model itself.",
+        title: "The Facebook Files and internal awareness",
+      },
+    ],
+    evidenceLinks: [
+      {
+        note:
+          "An official summary of the Cambridge Analytica case and how harvested Facebook data was used for behavioral profiling and political targeting.",
+        source: "Federal Trade Commission",
+        title: "FTC Sues Cambridge Analytica",
+        url: "https://www.ftc.gov/news-events/news/press-releases/2019/07/ftc-sues-cambridge-analytica-settles-former-ceo-app-developer",
+      },
+      {
+        note:
+          "A strong official data-broker case showing that the surveillance market includes sensitive location patterns, not just clicks and likes.",
+        source: "Federal Trade Commission",
+        title: "FTC Order Prohibits Data Broker X-Mode Social / Outlogic from Selling Sensitive Location Data",
+        url: "https://www.ftc.gov/news-events/news/press-releases/2024/01/ftc-order-prohibits-data-broker-x-mode-social-outlogic-selling-sensitive-location-data",
+      },
+      {
+        note:
+          "Helpful for the infrastructure layer: the ICO explains how personal data is circulated across ad-tech real-time bidding systems.",
+        source: "UK Information Commissioner's Office",
+        title: "Update report into adtech and real time bidding",
+        url: "https://ico.org.uk/media/about-the-ico/documents/2615156/adtech-real-time-bidding-report-201906.pdf",
+      },
+      {
+        note:
+          "Useful for the whistleblower angle: internal research and testimony made the platform's knowledge of social harms part of the public record.",
+        source: "U.S. Senate Commerce Committee",
+        title: "Frances Haugen Written Testimony",
+        url: "https://www.commerce.senate.gov/wp-content/uploads/media/doc/Frances%20Haugen%20Written%20Testimony.pdf",
       },
     ],
     relatedFrameworks: [
       "Shoshana Zuboff — The Age of Surveillance Capitalism",
       "Attention economy (Herbert Simon)",
       "Behavioral economics and dark patterns",
+      "Ad-tech and data brokerage",
       "GDPR and consent architecture",
     ],
     simulationPrompt: "Compare platform designs: full behavioral monetization, subscription funding, and public utility models — how do they differ in discourse quality, radicalization risk, and informational autonomy?",

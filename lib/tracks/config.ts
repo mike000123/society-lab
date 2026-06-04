@@ -83,10 +83,11 @@ export const LEARNING_TRACKS: LearningTrack[] = [
     title: "Information & Attention",
     tagline: "How minds are shaped at scale",
     description:
-      "Explore how media incentives produce outrage, how surveillance capitalism turns human experience into prediction products, and why the information environment degrades as a structural consequence of the business model — not despite it.",
+      "Explore how public relations and marketing borrow identity and movement language, how media incentives produce outrage, and how surveillance capitalism turns human experience into prediction products.",
     accent: "rose",
     icon: "Brain",
     moduleSlugs: [
+      "how-companies-engineer-public-opinion-through-marketing",
       "how-media-incentives-produce-outrage",
       "how-surveillance-capitalism-shapes-attention",
     ],

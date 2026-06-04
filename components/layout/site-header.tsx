@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
 import { Globe2, Menu, X } from "lucide-react";
+
 import { AuthControls } from "@/components/layout/auth-controls";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { cn } from "@/lib/utils";
@@ -35,81 +36,82 @@ export function SiteHeader() {
     return null;
   }
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-800/80 bg-background/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
-        <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-2">
-            <Globe2 className="h-5 w-5 text-primary" />
+    <header className="sticky top-0 z-20 border-b border-slate-800/80 bg-background/90 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-8">
+        <Link className="flex min-w-0 items-center gap-3" href="/">
+          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-[rgba(59,130,246,0.18)] bg-white/78 text-primary shadow-sm dark:border-cyan-300/20 dark:bg-cyan-400/10">
+            <Globe2 className="h-5 w-5" />
           </div>
-          <div>
-            <span className="block font-semibold leading-tight">Society Lab</span>
-            <span className="hidden text-xs text-slate-400 sm:block">Prototype for systemic redesign</span>
+          <div className="min-w-0">
+            <span className="atlas-display block truncate text-2xl leading-none text-slate-900">Society Lab</span>
+            <span className="block truncate text-[11px] uppercase tracking-[0.18em] text-slate-500">
+              Interactive Civilization Atlas
+            </span>
           </div>
         </Link>
 
-        <div className="hidden md:flex items-center gap-1">
-          <span className="mr-2 rounded-full border border-amber-300/20 bg-amber-400/15 px-3 py-1 text-xs font-medium text-amber-100">
-            Alpha concept
-          </span>
-          <nav className="flex gap-1">
+        <div className="hidden items-center gap-4 lg:flex">
+          <nav className="flex items-center gap-1 rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 p-1 dark:border-slate-800 dark:bg-slate-900/80">
             {nav.map((item) => (
               <Link
-                key={item.href}
-                href={item.href}
                 className={cn(
-                  "rounded-xl px-3 py-1.5 text-sm font-medium transition-colors",
+                  "rounded-full px-4 py-2 text-sm font-medium transition-colors",
                   isActive(item.href)
-                    ? "bg-cyan-400/12 text-cyan-200 border border-cyan-400/20"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                    ? "bg-[rgba(59,130,246,0.12)] text-slate-900 dark:bg-cyan-400/12 dark:text-cyan-100"
+                    : "text-slate-500 hover:bg-white hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50",
                 )}
+                href={item.href}
+                key={item.href}
               >
                 {item.label}
               </Link>
             ))}
           </nav>
-          <div className="ml-2 flex items-center gap-2">
+
+          <div className="flex items-center gap-2">
             <ThemeToggle />
             <AuthControls />
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <ThemeToggle />
-          <AuthControls />
           <button
-            onClick={() => setMenuOpen((v) => !v)}
-            className="rounded-xl border border-slate-700 bg-slate-800/60 p-2 text-slate-300 hover:text-slate-100 transition-colors"
             aria-label="Toggle menu"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(28,36,48,0.12)] bg-white/80 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            onClick={() => setMenuOpen((value) => !value)}
           >
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
-      {menuOpen && (
-        <div className="border-t border-slate-800 bg-background/95 backdrop-blur md:hidden">
-          <nav className="mx-auto max-w-7xl flex flex-col gap-1 px-4 py-3">
+      {menuOpen ? (
+        <div className="border-t border-[rgba(28,36,48,0.08)] bg-white/92 px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
+          <nav className="mx-auto flex max-w-7xl flex-col gap-1">
             {nav.map((item) => (
               <Link
-                key={item.href}
-                href={item.href}
                 className={cn(
-                  "flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+                  "rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
                   isActive(item.href)
-                    ? "bg-cyan-400/12 text-cyan-200 border border-cyan-400/20"
-                    : "text-slate-300 hover:text-slate-100 hover:bg-slate-800/60"
+                    ? "bg-[rgba(59,130,246,0.12)] text-slate-900 dark:bg-cyan-400/12 dark:text-cyan-100"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800",
                 )}
+                href={item.href}
+                key={item.href}
               >
                 {item.label}
               </Link>
             ))}
+            <div className="pt-2">
+              <AuthControls />
+            </div>
           </nav>
         </div>
-      )}
+      ) : null}
     </header>
   );
 }
