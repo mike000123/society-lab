@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import dynamic from "next/dynamic";
 import { BarChart2, Globe2, Smile, TrendingDown } from "lucide-react";

@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
-import { Globe2, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 import { AuthControls } from "@/components/layout/auth-controls";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -42,13 +43,17 @@ export function SiteHeader() {
     <header className="sticky top-0 z-20 border-b border-slate-800/80 bg-background/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-8">
         <Link className="flex min-w-0 items-center gap-3" href="/">
-          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-[rgba(59,130,246,0.18)] bg-white/78 text-primary shadow-sm dark:border-cyan-300/20 dark:bg-cyan-400/10">
-            <Globe2 className="h-5 w-5" />
-          </div>
+          <Image
+            alt="Society Lab logo"
+            className="h-11 w-11 flex-none"
+            height={44}
+            src="/atlas/society-lab-logo.png"
+            width={44}
+          />
           <div className="min-w-0">
             <span className="atlas-display block truncate text-2xl leading-none text-slate-900">Society Lab</span>
-            <span className="block truncate text-[11px] uppercase tracking-[0.18em] text-slate-500">
-              Interactive Civilization Atlas
+            <span className="block truncate text-[11px] text-slate-500">
+              Civic intelligence for a better future
             </span>
           </div>
         </Link>

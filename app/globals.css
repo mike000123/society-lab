@@ -6,7 +6,7 @@
   :root,
   html.light {
     color-scheme: light;
-    --atlas-bg: 251 249 245;
+    --atlas-bg: 255 255 255;
     --atlas-surface: 255 254 251;
     --atlas-panel: 255 255 255;
     --atlas-line: 224 219 208;
@@ -40,18 +40,16 @@
 
   html {
     background: rgb(var(--atlas-bg));
+    overflow-x: hidden;
     scroll-behavior: smooth;
   }
 
   body {
     min-height: 100vh;
-    background:
-      radial-gradient(circle at top left, rgba(212, 168, 79, 0.1), transparent 24%),
-      radial-gradient(circle at 88% 14%, rgba(59, 130, 246, 0.08), transparent 24%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0)),
-      rgb(var(--atlas-bg));
+    background: rgb(var(--atlas-bg));
     color: rgb(var(--atlas-ink));
     font-family: var(--atlas-sans);
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -156,10 +154,7 @@
 }
 
 html.dark body {
-  background:
-    radial-gradient(circle at top left, rgba(212, 168, 79, 0.08), transparent 26%),
-    radial-gradient(circle at 85% 14%, rgba(59, 130, 246, 0.1), transparent 20%),
-    rgb(var(--atlas-bg));
+  background: rgb(var(--atlas-bg));
 }
 
 html.light body {

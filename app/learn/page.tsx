@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ElementType } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -8,18 +9,24 @@ import {
   BookOpenText,
   Brain,
   Building2,
+  CirclePlay,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
   ClipboardCheck,
   Clock3,
+  Eye,
+  Flame,
   Landmark,
   Leaf,
+  Lightbulb,
   LibraryBig,
   Lock,
+  Network,
   Play,
   ScrollText,
   Search,
+  SlidersHorizontal,
   Sparkles,
   Zap,
 } from "lucide-react";
@@ -83,15 +90,104 @@ const VIEW_OPTIONS: { id: LearnView; label: string }[] = [
 ];
 
 const TRACK_RELATED_LABS: Record<string, { href: string; label: string }> = {
-  "cities-and-everyday-life": { href: "/simulator/purchasing-power", label: "Open city and income lab" },
-  "ecology-and-limits": { href: "/simulator/world3", label: "Open World3" },
-  "financial-history": { href: "/simulator/financial-crisis", label: "Open crisis lab" },
-  "information-and-attention": { href: "/simulator/social-movements", label: "Open movement lab" },
-  "money-and-wealth": { href: "/simulator/macro-economy", label: "Open macro economy lab" },
-  "power-and-politics": { href: "/simulator/political-talent", label: "Open governance lab" },
+  economy: { href: "/simulator/macro-economy", label: "Open macro economy lab" },
+  "politics-and-democracy": { href: "/simulator/political-talent", label: "Open governance lab" },
+  "cities-and-ecology": { href: "/simulator/world3", label: "Open World3" },
+  "media-and-information": { href: "/simulator/social-movements", label: "Open movement lab" },
 };
 
 const ALL_SLUGS = LEARNING_TRACKS.flatMap((track) => track.moduleSlugs);
+
+const LEARNING_STEP_FLOW: { description: string; icon: ElementType; title: string }[] = [
+  {
+    description: "Start with the core idea and why it matters.",
+    icon: Eye,
+    title: "See the big picture",
+  },
+  {
+    description: "Explore feedback loops, drivers, and trade-offs.",
+    icon: Network,
+    title: "Map the system",
+  },
+  {
+    description: "Dive into real data, examples, and context.",
+    icon: ClipboardCheck,
+    title: "Learn with evidence",
+  },
+  {
+    description: "Use mini simulations to explore outcomes.",
+    icon: SlidersHorizontal,
+    title: "Test your intuition",
+  },
+  {
+    description: "Apply insights, discuss, or explore next steps.",
+    icon: Lightbulb,
+    title: "Act & go deeper",
+  },
+];
+
+const FEATURED_TRACK_IDS = [
+  "economy",
+  "politics-and-democracy",
+  "cities-and-ecology",
+  "media-and-information",
+] as const;
+
+const FEATURED_TRACK_ART: Record<string, string> = {
+  economy: "/atlas/learn-track-money-wealth.png",
+  "politics-and-democracy": "/atlas/learn-track-power-politics.png",
+  "cities-and-ecology": "/atlas/learn-track-ecology-limits.png",
+  "media-and-information": "/atlas/learn-track-information-attention.png",
+};
+
+function parseReadingMinutes(readingTime: string): number {
+  const match = readingTime.match(/(\d+)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function formatLearningTime(totalMinutes: number): string {
+  if (totalMinutes <= 0) return "0m";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours <= 0) return `${minutes}m`;
+  return `${hours}h ${minutes}m`;
+}
+
+function toIsoDay(value: string): string {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString().slice(0, 10);
+}
+
+function calculateStreak(completedAt: string[]): number {
+  if (completedAt.length === 0) return 0;
+  const days = new Set(completedAt.map(toIsoDay));
+  const cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+  let streak = 0;
+
+  while (days.has(cursor.toISOString().slice(0, 10))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function buildWeeklyCompletionBars(completedAt: string[]): number[] {
+  const counts = new Map<string, number>();
+  completedAt.forEach((value) => {
+    const day = toIsoDay(value);
+    counts.set(day, (counts.get(day) ?? 0) + 1);
+  });
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const day = new Date();
+    day.setHours(0, 0, 0, 0);
+    day.setDate(day.getDate() - (6 - index));
+    return counts.get(day.toISOString().slice(0, 10)) ?? 0;
+  });
+}
 
 function ModulePathItem({
   module,
@@ -331,6 +427,154 @@ function TrackTile({
   );
 }
 
+function LearningStepCard({
+  description,
+  icon: Icon,
+  isLast,
+  title,
+}: {
+  description: string;
+  icon: ElementType;
+  isLast: boolean;
+  title: string;
+}) {
+  return (
+    <div className="relative flex flex-col items-start gap-4">
+      <div className="flex h-14 w-14 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.8)] text-primary">
+        <Icon className="h-6 w-6" />
+      </div>
+      <div className="max-w-[10.5rem] space-y-1.5">
+        <p className="text-sm font-semibold text-slate-900">{title}</p>
+        <p className="text-xs leading-6 text-slate-600">{description}</p>
+      </div>
+      {!isLast ? (
+        <span className="absolute -right-2 top-5 hidden text-slate-300 2xl:block">
+          <ArrowRight className="h-4 w-4" />
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function JourneyOverviewCard({
+  completed,
+  icon: Icon,
+  isSelected,
+  journey,
+  onSelect,
+  progressPct,
+  startHref,
+  tone,
+}: {
+  completed: number;
+  icon: ElementType;
+  isSelected: boolean;
+  journey: LearningJourney;
+  onSelect: () => void;
+  progressPct: number;
+  startHref: string;
+  tone: AccentTone;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[1.5rem] border bg-white px-4 py-4 shadow-[0_12px_28px_rgba(28,36,48,0.04)] transition-all",
+        isSelected
+          ? "border-primary shadow-[0_18px_38px_rgba(59,130,246,0.10)]"
+          : "border-[rgba(28,36,48,0.08)] hover:border-[rgba(28,36,48,0.16)] hover:shadow-[0_18px_34px_rgba(28,36,48,0.06)]",
+      )}
+    >
+      <div className="space-y-4">
+        <div className="flex items-start gap-3">
+          <div className={cn("mt-0.5 flex h-11 w-11 flex-none items-center justify-center rounded-full border", ACCENT_ICON[tone])}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{journey.moduleSlugs.length} lessons</p>
+            <h3 className="text-[1.02rem] font-semibold leading-6 text-slate-900">{journey.title}</h3>
+          </div>
+        </div>
+
+        <p className="text-sm leading-6 text-slate-600">{journey.tagline}</p>
+
+        <div className="space-y-2">
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+            <div className={cn("h-full rounded-full", ACCENT_BAR[tone])} style={{ width: `${progressPct}%` }} />
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span>{completed}/{journey.moduleSlugs.length} complete</span>
+            <span>{progressPct}%</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <button
+            className="text-sm font-semibold text-slate-600 transition hover:text-slate-900"
+            onClick={onSelect}
+            type="button"
+          >
+            Preview
+          </button>
+          <Link className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:text-blue-700" href={startHref}>
+            Start
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeaturedTrackRow({
+  href,
+  imageSrc,
+  modulesLabel,
+  progressPct,
+  summary,
+  title,
+}: {
+  href: string;
+  imageSrc: string;
+  modulesLabel: string;
+  progressPct: number;
+  summary: string;
+  title: string;
+}) {
+  return (
+    <Link
+      className="group grid min-h-[9.75rem] overflow-hidden rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_10px_26px_rgba(28,36,48,0.04)] transition hover:border-[rgba(28,36,48,0.14)] hover:shadow-[0_16px_34px_rgba(28,36,48,0.06)] md:grid-cols-[minmax(0,1fr)_15rem] lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1fr)_18rem]"
+      href={href}
+    >
+      <div className="relative z-10 space-y-2 px-4 py-4 lg:px-5">
+        <h3 className="text-[1.05rem] font-semibold leading-6 text-slate-900 transition group-hover:text-primary">{title}</h3>
+        <p className="text-sm leading-6 text-slate-600">{summary}</p>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span>{modulesLabel}</span>
+          <span>•</span>
+          <span>Intermediate</span>
+        </div>
+        <div className="flex items-center gap-3 pt-1">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
+            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progressPct}%` }} />
+          </div>
+          <span className="text-xs font-semibold text-slate-500">{progressPct}%</span>
+        </div>
+      </div>
+      <div className="relative hidden min-h-[9.75rem] overflow-hidden border-l border-[rgba(28,36,48,0.06)] bg-white md:block">
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="object-cover object-right"
+          fill
+          sizes="(min-width: 1280px) 288px, (min-width: 1024px) 272px, (min-width: 768px) 240px, 0px"
+          src={imageSrc}
+        />
+        <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white/14 via-white/6 to-transparent" />
+      </div>
+    </Link>
+  );
+}
+
 export default function LearnPage() {
   const [activeView, setActiveView] = useState<LearnView>("journeys");
   const [refsOpen, setRefsOpen] = useState(false);
@@ -340,16 +584,22 @@ export default function LearnPage() {
   const [moduleTrackFilter, setModuleTrackFilter] = useState("all");
   const [expandedTrackIds, setExpandedTrackIds] = useState<string[]>([]);
 
-  const { getModule, getNextUnlocked, isUnlocked, trackProgress } = useProgress();
+  const { getModule, getNextUnlocked, getTotalCompleted, isUnlocked, trackProgress } = useProgress();
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const requestedView = new URLSearchParams(window.location.search).get("view");
+    const params = new URLSearchParams(window.location.search);
+    const requestedView = params.get("view");
+    const requestedTrack = params.get("track");
     if (requestedView === "tracks" || requestedView === "modules" || requestedView === "journeys") {
       setActiveView(requestedView);
+    }
+
+    if (requestedTrack && LEARNING_TRACKS.some((track) => track.id === requestedTrack)) {
+      setSelectedTrackId(requestedTrack);
     }
   }, []);
 
@@ -381,9 +631,32 @@ export default function LearnPage() {
   const selectedTrack = LEARNING_TRACKS.find((track) => track.id === selectedTrackId) ?? LEARNING_TRACKS[0];
   const nextGlobalSlug = getNextUnlocked(ALL_SLUGS) ?? "why-gdp-is-not-the-same-as-wellbeing";
 
-  const selectedJourneyModules = selectedJourney.moduleSlugs
-    .map((slug) => moduleLookup[slug])
-    .filter(Boolean);
+  const completedModuleRecords = useMemo(
+    () =>
+      ALL_SLUGS.map((slug) => ({
+        module: moduleLookup[slug],
+        progress: getModule(slug),
+      })).filter((entry) => entry.progress.quizPassed && entry.progress.completedAt),
+    [getModule, moduleLookup],
+  );
+
+  const completedDates = completedModuleRecords
+    .map((entry) => entry.progress.completedAt)
+    .filter((value): value is string => Boolean(value));
+
+  const totalCompleted = getTotalCompleted();
+  const totalLearningMinutes = learningModules.reduce((sum, module) => sum + parseReadingMinutes(module.readingTime), 0);
+  const completedLearningMinutes = completedModuleRecords.reduce(
+    (sum, entry) => sum + parseReadingMinutes(entry.module.readingTime),
+    0,
+  );
+  const snapshotPct = learningModules.length === 0 ? 0 : Math.round((totalCompleted / learningModules.length) * 100);
+  const currentStreak = calculateStreak(completedDates);
+  const weeklyCompletionBars = buildWeeklyCompletionBars(completedDates);
+  const recentCompletedModule = [...completedModuleRecords].sort((a, b) =>
+    (b.progress.completedAt ?? "").localeCompare(a.progress.completedAt ?? ""),
+  )[0];
+  const nextGlobalModule = moduleLookup[nextGlobalSlug];
 
   const selectedJourneyStats = selectedJourney.moduleSlugs.reduce(
     (acc, slug) => {
@@ -444,236 +717,388 @@ export default function LearnPage() {
 
   const relatedTrackLab = TRACK_RELATED_LABS[selectedTrack.id] ?? { href: "/simulator", label: "Open related lab" };
 
+  const featuredTracks = FEATURED_TRACK_IDS
+    .map((trackId) => LEARNING_TRACKS.find((track) => track.id === trackId))
+    .filter((track): track is LearningTrack => Boolean(track))
+    .map((track) => {
+      const progress = trackProgress(track.moduleSlugs);
+      const pct = progress.total === 0 ? 0 : Math.round((progress.completed / progress.total) * 100);
+      const firstSlug =
+        track.moduleSlugs.find((slug) => !getModule(slug).quizPassed && isUnlocked(slug, track.moduleSlugs)) ??
+        track.moduleSlugs[0];
+
+        return {
+          href: `/learn/${firstSlug}`,
+          imageSrc: FEATURED_TRACK_ART[track.id],
+          progressPct: pct,
+          summary: track.featuredSummary ?? track.description,
+          title: track.title,
+          track,
+        };
+      });
+
   return (
     <AtlasPage className="space-y-8 pb-14">
-      <header className="space-y-3">
-        <h1 className="atlas-display text-[3.6rem] leading-[0.94] text-slate-900 sm:text-[4.3rem]">Learn</h1>
-        <p className="atlas-copy max-w-2xl text-base text-slate-600">Understand the systems that shape our world.</p>
-      </header>
+      {activeView === "journeys" ? (
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-white px-2 py-2 shadow-[0_10px_24px_rgba(28,36,48,0.04)]">
+              {VIEW_OPTIONS.map((option) => (
+                <button
+                  className={cn(
+                    "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                    activeView === option.id
+                      ? "bg-[rgba(59,130,246,0.1)] text-primary"
+                      : "text-slate-500 hover:text-slate-900",
+                  )}
+                  key={option.id}
+                  onClick={() => setActiveView(option.id)}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
 
-      <div className="flex flex-wrap items-center gap-5 border-b border-[rgba(28,36,48,0.08)] pb-3">
-        {VIEW_OPTIONS.map((option) => (
-          <button
-            className={cn(
-              "border-b-2 pb-2 text-sm font-medium transition-colors",
-              activeView === option.id
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-900",
-            )}
-            key={option.id}
-            onClick={() => setActiveView(option.id)}
-            type="button"
-          >
-            {option.label}
-          </button>
-        ))}
+            <div className="hidden items-center gap-4 lg:flex">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
+                {LEARNING_JOURNEYS.length} journeys · {LEARNING_TRACKS.length} tracks · {learningModules.length} modules
+              </p>
+              <DevModeToggle editorial />
+            </div>
+          </div>
 
-        <div className="ml-auto hidden items-center gap-4 lg:flex">
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-            {LEARNING_JOURNEYS.length} journeys · {LEARNING_TRACKS.length} tracks · {learningModules.length} modules
-          </p>
-          <DevModeToggle editorial />
+          <section className="relative ml-[calc(50%-50vw)] w-screen overflow-hidden border-y border-[rgba(28,36,48,0.08)] bg-white shadow-[0_30px_80px_rgba(28,36,48,0.05)]">
+            <Image
+              alt="Open book, globe, and city skyline representing a civilization atlas."
+              className="object-cover object-[92%_44%]"
+              fill
+              priority={false}
+              sizes="100vw"
+              src="/atlas/learn-hero.png"
+            />
+            <div className="absolute inset-y-0 left-0 w-[62%] bg-[linear-gradient(90deg,rgba(255,255,255,0.985)_0%,rgba(255,255,255,0.97)_24%,rgba(255,255,255,0.9)_46%,rgba(255,255,255,0.54)_70%,rgba(255,255,255,0)_100%)] lg:w-[58%]" />
+            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[rgba(255,255,255,0.12)] to-transparent" />
+
+            <div className="relative z-10 mx-auto min-h-[28rem] max-w-[88rem] px-8 py-5 sm:min-h-[30rem] sm:px-12 sm:py-6 lg:min-h-[31.5rem] lg:px-16 lg:py-7">
+              <div className="max-w-[34rem] space-y-6 lg:max-w-[35rem]">
+                <div className="space-y-4">
+                  <h1 className="atlas-display max-w-[29rem] text-[2.3rem] leading-[0.94] tracking-[-0.03em] text-slate-900 sm:text-[2.95rem] lg:text-[3.55rem]">
+                    <span className="block">Understand the systems.</span>
+                    <span className="block">Change the future.</span>
+                  </h1>
+                  <p className="atlas-copy max-w-[28rem] text-base leading-8 text-slate-600">
+                    Learn the hidden structures behind today&apos;s biggest challenges. From money and power to ecology and technology, master the systems that shape civilization.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-5">
+                  {[
+                    {
+                      icon: BookOpenText,
+                      label: "Lessons",
+                      value: `${learningModules.length}+`,
+                    },
+                    {
+                      icon: LibraryBig,
+                      label: "System tracks",
+                      value: String(LEARNING_TRACKS.length),
+                    },
+                    {
+                      icon: Clock3,
+                      label: "Learning time",
+                      value: `${Math.max(1, Math.round(totalLearningMinutes / 60))}h+`,
+                    },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <div className="flex items-center gap-3" key={item.label}>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white/78 text-slate-700 backdrop-blur">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-[1.95rem] font-semibold leading-none text-slate-900">{item.value}</p>
+                          <p className="text-sm text-slate-500">{item.label}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.18)] transition hover:bg-blue-500"
+                    href={`/learn/${selectedJourneyNextSlug}`}
+                  >
+                    {selectedJourneyStats.completed > 0 ? "Continue selected journey" : "Start selected journey"}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <button
+                    className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 backdrop-blur transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
+                    onClick={() => setActiveView("tracks")}
+                    type="button"
+                  >
+                    Browse all tracks
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.9fr)]">
+            <section className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:px-6">
+              <div className="space-y-1">
+                <h2 className="atlas-display text-[2rem] leading-tight text-slate-900">How learning works here</h2>
+                <p className="text-sm text-slate-500">Each lesson follows the same proven system to turn complexity into clarity.</p>
+              </div>
+
+              <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+                {LEARNING_STEP_FLOW.map((step, index) => (
+                  <LearningStepCard
+                    description={step.description}
+                    icon={step.icon}
+                    isLast={index === LEARNING_STEP_FLOW.length - 1}
+                    key={step.title}
+                    title={`${index + 1}. ${step.title}`}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:px-6">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="atlas-display text-[2rem] leading-tight text-slate-900">Your learning snapshot</h2>
+                <button
+                  className="text-sm font-semibold text-primary transition hover:text-blue-700"
+                  onClick={() => setActiveView("modules")}
+                  type="button"
+                >
+                  View all
+                </button>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.7)] px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Lessons completed</p>
+                  <p className="mt-3 text-[2rem] font-semibold leading-none text-slate-900">{totalCompleted}</p>
+                  <p className="mt-1 text-sm text-slate-500">of {learningModules.length}</p>
+                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${snapshotPct}%` }} />
+                  </div>
+                </div>
+
+                <div className="rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.7)] px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Current streak</p>
+                  <div className="mt-3 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-[2rem] font-semibold leading-none text-slate-900">{currentStreak}</p>
+                      <p className="mt-1 text-sm text-slate-500">days</p>
+                    </div>
+                    <Flame className="h-5 w-5 text-rose-500" />
+                  </div>
+                </div>
+
+                <div className="rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.7)] px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Time spent learning</p>
+                  <p className="mt-3 text-[2rem] font-semibold leading-none text-slate-900">{formatLearningTime(completedLearningMinutes)}</p>
+                  <div className="mt-3 flex items-end gap-1">
+                    {weeklyCompletionBars.map((value, index) => (
+                      <span
+                        className={cn(
+                          "w-3 rounded-t-full bg-emerald-500/85",
+                          value === 0 ? "opacity-25" : "opacity-100",
+                        )}
+                        key={index}
+                        style={{ height: `${Math.max(0.35, value * 0.55 + 0.35)}rem` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 flex items-end justify-between gap-4 border-t border-[rgba(28,36,48,0.08)] pt-4">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Recent lesson</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {recentCompletedModule?.module.title ?? nextGlobalModule?.title ?? "Start your first lesson"}
+                  </p>
+                </div>
+                <Link className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:text-blue-700" href={`/learn/${nextGlobalSlug}`}>
+                  Continue
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </section>
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          <header className="space-y-3">
+            <h1 className="atlas-display text-[3.6rem] leading-[0.94] text-slate-900 sm:text-[4.3rem]">Learn</h1>
+            <p className="atlas-copy max-w-2xl text-base text-slate-600">Understand the systems that shape our world.</p>
+          </header>
+
+          <div className="flex flex-wrap items-center gap-5 border-b border-[rgba(28,36,48,0.08)] pb-3">
+            {VIEW_OPTIONS.map((option) => (
+              <button
+                className={cn(
+                  "border-b-2 pb-2 text-sm font-medium transition-colors",
+                  activeView === option.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-slate-500 hover:text-slate-900",
+                )}
+                key={option.id}
+                onClick={() => setActiveView(option.id)}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))}
+
+            <div className="ml-auto hidden items-center gap-4 lg:flex">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
+                {LEARNING_JOURNEYS.length} journeys · {LEARNING_TRACKS.length} tracks · {learningModules.length} modules
+              </p>
+              <DevModeToggle editorial />
+            </div>
+          </div>
+        </>
+      )}
 
       {activeView === "journeys" ? (
         <>
-          <IllustratedTabHero
-            actions={
-              <>
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.95fr)]">
+            <section className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:px-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="atlas-display text-[2rem] leading-tight text-slate-900">Explore Journeys</h2>
+                  <p className="mt-1 text-sm text-slate-500">Browse all systems and start learning what matters most.</p>
+                </div>
+                <button
+                  className="text-sm font-semibold text-primary transition hover:text-blue-700"
+                  onClick={() => setActiveView("tracks")}
+                  type="button"
+                >
+                  View all topics
+                </button>
+              </div>
+
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {LEARNING_JOURNEYS.map((journey) => {
+                  const completed = journey.moduleSlugs.filter((slug) => getModule(slug).quizPassed).length;
+                  const primarySlug =
+                    journey.moduleSlugs.find((slug) => {
+                      const track = trackBySlug[slug];
+                      return track && !getModule(slug).quizPassed && isUnlocked(slug, track.moduleSlugs);
+                    }) ?? journey.moduleSlugs[0];
+                  const primaryTrack = trackLookup[journey.relatedTrackIds[0]];
+                  const Icon = TRACK_ICONS[primaryTrack?.icon ?? ""] ?? Sparkles;
+                  const progressPct =
+                    journey.moduleSlugs.length === 0
+                      ? 0
+                      : Math.round((completed / journey.moduleSlugs.length) * 100);
+
+                  return (
+                    <JourneyOverviewCard
+                      completed={completed}
+                      icon={Icon}
+                      isSelected={selectedJourney.id === journey.id}
+                      journey={journey}
+                      key={journey.id}
+                      onSelect={() => setSelectedJourneyId(journey.id)}
+                      progressPct={progressPct}
+                      startHref={`/learn/${primarySlug}`}
+                      tone={primaryTrack?.accent ?? "emerald"}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:px-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="atlas-display text-[2rem] leading-tight text-slate-900">Featured learning tracks</h2>
+                  <p className="mt-1 text-sm text-slate-500">Start with the strongest system maps in the library.</p>
+                </div>
+                <button
+                  className="text-sm font-semibold text-primary transition hover:text-blue-700"
+                  onClick={() => setActiveView("tracks")}
+                  type="button"
+                >
+                  View all tracks
+                </button>
+              </div>
+
+              <div className="mt-6 space-y-4">
+                {featuredTracks.map((item) => (
+                  <FeaturedTrackRow
+                    href={item.href}
+                    imageSrc={item.imageSrc}
+                    key={item.track.id}
+                    modulesLabel={`${item.track.moduleSlugs.length} lessons`}
+                    progressPct={item.progressPct}
+                    summary={item.summary}
+                    title={item.title}
+                  />
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,0.6fr))]">
+            <section className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.76)] px-5 py-5 shadow-[0_14px_32px_rgba(28,36,48,0.04)]">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="space-y-2">
+                  <h2 className="atlas-display text-[1.85rem] leading-tight text-slate-900">Not sure where to start?</h2>
+                  <p className="text-sm leading-7 text-slate-600">Answer a few questions and we&apos;ll suggest the best first lessons for you.</p>
+                </div>
                 <Link
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.18)] transition hover:bg-blue-500"
+                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
                   href={`/learn/${selectedJourneyNextSlug}`}
                 >
-                  {selectedJourneyStats.completed > 0 ? "Continue journey" : "Start journey"}
+                  Find my path
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                {selectedJourney.simulatorHref ? (
-                  <Link
-                    className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
-                    href={selectedJourney.simulatorHref}
-                  >
-                    {selectedJourney.simulatorLabel ?? "Open related lab"}
-                    <Play className="h-4 w-4" />
-                  </Link>
-                ) : null}
-                <Link
-                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
-                  href="/study"
-                >
-                  Open study library
-                  <LibraryBig className="h-4 w-4" />
-                </Link>
-              </>
-            }
-            description="Follow a route that already connects the ideas for you. The goal is not to collect isolated modules. It is to build one mental model you can actually use."
-            eyebrow="Selected journey"
-            imageAlt="Travelers walking through a mountainous landscape toward a shared horizon."
-            imageClassName="object-cover object-center"
-            imageSrc="/atlas/learn-hero.png"
-            title="Systemic understanding. Practical wisdom. Collective progress."
-          >
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_21rem]">
-              <div className="rounded-[1.6rem] border border-[rgba(28,36,48,0.08)] bg-white/90 px-5 py-5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.88)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    {selectedJourney.duration}
-                  </span>
-                  <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.88)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    {selectedJourneyStats.completed}/{selectedJourneyStats.total} complete
-                  </span>
-                </div>
-                <h2 className="atlas-display mt-4 text-[2.2rem] leading-tight text-slate-900">{selectedJourney.title}</h2>
-                <p className="mt-2 text-sm font-medium text-slate-600">{selectedJourney.tagline}</p>
-                <p className="atlas-copy mt-3 text-sm">{selectedJourney.summary}</p>
+              </div>
+            </section>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  {selectedJourneyModules.map((module, index) => (
-                    <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.7)] px-3 py-3" key={module.slug}>
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Step {index + 1}</span>
-                      <p className="mt-2 text-sm font-semibold leading-6 text-slate-900">{module.title}</p>
+            {[
+              {
+                description: "Every lesson is grounded in real data and research.",
+                icon: ClipboardCheck,
+                title: "Evidence-first",
+              },
+              {
+                description: "See the whole, not just the parts.",
+                icon: Network,
+                title: "Systems thinking",
+              },
+              {
+                description: "Simulate, visualize, and learn by doing.",
+                icon: CirclePlay,
+                title: "Interactive learning",
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <section
+                  className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_14px_32px_rgba(28,36,48,0.04)]"
+                  key={item.title}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.8)] text-primary">
+                      <Icon className="h-5 w-5" />
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[1.6rem] border border-[rgba(28,36,48,0.08)] bg-white/90 px-5 py-5">
-                <p className="atlas-kicker">What you leave with</p>
-                <p className="mt-3 text-sm leading-7 text-slate-600">{selectedJourney.outcome}</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {selectedJourney.relatedTrackIds.map((trackId) => (
-                    <span
-                      className="rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.88)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500"
-                      key={trackId}
-                    >
-                      {trackLookup[trackId]?.title}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </IllustratedTabHero>
-
-          <ProgressBanner editorial />
-
-          <section className="space-y-4">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="atlas-display text-[2.2rem] leading-tight text-slate-900">Recommended Journeys</h2>
-                <p className="mt-2 text-sm text-slate-600">Start with one strong path instead of trying to decode the whole atlas at once.</p>
-              </div>
-              <button
-                className="text-sm font-semibold text-primary transition hover:text-blue-700"
-                onClick={() => setActiveView("tracks")}
-                type="button"
-              >
-                Explore by track →
-              </button>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-              {LEARNING_JOURNEYS.map((journey) => {
-                const completed = journey.moduleSlugs.filter((slug) => getModule(slug).quizPassed).length;
-                const primarySlug =
-                  journey.moduleSlugs.find((slug) => {
-                    const track = trackBySlug[slug];
-                    return track && !getModule(slug).quizPassed && isUnlocked(slug, track.moduleSlugs);
-                  }) ?? journey.moduleSlugs[0];
-
-                return (
-                  <JourneyCard
-                    completed={completed}
-                    isSelected={selectedJourney.id === journey.id}
-                    journey={journey}
-                    key={journey.id}
-                    onPreview={() => setSelectedJourneyId(journey.id)}
-                    startHref={`/learn/${primarySlug}`}
-                  />
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="atlas-display text-[2.2rem] leading-tight text-slate-900">Explore by Track</h2>
-                <p className="mt-2 text-sm text-slate-600">Open one region of the atlas at a time, then follow its route module by module.</p>
-              </div>
-              <button
-                className="text-sm font-semibold text-primary transition hover:text-blue-700"
-                onClick={() => setActiveView("modules")}
-                type="button"
-              >
-                Open full library →
-              </button>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-              {LEARNING_TRACKS.map((track) => (
-                <TrackTile
-                  isSelected={selectedTrack.id === track.id}
-                  key={track.id}
-                  onSelect={() => {
-                    setSelectedTrackId(track.id);
-                    setActiveView("tracks");
-                  }}
-                  track={track}
-                />
-              ))}
-            </div>
-          </section>
-
-          <div className="grid gap-5 xl:grid-cols-2">
-            <SoftPanel tone="green">
-              <p className="atlas-kicker">Featured simulator</p>
-              <h3 className="atlas-display mt-2 text-3xl leading-tight text-slate-900">World3 is the big systems bridge.</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
-                Once the concepts click, World3 is where the whole picture becomes testable: population, production,
-                pollution, resources, and wellbeing in one long-run model.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.18)] transition hover:bg-blue-500"
-                  href="/simulator/world3"
-                >
-                  Open World3
-                  <Play className="h-4 w-4" />
-                </Link>
-                <Link
-                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
-                  href="/simulator"
-                >
-                  Browse simulators
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </SoftPanel>
-
-            <SoftPanel>
-              <p className="atlas-kicker">Keep going</p>
-              <h3 className="atlas-display mt-2 text-3xl leading-tight text-slate-900">Use the study library when you want depth.</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
-                The library extends the same atlas themes with books, papers, data projects, and public resources, so
-                the next step feels connected instead of random.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
-                  href="/study"
-                >
-                  Open study library
-                  <LibraryBig className="h-4 w-4" />
-                </Link>
-                <Link
-                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
-                  href={`/learn/${nextGlobalSlug}`}
-                >
-                  Continue learning
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </SoftPanel>
+                    <div className="space-y-2">
+                      <h3 className="text-[1.05rem] font-semibold text-slate-900">{item.title}</h3>
+                      <p className="text-sm leading-6 text-slate-600">{item.description}</p>
+                    </div>
+                  </div>
+                </section>
+              );
+            })}
           </div>
         </>
       ) : null}

@@ -5,6 +5,7 @@ export interface LearningTrack {
   title: string;
   tagline: string;
   description: string;
+  featuredSummary?: string;
   accent: AccentTone;
   icon: string;          // lucide icon name
   moduleSlugs: string[]; // ordered — first is always unlocked, rest unlock sequentially
@@ -12,54 +13,33 @@ export interface LearningTrack {
 
 export const LEARNING_TRACKS: LearningTrack[] = [
   {
-    id: "money-and-wealth",
-    title: "Money & Wealth",
-    tagline: "How the financial system is wired",
+    id: "economy",
+    title: "Economy",
+    tagline: "Money, inequality, and crises that keep returning",
     description:
-      "Understand where money comes from, how it flows toward assets rather than wages, how profits disappear offshore, and why wealth compounds faster than work.",
+      "Understand where money comes from, how it flows toward assets rather than wages, how economies can be judged against social and ecological limits, how profits disappear offshore, why wealth compounds faster than work, and how recurring financial crises emerge from the same structural faults.",
+    featuredSummary: "From money creation to inequality, understand how economic systems really work.",
     accent: "emerald",
     icon: "Banknote",
     moduleSlugs: [
       "why-gdp-is-not-the-same-as-wellbeing",
+      "how-doughnut-economics-puts-the-economy-inside-limits",
       "how-banks-create-money",
       "how-wealth-compounds-faster-than-wages",
       "how-tax-havens-drain-public-revenue",
       "how-the-us-rewrites-the-rules-of-money",
-    ],
-  },
-  {
-    id: "financial-history",
-    title: "Financial History: Mistakes of the Past",
-    tagline: "Crises that keep repeating — and why",
-    description:
-      "Every major banking crisis shares the same structural fingerprints: stability breeding complacency, unregulated institutions taking bank-like risks, and regulators who arrived too late. These modules trace the pattern from 1907 to 2023.",
-    accent: "amber",
-    icon: "ScrollText",
-    moduleSlugs: [
       "how-banking-crises-repeat",
       "the-savings-and-loan-crisis-of-the-1980s",
       "how-the-2008-financial-crisis-happened",
     ],
   },
   {
-    id: "ecology-and-limits",
-    title: "Ecology & Limits",
-    tagline: "Why pollution becomes systems risk",
+    id: "politics-and-democracy",
+    title: "Politics & Democracy",
+    tagline: "How power, institutions, and movements shape public life",
     description:
-      "Follow how pollution accumulates, why delayed feedbacks hide damage until it is expensive, and how tipping points turn gradual pressure into abrupt instability. A starting module for thinking in stocks, sinks, and overshoot.",
-    accent: "cyan",
-    icon: "Leaf",
-    moduleSlugs: [
-      "how-doughnut-economics-puts-the-economy-inside-limits",
-      "how-pollution-builds-up-until-systems-tip",
-    ],
-  },
-  {
-    id: "power-and-politics",
-    title: "Power & Politics",
-    tagline: "How decisions are really made",
-    description:
-      "Trace how ideological models, governing systems, electoral rules, lobbying, corruption, and social movements systematically shape who gets heard, who gets organized, and whose interests become policy. A growing track on institutional design, political capture, and collective power.",
+      "Trace how ideology, governing systems, electoral rules, lobbying, corruption, and social movements shape who gets heard, who gets organized, and whose interests become policy.",
+    featuredSummary: "Explore how power is built, maintained, and challenged in modern societies.",
     accent: "amber",
     icon: "Landmark",
     moduleSlugs: [
@@ -79,30 +59,33 @@ export const LEARNING_TRACKS: LearningTrack[] = [
     ],
   },
   {
-    id: "information-and-attention",
-    title: "Information & Attention",
-    tagline: "How minds are shaped at scale",
+    id: "cities-and-ecology",
+    title: "Cities & Ecology",
+    tagline: "Ecological limits and the systems of everyday life",
+    description:
+      "Follow how pollution accumulates, why delayed feedbacks hide damage until it is expensive, and how cities, housing, transport, and urban design shape stress, trust, health, and ecological pressure.",
+    featuredSummary: "The ecological limits and feedback loops that shape our future.",
+    accent: "cyan",
+    icon: "Building2",
+    moduleSlugs: [
+      "how-pollution-builds-up-until-systems-tip",
+      "why-cities-create-stress-or-freedom",
+      "why-housing-becomes-financialized",
+    ],
+  },
+  {
+    id: "media-and-information",
+    title: "Media & Information",
+    tagline: "How attention, narratives, and opinion are shaped",
     description:
       "Explore how public relations and marketing borrow identity and movement language, how media incentives produce outrage, and how surveillance capitalism turns human experience into prediction products.",
+    featuredSummary: "How technology transforms society and how society chooses technology.",
     accent: "rose",
     icon: "Brain",
     moduleSlugs: [
       "how-companies-engineer-public-opinion-through-marketing",
       "how-media-incentives-produce-outrage",
       "how-surveillance-capitalism-shapes-attention",
-    ],
-  },
-  {
-    id: "cities-and-everyday-life",
-    title: "Cities & Everyday Life",
-    tagline: "How space, housing, and design shape daily life",
-    description:
-      "Explore how urban design, housing financialization, and neighbourhood structure shape trust, autonomy, stress, and economic opportunity. Two modules on the built environment as a political and economic system.",
-    accent: "rose",
-    icon: "Building2",
-    moduleSlugs: [
-      "why-cities-create-stress-or-freedom",
-      "why-housing-becomes-financialized",
     ],
   },
 ];

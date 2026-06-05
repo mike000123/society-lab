@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -291,8 +292,14 @@ export function MemberDashboardClient({
           <div className="flex items-start gap-4 sm:gap-5">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[1.7rem] border border-white/80 bg-[linear-gradient(145deg,#c5eadc,#9fd0ee)] shadow-[0_18px_40px_rgba(28,36,48,0.08)] sm:h-24 sm:w-24">
               {profile.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img alt={profile.displayName} className="h-full w-full object-cover" src={profile.avatarUrl} />
+                <Image
+                  alt={profile.displayName}
+                  className="h-full w-full object-cover"
+                  src={profile.avatarUrl}
+                  width={96}
+                  height={96}
+                  unoptimized
+                />
               ) : (
                 <span className="atlas-display text-3xl text-slate-900">{getInitials(profile.displayName)}</span>
               )}
@@ -685,7 +692,7 @@ export function MemberDashboardClient({
               The dashboard already knows your paths, progress, and governance activity. The next step is turning that into personal lists: saved modules, reading queues, proposal bundles, and simulation comparisons.
             </p>
             <Button asChild variant="outline">
-              <Link href="/learn">Return to Learn</Link>
+              <Link href="/learn">Browse learning modules</Link>
             </Button>
           </div>
         </SoftPanel>

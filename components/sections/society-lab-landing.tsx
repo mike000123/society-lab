@@ -1,38 +1,29 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useState, type ElementType } from "react";
 import type { Route } from "next";
+import type { ElementType } from "react";
 import {
   ArrowRight,
+  Bell,
+  Bookmark,
   BookOpenText,
-  Compass,
+  Building2,
   FlaskConical,
-  Globe2,
   Landmark,
-  Map,
   MessageSquare,
   Play,
-  Scale,
-  ScrollText,
-  Sparkles,
+  Search,
   Users,
   Vote,
 } from "lucide-react";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { AtlasPage } from "@/components/atlas/AtlasPage";
-import { CivilizationIllustration } from "@/components/atlas/CivilizationIllustration";
-import { FeatureStrip } from "@/components/atlas/FeatureStrip";
-import { InsightBlock } from "@/components/atlas/InsightBlock";
-import { SectionNarrative } from "@/components/atlas/SectionNarrative";
-import { SoftPanel } from "@/components/atlas/SoftPanel";
 import { AuthControls } from "@/components/layout/auth-controls";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-type ScenarioId = "business" | "green" | "equality" | "resilience";
 
 const navigation: { href: Route; label: string }[] = [
   { href: "/learn", label: "Learn" },
@@ -43,753 +34,675 @@ const navigation: { href: Route; label: string }[] = [
   { href: "/study", label: "Study" },
 ];
 
-const pathways: {
+const heroStats = [
+  { label: "Learning tracks", value: "4" },
+  { label: "Modules", value: "29" },
+  { label: "Simulators", value: "12" },
+  { label: "Countries", value: "180+" },
+  { label: "Community", value: "10K+" },
+];
+
+const domainCards: {
+  accent: string;
+  artSrc: string;
   description: string;
   href: Route;
   icon: ElementType;
-  label: string;
   title: string;
 }[] = [
   {
-    description: "Build a grounded mental model before you try to change anything.",
+    accent: "bg-[rgba(59,130,246,0.12)] text-[rgb(var(--atlas-primary))]",
+    artSrc: "/atlas/home-domain-economy.png",
+    description: "Money, markets, work, and how value is created and captured.",
+    href: "/learn?view=tracks&track=economy" as Route,
+    icon: Landmark,
+    title: "Economy",
+  },
+  {
+    accent: "bg-[rgba(76,175,80,0.14)] text-[rgb(var(--atlas-green))]",
+    artSrc: "/atlas/home-domain-politics-democracy.png",
+    description: "Power, institutions, participation, and the rules we live by.",
+    href: "/learn?view=tracks&track=politics-and-democracy" as Route,
+    icon: Users,
+    title: "Politics & Democracy",
+  },
+  {
+    accent: "bg-[rgba(212,168,79,0.16)] text-[rgb(var(--atlas-gold))]",
+    artSrc: "/atlas/home-domain-cities-everyday-life.png",
+    description: "Ecological limits, pollution, housing, transport, and how urban systems shape daily life.",
+    href: "/learn?view=tracks&track=cities-and-ecology" as Route,
+    icon: Building2,
+    title: "Cities & Ecology",
+  },
+  {
+    accent: "bg-[rgba(99,102,241,0.14)] text-[rgb(99,102,241)]",
+    artSrc: "/atlas/home-domain-media-information.png",
+    description: "Attention, narratives, truth, and the systems that shape opinion.",
+    href: "/learn?view=tracks&track=media-and-information" as Route,
+    icon: MessageSquare,
+    title: "Media & Information",
+  },
+];
+
+const worldMetrics = [
+  {
+    delta: "+2.1",
+    label: "Global Wellbeing",
+    note: "(median)",
+    value: "65 /100",
+  },
+  {
+    delta: "+1.8",
+    label: "Inequality (Gini)",
+    note: "(higher = worse)",
+    value: "63 /100",
+  },
+  {
+    delta: "+0.7",
+    label: "Corruption (CPI)",
+    note: "(higher = better)",
+    value: "43 /100",
+  },
+  {
+    delta: "-0.3",
+    label: "Press Freedom",
+    note: "(higher = better)",
+    value: "38 /100",
+  },
+  {
+    delta: "+0.04",
+    label: "Temp. Increase",
+    note: "vs pre-industrial",
+    value: "1.24 °C",
+  },
+];
+
+const civicSteps: {
+  description: string;
+  href: Route;
+  icon: ElementType;
+  title: string;
+}[] = [
+  {
+    description: "Understand core systems",
     href: "/learn",
     icon: BookOpenText,
-    label: "01",
-    title: "Learn the system",
+    title: "Learn",
   },
   {
-    description: "Run alternative futures and see feedback loops unfold over time.",
+    description: "Test scenarios and models",
     href: "/simulator",
     icon: FlaskConical,
-    label: "02",
-    title: "Simulate the future",
+    title: "Simulate",
   },
   {
-    description: "Compare perspectives, surface tradeoffs, and sharpen proposals together.",
+    description: "Debate ideas with others",
     href: "/discussions",
     icon: MessageSquare,
-    label: "03",
-    title: "Discuss in public",
+    title: "Discuss",
   },
   {
-    description: "Turn shared understanding into structured civic action and experiments.",
+    description: "Design and vote on solutions",
     href: "/governance",
-    icon: Landmark,
-    label: "04",
-    title: "Govern with others",
+    icon: Vote,
+    title: "Govern",
   },
 ];
 
-const howItWorks = [
+const featuredSimulations: {
+  artSrc: string;
+  badge?: string;
+  description: string;
+  href: Route;
+  tone: "dark" | "light" | "medium";
+  title: string;
+}[] = [
   {
-    body: "Every topic begins with a condensed, visual learning journey. The point is not to overwhelm people with research, but to help them understand the system clearly enough to reason about it.",
-    title: "Start with the model",
+    artSrc: "/atlas/home-world3-card.png",
+    badge: "Most complex",
+    description: "Explore 200 years of civilization. Resources, population, pollution, technology, and wellbeing.",
+    href: "/simulator/world3",
+    tone: "light",
+    title: "World3 Civilization Simulator",
   },
   {
-    body: "Instead of stopping at explanation, Society Lab lets people test long-run consequences. Simulators reveal how feedback loops, delays, and tradeoffs change the picture.",
-    title: "Test possible futures",
+    artSrc: "/atlas/simulator-financial-crisis-card.png",
+    description: "Bubbles, leverage, contagion, and systemic risk in action.",
+    href: "/simulator/financial-crisis",
+    tone: "medium",
+    title: "Financial Crisis Simulator",
   },
   {
-    body: "Discussion is treated as collective sensemaking rather than content performance. The goal is to compare frames, expose blind spots, and improve ideas before they become decisions.",
-    title: "Deliberate in the open",
-  },
-  {
-    body: "Governance closes the loop. When an idea survives learning, simulation, and debate, it can move into proposals, refinement, and collaborative decision-making.",
-    title: "Move toward action",
+    artSrc: "/atlas/simulator-macro-economy-card.png",
+    description: "Fiscal policy, monetary inflation, debt, and growth in one model.",
+    href: "/simulator/macro-economy",
+    tone: "light",
+    title: "Macro Economy Lab",
   },
 ];
 
-const journeyStops = [
+const communityThreads = [
   {
-    duration: "45 min",
-    summary: "Why money is not just coins and notes, and how banks expand credit.",
-    title: "Understand modern money",
+    kind: "Claim",
+    meta: "18 comments",
+    title: "Basic income reduces poverty without destroying incentives.",
   },
   {
-    duration: "30 min",
-    summary: "See why growth statistics miss health, security, time, and ecological strain.",
-    title: "GDP is not wellbeing",
+    kind: "Proposal",
+    meta: "1.2K votes",
+    title: "Public banks for green and housing investment.",
   },
   {
-    duration: "35 min",
-    summary: "Place the economy inside social foundations and planetary boundaries.",
-    title: "Doughnut economics",
+    kind: "Counterpoint",
+    meta: "23 comments",
+    title: "Growth is not the enemy — distribution is.",
   },
   {
-    duration: "35 min",
-    summary: "Follow pollution, overshoot, and tipping points across entire systems.",
-    title: "Pollution and tipping points",
+    kind: "Question",
+    meta: "17 comments",
+    title: "What metrics should replace GDP as the main score?",
   },
 ];
 
-const governanceProposals = [
-  {
-    summary: "A proposal to fund transport, heating, and food security first, then test the fiscal and emissions effects in public.",
-    title: "Public money for public purpose",
-    votes: "1.2K",
-  },
-  {
-    summary: "A plan to guarantee baseline healthcare, housing support, and energy access while measuring wellbeing instead of output alone.",
-    title: "Universal basic services",
-    votes: "980",
-  },
-  {
-    summary: "A city-scale experiment combining slower traffic, mixed-use blocks, and public space recovery before a national rollout.",
-    title: "Fifteen-minute districts",
-    votes: "714",
-  },
-];
-
-const world3Scenarios: Record<
-  ScenarioId,
-  {
-    description: string;
-    label: string;
-    metrics: { label: string; value: string }[];
-    points: {
-      food: number;
-      output: number;
-      pollution: number;
-      population: number;
-      resources: number;
-      year: number;
-    }[];
-  }
-> = {
-  business: {
-    description:
-      "Business as usual keeps industrial output high for a while, but pressure on pollution and resources pushes the system into overshoot.",
-    label: "Business as usual",
-    metrics: [
-      { label: "Peak wellbeing", value: "63/100" },
-      { label: "Ecological load", value: "1.8 Earths" },
-      { label: "Stability", value: "Fragile" },
-    ],
-    points: [
-      { food: 18, output: 20, pollution: 14, population: 14, resources: 100, year: 2025 },
-      { food: 48, output: 56, pollution: 23, population: 36, resources: 93, year: 2050 },
-      { food: 72, output: 86, pollution: 39, population: 62, resources: 83, year: 2075 },
-      { food: 84, output: 100, pollution: 58, population: 82, resources: 68, year: 2100 },
-      { food: 71, output: 88, pollution: 76, population: 90, resources: 50, year: 2125 },
-      { food: 49, output: 63, pollution: 82, population: 74, resources: 34, year: 2150 },
-      { food: 35, output: 42, pollution: 74, population: 51, resources: 23, year: 2175 },
-      { food: 26, output: 28, pollution: 58, population: 36, resources: 16, year: 2200 },
-    ],
-  },
-  equality: {
-    description:
-      "High equality redistributes security and slows destabilising competition. Growth is more moderate, but wellbeing and resilience remain stronger for longer.",
-    label: "High equality",
-    metrics: [
-      { label: "Peak wellbeing", value: "79/100" },
-      { label: "Ecological load", value: "1.3 Earths" },
-      { label: "Stability", value: "Moderate" },
-    ],
-    points: [
-      { food: 18, output: 18, pollution: 13, population: 14, resources: 100, year: 2025 },
-      { food: 46, output: 48, pollution: 20, population: 34, resources: 95, year: 2050 },
-      { food: 70, output: 72, pollution: 28, population: 57, resources: 88, year: 2075 },
-      { food: 84, output: 82, pollution: 37, population: 73, resources: 79, year: 2100 },
-      { food: 89, output: 83, pollution: 44, population: 81, resources: 70, year: 2125 },
-      { food: 84, output: 76, pollution: 46, population: 79, resources: 60, year: 2150 },
-      { food: 75, output: 66, pollution: 43, population: 72, resources: 52, year: 2175 },
-      { food: 68, output: 60, pollution: 39, population: 68, resources: 46, year: 2200 },
-    ],
-  },
-  green: {
-    description:
-      "Green technology improves efficiency and lowers emissions intensity, but it still works best when paired with broader social and institutional change.",
-    label: "Green technology",
-    metrics: [
-      { label: "Peak wellbeing", value: "74/100" },
-      { label: "Ecological load", value: "1.2 Earths" },
-      { label: "Stability", value: "Moderate" },
-    ],
-    points: [
-      { food: 18, output: 20, pollution: 14, population: 14, resources: 100, year: 2025 },
-      { food: 47, output: 55, pollution: 19, population: 35, resources: 95, year: 2050 },
-      { food: 74, output: 88, pollution: 28, population: 59, resources: 88, year: 2075 },
-      { food: 88, output: 100, pollution: 35, population: 77, resources: 77, year: 2100 },
-      { food: 87, output: 95, pollution: 41, population: 85, resources: 64, year: 2125 },
-      { food: 80, output: 84, pollution: 43, population: 83, resources: 55, year: 2150 },
-      { food: 72, output: 76, pollution: 40, population: 76, resources: 47, year: 2175 },
-      { food: 67, output: 68, pollution: 36, population: 70, resources: 42, year: 2200 },
-    ],
-  },
-  resilience: {
-    description:
-      "Collapse prevention combines efficiency, pollution controls, public health, and long-run planning. It does not remove tradeoffs, but it bends the trajectory away from overshoot.",
-    label: "Collapse prevention",
-    metrics: [
-      { label: "Peak wellbeing", value: "86/100" },
-      { label: "Ecological load", value: "1.0 Earth" },
-      { label: "Stability", value: "Strong" },
-    ],
-    points: [
-      { food: 18, output: 19, pollution: 14, population: 14, resources: 100, year: 2025 },
-      { food: 48, output: 50, pollution: 18, population: 34, resources: 96, year: 2050 },
-      { food: 76, output: 74, pollution: 22, population: 57, resources: 91, year: 2075 },
-      { food: 91, output: 83, pollution: 25, population: 72, resources: 86, year: 2100 },
-      { food: 96, output: 85, pollution: 26, population: 78, resources: 82, year: 2125 },
-      { food: 94, output: 82, pollution: 24, population: 77, resources: 80, year: 2150 },
-      { food: 89, output: 78, pollution: 22, population: 75, resources: 78, year: 2175 },
-      { food: 86, output: 74, pollution: 20, population: 73, resources: 76, year: 2200 },
-    ],
-  },
-};
+const communityPulse = [22, 28, 24, 35, 30, 42, 31, 44, 39];
 
 function HomeHeader() {
   return (
-    <header className="space-y-4 pt-4">
-      <div className="flex items-center justify-between gap-4">
-        <Link className="flex min-w-0 items-center gap-3" href="/">
-          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-[rgba(59,130,246,0.18)] bg-white/78 text-primary shadow-sm">
-            <Globe2 className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <span className="atlas-display block truncate text-2xl leading-none text-slate-900">Society Lab</span>
-            <span className="block truncate text-[11px] uppercase tracking-[0.18em] text-slate-500">
-              Interactive Civilization Atlas
-            </span>
-          </div>
-        </Link>
-
-        <nav className="hidden items-center gap-1 rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 p-1 lg:flex">
-          {navigation.map((item) => (
-            <Link
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-white hover:text-slate-900"
-              href={item.href}
-              key={item.href}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <div className="hidden sm:block">
-            <AuthControls />
-          </div>
+    <header className="flex items-center justify-between gap-4 border-b border-[rgba(28,36,48,0.08)] pb-2 pt-1">
+      <Link className="flex min-w-0 items-center gap-3" href="/">
+        <Image
+          alt="Society Lab logo"
+          className="h-11 w-11 flex-none"
+          height={44}
+          src="/atlas/society-lab-logo.png"
+          width={44}
+        />
+        <div className="min-w-0">
+          <span className="atlas-display block truncate text-[1.85rem] leading-none text-slate-900">Society Lab</span>
+          <span className="block truncate text-[11px] text-slate-500">Civic intelligence for a better future</span>
         </div>
-      </div>
+      </Link>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
+      <nav className="hidden items-center gap-8 lg:flex">
         {navigation.map((item) => (
           <Link
-            className="shrink-0 rounded-full border border-[rgba(28,36,48,0.1)] bg-white/70 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-[rgba(28,36,48,0.18)] hover:text-slate-900"
+            className="text-sm font-medium text-slate-700 transition hover:text-slate-900"
             href={item.href}
             key={item.href}
           >
             {item.label}
           </Link>
         ))}
+      </nav>
+
+      <div className="hidden items-center gap-2 lg:flex">
+        {[Search, Bell, Bookmark].map((Icon, index) => (
+          <button
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white/84 text-slate-600 transition hover:border-[rgba(28,36,48,0.16)] hover:text-slate-900"
+            key={index}
+            type="button"
+          >
+            <Icon className="h-4 w-4" />
+          </button>
+        ))}
+        <ThemeToggle />
+        <AuthControls />
       </div>
 
-      <div className="sm:hidden">
-        <AuthControls />
+      <div className="lg:hidden">
+        <ThemeToggle />
       </div>
     </header>
   );
 }
 
-function PathwaysSection() {
+function ImageWash({
+  className,
+  imageClassName,
+  overlayClassName,
+  src,
+}: {
+  className?: string;
+  imageClassName?: string;
+  overlayClassName?: string;
+  src: string;
+}) {
   return (
-    <SectionNarrative
-      description="Enter through the route that matches how you think best. Each path feeds the next, so learning becomes experimentation, experimentation becomes dialogue, and dialogue can become collective action."
-      eyebrow="Four primary pathways"
-      side={
-        <p>
-          You do not need to move in a straight line. The platform is designed as a civic loop, not a funnel.
-        </p>
-      }
-      title="Learn. Simulate. Discuss. Govern."
-    >
-      <div className="relative">
-        <div className="pointer-events-none absolute left-[7%] right-[7%] top-10 hidden h-px atlas-mapline lg:block" />
-        <div className="grid gap-5 lg:grid-cols-4">
-          {pathways.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <div
-                className="relative space-y-4 rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white/62 p-5 backdrop-blur-sm sm:p-6"
-                key={item.title}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{item.label}</span>
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(28,36,48,0.1)] bg-white/80 text-slate-700">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="atlas-display text-[1.9rem] leading-tight text-slate-900">{item.title}</h3>
-                  <p className="atlas-copy text-sm">{item.description}</p>
-                </div>
-                <Link className="inline-flex items-center gap-2 text-sm font-semibold text-primary" href={item.href}>
-                  Enter pathway
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </SectionNarrative>
+    <div className={cn("absolute inset-0", className)}>
+      <div
+        className={cn("absolute inset-0 bg-cover bg-center bg-no-repeat", imageClassName)}
+        style={{ backgroundImage: `url('${src}')` }}
+      />
+      <div className={cn("absolute inset-0", overlayClassName)} />
+    </div>
   );
 }
 
-function HowItWorksSection() {
+function MiniSparkline({ values }: { values: number[] }) {
+  const width = 120;
+  const height = 46;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const points = values
+    .map((value, index) => {
+      const x = (index / Math.max(values.length - 1, 1)) * width;
+      const y = height - ((value - min) / range) * height;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
   return (
-    <SectionNarrative
-      description="Society Lab is built to help people move from fragmented facts to shared understanding and then toward better decisions."
-      eyebrow="How Society Lab works"
-      side={
-        <p>
-          The platform is meant to condense complexity for ordinary citizens, not force them to become full-time researchers.
-        </p>
-      }
-      title="A civic atlas, not another content feed"
+    <svg aria-hidden="true" className="h-12 w-[7.5rem]" viewBox={`0 0 ${width} ${height}`}>
+      <polyline
+        fill="none"
+        points={points}
+        stroke="rgb(76,175,80)"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="3"
+      />
+    </svg>
+  );
+}
+
+function CommunityAvatars() {
+  const hues = ["bg-blue-100 text-blue-700", "bg-green-100 text-green-700", "bg-amber-100 text-amber-700", "bg-rose-100 text-rose-700"];
+  return (
+    <div className="flex -space-x-2">
+      {["AL", "MK", "EN", "SO"].map((label, index) => (
+        <span
+          className={cn(
+            "flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[10px] font-semibold",
+            hues[index % hues.length],
+          )}
+          key={label}
+        >
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function DomainCard({
+  accent,
+  artSrc,
+  description,
+  href,
+  icon: Icon,
+  title,
+}: (typeof domainCards)[number]) {
+  return (
+    <Link
+      className="group relative min-h-[17.5rem] overflow-hidden rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_36px_rgba(28,36,48,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_50px_rgba(28,36,48,0.08)]"
+      href={href}
     >
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
-        <div className="space-y-6">
-          <p className="atlas-display max-w-2xl text-3xl leading-tight text-slate-900 sm:text-4xl">
-            Understand the model. Test the consequences. Improve the proposal.
+      <ImageWash
+        imageClassName="bg-right-bottom opacity-96"
+        overlayClassName="bg-[radial-gradient(circle_at_17%_18%,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.9)_18%,rgba(255,255,255,0.48)_38%,rgba(255,255,255,0.1)_58%,rgba(255,255,255,0)_76%)]"
+        src={artSrc}
+      />
+
+      <div className="relative z-10 flex h-full max-w-[16rem] flex-col justify-between space-y-3">
+        <div className="flex items-start gap-3">
+          <div className={cn("flex h-12 w-12 flex-none items-center justify-center rounded-full", accent)}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <h3 className="atlas-display max-w-[11.6rem] pt-1 text-[1.58rem] leading-[0.98] text-slate-900">{title}</h3>
+        </div>
+        <div className="space-y-3 pl-[3.75rem]">
+          <p className="max-w-[11.9rem] text-sm leading-6 text-slate-700">{description}</p>
+        </div>
+        <span className="inline-flex items-center gap-2 pl-[3.75rem] text-sm font-semibold text-primary">
+          Explore
+          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function SimulationCard({
+  artSrc,
+  badge,
+  description,
+  href,
+  tone,
+  title,
+}: (typeof featuredSimulations)[number]) {
+  const isDark = tone === "dark";
+  const isMedium = tone === "medium";
+
+  return (
+    <Link
+      className={cn(
+        "group relative flex min-h-[13.75rem] flex-col justify-between overflow-hidden rounded-[1.85rem] border border-[rgba(28,36,48,0.08)] px-5 py-5 shadow-[0_16px_40px_rgba(28,36,48,0.12)]",
+        isDark ? "bg-slate-900 text-white" : "bg-white text-slate-900",
+      )}
+      href={href}
+    >
+      <ImageWash
+        imageClassName="bg-[position:center_48%] opacity-[0.97]"
+        overlayClassName={
+          isDark
+            ? "bg-[linear-gradient(180deg,rgba(11,19,34,0.14),rgba(11,19,34,0.48)_44%,rgba(11,19,34,0.84)_100%)]"
+            : isMedium
+              ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(18,31,53,0.12)_38%,rgba(18,31,53,0.42)_100%)]"
+              : "bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.06)_32%,rgba(255,255,255,0.34)_100%)]"
+        }
+        src={artSrc}
+      />
+      <div className="relative z-10 space-y-4">
+        {badge ? (
+          <span className={cn(
+            "inline-flex rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
+            isDark || isMedium
+              ? "bg-[rgba(37,99,235,0.92)] text-white"
+              : "bg-[rgba(37,99,235,0.1)] text-primary",
+          )}>
+            {badge}
+          </span>
+        ) : null}
+        <div className="space-y-2">
+          <h3 className={cn(
+            "atlas-display max-w-[16rem] text-[2.1rem] leading-[0.96]",
+            isDark || isMedium ? "text-white" : "text-slate-900",
+          )}>
+            {title}
+          </h3>
+          <p className={cn(
+            "max-w-[18rem] text-sm leading-6",
+            isDark ? "text-white/86" : isMedium ? "text-white/86" : "text-slate-700",
+          )}>
+            {description}
           </p>
-          <div className="space-y-4 text-base leading-8 text-slate-600">
-            <p>
-              Most platforms stop at either information or opinion. Society Lab is designed as a connected civic journey
-              where people can learn how systems behave, stress-test ideas, and then work on better public choices
-              together.
-            </p>
-            <p>
-              The aim is not just to make users consume content. It is to help them see patterns across money, cities,
-              ecology, governance, and information, and then give them a practical route into experimentation and
-              decision-making.
-            </p>
-          </div>
-
-          <InsightBlock
-            description="When a user asks a hard civic question, the platform should help them map the system, see tradeoffs, test scenarios, and carry the insight forward."
-            icon={<Compass className="h-5 w-5" />}
-            title="The core promise"
-            tone="gold"
-          />
-        </div>
-
-        <div className="relative pl-5 sm:pl-7">
-          <div className="absolute left-2 top-2 bottom-2 w-px atlas-mapline sm:left-3" />
-          <div className="space-y-8">
-            {howItWorks.map((step, index) => (
-              <div className="relative space-y-2" key={step.title}>
-                <div className="absolute -left-[1.1rem] top-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(28,36,48,0.14)] bg-white text-[11px] font-semibold text-slate-700 shadow-sm sm:-left-[1.45rem] sm:h-7 sm:w-7">
-                  {index + 1}
-                </div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Stage {index + 1}</p>
-                <h3 className="atlas-display text-2xl text-slate-900">{step.title}</h3>
-                <p className="atlas-copy max-w-2xl text-sm">{step.body}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
-    </SectionNarrative>
+      <div className="relative z-10 pt-4">
+        <span className={cn(
+          "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold backdrop-blur",
+          isDark
+            ? "border border-white/22 bg-white/12 text-white"
+            : isMedium
+              ? "border border-white/22 bg-white/12 text-white"
+              : "border border-[rgba(59,130,246,0.16)] bg-white/85 text-primary",
+        )}>
+          Launch
+          <ArrowRight className="h-4 w-4" />
+        </span>
+      </div>
+    </Link>
   );
 }
 
-function FeaturedWorld3() {
-  const [selectedScenario, setSelectedScenario] = useState<ScenarioId>("business");
-  const currentScenario = world3Scenarios[selectedScenario];
+function CommunityCard({
+  kind,
+  meta,
+  title,
+}: (typeof communityThreads)[number]) {
+  const tone =
+    kind === "Claim"
+      ? "bg-blue-50 text-blue-700"
+      : kind === "Proposal"
+        ? "bg-green-50 text-green-700"
+        : kind === "Counterpoint"
+          ? "bg-violet-50 text-violet-700"
+          : "bg-amber-50 text-amber-700";
 
   return (
-    <SectionNarrative
-      description="The World3 simulator is where systems thinking becomes tangible. Adjust a path, then watch how resources, output, pollution, food, and population react across two centuries."
-      eyebrow="Featured experience"
-      side={<p>Use it as a shared civic sandbox: people can argue about assumptions while looking at the same system.</p>}
-      title="World3 Civilization Simulator"
-    >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] xl:items-start">
-        <SoftPanel className="space-y-6" tone="blue">
-          <div className="space-y-3">
-            <p className="atlas-display text-3xl leading-tight text-slate-900">Explore 200 years in one view.</p>
-            <p className="atlas-copy text-sm">
-              Test four broad futures, compare their trajectories, then open the full simulator to shape your own
-              assumptions in detail.
-            </p>
-          </div>
+    <div className="rounded-[1.5rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_14px_28px_rgba(28,36,48,0.04)]">
+      <div className="space-y-4">
+        <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]", tone)}>
+          {kind}
+        </span>
+        <p className="text-[1.08rem] font-semibold leading-7 text-slate-900">{title}</p>
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-4">
+        <span className="text-sm text-slate-500">{meta}</span>
+        <CommunityAvatars />
+      </div>
+    </div>
+  );
+}
 
-          <div className="flex flex-wrap gap-2">
-            {(Object.keys(world3Scenarios) as ScenarioId[]).map((scenario) => (
-              <button
-                className={cn(
-                  "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                  selectedScenario === scenario
-                    ? "border-primary bg-primary text-white"
-                    : "border-[rgba(28,36,48,0.1)] bg-white/80 text-slate-600 hover:border-[rgba(28,36,48,0.18)] hover:text-slate-900",
-                )}
-                key={scenario}
-                onClick={() => setSelectedScenario(scenario)}
-                type="button"
-              >
-                {world3Scenarios[scenario].label}
-              </button>
-            ))}
-          </div>
+function ActiveNowCard() {
+  return (
+    <div className="rounded-[1.5rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_14px_28px_rgba(28,36,48,0.04)]">
+      <div className="space-y-3">
+        <p className="atlas-display text-[1.9rem] text-slate-900">Active now</p>
+        <div className="space-y-1">
+          <p className="text-[2rem] font-semibold text-slate-900">342 people</p>
+          <p className="text-sm text-slate-500">online</p>
+        </div>
+      </div>
+      <div className="mt-3 flex justify-end">
+        <MiniSparkline values={communityPulse} />
+      </div>
+    </div>
+  );
+}
 
-          <p className="atlas-copy text-sm">{currentScenario.description}</p>
+export function SocietyLabLanding() {
+  const communitySummary = communityThreads.length;
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            {currentScenario.metrics.map((metric) => (
-              <div className="space-y-2 border-t border-[rgba(28,36,48,0.08)] pt-4" key={metric.label}>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{metric.label}</p>
-                <p className="atlas-display text-2xl text-slate-900">{metric.value}</p>
-              </div>
-            ))}
-          </div>
+  return (
+    <AtlasPage className="space-y-4 pb-20 md:space-y-6">
+      <HomeHeader />
 
-          <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link href="/simulator/world3">
-                Launch World3
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/simulator">Browse simulators</Link>
-            </Button>
-          </div>
-        </SoftPanel>
+      <section className="relative ml-[calc(50%-50vw)] w-screen overflow-hidden border-y border-[rgba(28,36,48,0.08)] bg-white shadow-[0_30px_80px_rgba(28,36,48,0.05)]">
+        <ImageWash
+          imageClassName="bg-[position:74%_36%] opacity-98"
+          overlayClassName="bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.9)_16%,rgba(255,255,255,0.58)_32%,rgba(255,255,255,0.12)_48%,rgba(255,255,255,0)_62%)]"
+          src="/atlas/home-hero.png"
+        />
 
-        <SoftPanel className="space-y-5 overflow-hidden" tone="gold">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Global outcomes over time</p>
-              <p className="atlas-copy mt-2 text-sm">All curves are normalised for comparison, so the shape of the system is easier to read at a glance.</p>
+        <div className="relative z-10 mx-auto min-h-[28rem] max-w-[88rem] px-8 py-5 sm:min-h-[30rem] sm:px-12 sm:py-6 lg:min-h-[32rem] lg:px-16 lg:py-7">
+          <div className="max-w-[35.5rem] space-y-5">
+            <span className="inline-flex rounded-full bg-[rgba(59,130,246,0.1)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+              A Civilization Atlas
+            </span>
+
+            <div className="space-y-4">
+              <h1 className="atlas-display text-[2.28rem] leading-[0.93] tracking-[-0.03em] text-slate-900 sm:text-[2.95rem] lg:text-[3.45rem]">
+                <span className="block">Understand systems.</span>
+                <span className="block">
+                  Design <span className="italic text-primary">better futures.</span>
+                </span>
+              </h1>
+              <p className="max-w-[26rem] text-[0.95rem] leading-7 text-slate-700">
+                Explore how the world works. Test your ideas. Shape policies, economies, and societies that work for everyone.
+              </p>
             </div>
-            <Link className="hidden text-sm font-semibold text-primary lg:inline-flex" href="/simulator/world3">
-              Open full controls
-            </Link>
-          </div>
 
-          <div className="h-[22rem] sm:h-[26rem]">
-            <ResponsiveContainer height="100%" width="100%">
-              <LineChart data={currentScenario.points} margin={{ bottom: 12, left: -18, right: 6, top: 8 }}>
-                <CartesianGrid stroke="rgba(28,36,48,0.08)" strokeDasharray="3 4" vertical={false} />
-                <XAxis dataKey="year" fontSize={12} stroke="#6B7280" tickLine={false} />
-                <YAxis domain={[0, 100]} fontSize={12} stroke="#6B7280" tickLine={false} width={34} />
-                <Tooltip
-                  contentStyle={{
-                    background: "rgba(255,253,248,0.96)",
-                    border: "1px solid rgba(28,36,48,0.08)",
-                    borderRadius: "18px",
-                    boxShadow: "0 18px 36px rgba(28,36,48,0.12)",
-                  }}
-                />
-                <Line dataKey="population" dot={false} name="Population" stroke="#3B82F6" strokeWidth={3} type="monotone" />
-                <Line dataKey="food" dot={false} name="Food per capita" stroke="#4CAF50" strokeWidth={3} type="monotone" />
-                <Line dataKey="output" dot={false} name="Industrial output" stroke="#1C2430" strokeWidth={3} type="monotone" />
-                <Line dataKey="pollution" dot={false} name="Pollution" stroke="#D9655A" strokeWidth={3} type="monotone" />
-                <Line dataKey="resources" dot={false} name="Resources" stroke="#D4A84F" strokeWidth={3} type="monotone" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </SoftPanel>
-      </div>
-    </SectionNarrative>
-  );
-}
+            <div className="flex flex-wrap gap-3">
+              <Button asChild className="rounded-full px-6" size="lg">
+                <Link href="/learn">Start learning</Link>
+              </Button>
+              <Button asChild className="rounded-full px-6" size="lg" variant="outline">
+                <Link href="/simulator">
+                  <Play className="mr-2 h-4 w-4" />
+                  Explore simulations
+                </Link>
+              </Button>
+            </div>
 
-function FeaturedLearningJourney() {
-  return (
-    <SectionNarrative
-      description="The most important learning journeys should feel like guided pathways rather than giant walls of modules. Here is the kind of path a new user can follow today."
-      eyebrow="Featured learning journey"
-      side={<p>Start with money, move to wellbeing, then widen the frame until ecology and political power become visible together.</p>}
-      title="From modern money to wellbeing and limits"
-    >
-      <SoftPanel className="grid gap-8 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] xl:items-start" tone="gold">
-        <div className="space-y-5">
-          <p className="atlas-display text-3xl leading-tight text-slate-900 sm:text-4xl">
-            A connected path for people who want the big picture without drowning in theory.
-          </p>
-          <p className="atlas-copy text-base">
-            This journey begins with how money is created, then asks what economies should actually optimise for,
-            before introducing ecological limits and tipping points. It is designed to make the later political and
-            governance material far easier to understand.
-          </p>
-
-          <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-            <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 px-3 py-2">Systems thinking</span>
-            <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 px-3 py-2">Economy</span>
-            <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 px-3 py-2">Ecology</span>
-            <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-white/70 px-3 py-2">Wellbeing</span>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link href="/learn">
-                Start learning
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/study">Open study library</Link>
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
-          <div className="relative pl-6">
-            <div className="absolute left-2 top-3 bottom-3 w-px atlas-mapline" />
-            <div className="space-y-6">
-              {journeyStops.map((stop, index) => (
-                <div className="relative space-y-2 border-b border-[rgba(28,36,48,0.08)] pb-5 last:border-b-0 last:pb-0" key={stop.title}>
-                  <div className="absolute -left-6 top-1.5 h-4 w-4 rounded-full border border-[rgba(28,36,48,0.14)] bg-white shadow-sm" />
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="atlas-display text-2xl text-slate-900">{stop.title}</h3>
-                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{stop.duration}</span>
-                  </div>
-                  <p className="atlas-copy text-sm">{stop.summary}</p>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Stop {index + 1}</p>
+            <div className="grid max-w-[32rem] grid-cols-3 gap-4 pt-1 sm:grid-cols-5">
+              {heroStats.map((stat) => (
+                <div key={stat.label}>
+                  <p className="atlas-display text-[1.5rem] text-slate-900">{stat.value}</p>
+                  <p className="mt-1 text-[0.85rem] text-slate-600">{stat.label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <InsightBlock
-            className="self-start"
-            description="By the end of this journey, users can connect bank money creation, wellbeing metrics, ecological boundaries, and the reasons politics struggles to respond."
-            icon={<Sparkles className="h-5 w-5" />}
-            title="What this unlocks"
-            tone="blue"
-          />
+          <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 lg:bottom-10 lg:right-10">
+            <div className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white/92 px-4 py-4 shadow-[0_18px_40px_rgba(28,36,48,0.12)] backdrop-blur">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                Live now
+              </div>
+              <p className="mt-2 text-sm text-slate-600">128 people exploring</p>
+              <div className="mt-3 flex items-center gap-3">
+                <CommunityAvatars />
+                <span className="text-sm text-slate-500">+124</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </SoftPanel>
-    </SectionNarrative>
-  );
-}
+      </section>
 
-function FeaturedGovernanceLab() {
-  return (
-    <SectionNarrative
-      description="Governance should feel like the place where informed citizens refine ideas together, not a dead-end comment feed."
-      eyebrow="Featured governance lab"
-      side={<p>Learning and simulation matter more when they feed into visible proposals, tradeoffs, and collective choice.</p>}
-      title="Turn shared understanding into proposals"
-    >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <SoftPanel className="space-y-6" tone="green">
-          <FeatureStrip
-            items={[
-              { label: "Proposals", value: "128" },
-              { label: "Votes", value: "42.6K" },
-              { label: "Contributors", value: "3.2K" },
-              { label: "Active themes", value: "28" },
-            ]}
-          />
+      <section className="space-y-4">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <span className="h-3 w-1 rounded-full bg-[rgb(var(--atlas-gold))]" />
+          Four domains. One world.
+        </div>
+        <div className="grid gap-4 xl:grid-cols-4">
+          {domainCards.map((card) => (
+            <DomainCard key={card.title} {...card} />
+          ))}
+        </div>
+      </section>
 
-          <div className="space-y-4">
-            {governanceProposals.map((proposal) => (
+      <section className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-6 py-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)]">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h2 className="atlas-display text-[1.95rem] leading-[0.98] tracking-[-0.02em] text-slate-900 sm:text-[2.15rem]">
+              The world right now
+            </h2>
+            <p className="mt-1 text-[0.95rem] text-slate-500">Key indicators at a glance</p>
+          </div>
+          <Link className="text-sm font-semibold text-primary transition hover:text-blue-700" href="/map">
+            View full map
+          </Link>
+        </div>
+
+        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_240px] xl:items-center">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            {worldMetrics.map((metric, index) => (
               <div
-                className="grid gap-4 border-b border-[rgba(28,36,48,0.08)] pb-4 last:border-b-0 last:pb-0 sm:grid-cols-[minmax(0,1fr)_auto]"
-                key={proposal.title}
+                className="rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(249,248,243,0.75)] px-4 py-4"
+                key={metric.label}
               >
-                <div className="space-y-2">
-                  <p className="atlas-display text-2xl text-slate-900">{proposal.title}</p>
-                  <p className="atlas-copy text-sm">{proposal.summary}</p>
-                </div>
-                <div className="flex items-start justify-between gap-4 sm:flex-col sm:items-end">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Support</p>
-                    <p className="atlas-display text-2xl text-slate-900">{proposal.votes}</p>
-                  </div>
-                  <Button asChild variant="outline">
-                    <Link href="/governance">View</Link>
-                  </Button>
+                <p className="text-[0.8rem] font-semibold text-slate-500">{metric.label}</p>
+                <p className="atlas-display mt-3 text-[1.95rem] leading-none tracking-[-0.02em] text-slate-900">{metric.value}</p>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <span className="text-xs text-slate-500">{metric.note}</span>
+                  <span className={cn("text-xs font-semibold", index === 3 || index === 4 ? "text-rose-600" : "text-green-600")}>
+                    {metric.delta}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
-        </SoftPanel>
 
-        <SoftPanel className="space-y-5" tone="gold">
-          <div className="space-y-2">
-            <p className="atlas-display text-3xl leading-tight text-slate-900">How the lab should feel</p>
-            <p className="atlas-copy text-sm">
-              A proposal should move through a clear civic sequence instead of disappearing into a pile of reactions.
-            </p>
+          <div className="relative h-[11rem] overflow-hidden rounded-[1.5rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(247,249,246,0.94),rgba(255,255,255,0.92))]">
+            <ImageWash
+              imageClassName="bg-center opacity-95"
+              overlayClassName="bg-[linear-gradient(180deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05))]"
+              src="/atlas/home-world-map.png"
+            />
           </div>
+        </div>
+      </section>
 
-          <div className="space-y-5">
-            {[
-              { icon: ScrollText, label: "Propose", text: "Frame the public problem and state the intended outcome clearly." },
-              { icon: Scale, label: "Evaluate", text: "Bring in evidence, simulations, tradeoffs, and counterarguments." },
-              { icon: Users, label: "Refine", text: "Improve the proposal through structured discussion and critique." },
-              { icon: Vote, label: "Decide", text: "Move strong proposals toward collective choice and experimentation." },
-            ].map((step, index) => {
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
+        <div className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-6 py-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)]">
+          <h2 className="atlas-display text-[1.95rem] leading-[0.98] tracking-[-0.02em] text-slate-900 sm:text-[2.15rem]">
+            How Society Lab works
+          </h2>
+          <div className="mt-5 grid gap-5 lg:grid-cols-4">
+            {civicSteps.map((step, index) => {
               const Icon = step.icon;
-
               return (
-                <div className="flex gap-4" key={step.label}>
-                  <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.1)] bg-white/80 text-slate-700">
+                <div className="relative flex gap-4" key={step.title}>
+                  <div className="flex h-12 w-12 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.74)] text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      Step {index + 1}
-                    </p>
-                    <p className="atlas-display text-2xl text-slate-900">{step.label}</p>
-                    <p className="atlas-copy text-sm">{step.text}</p>
+                  <div className="space-y-1.5">
+                    <p className="atlas-display text-[1.38rem] leading-[0.98] text-slate-900">{step.title}</p>
+                    <p className="max-w-[10rem] text-sm leading-6 text-slate-600">{step.description}</p>
+                    <Link className="text-sm font-semibold text-primary" href={step.href}>
+                      Open
+                    </Link>
                   </div>
+                  {index < civicSteps.length - 1 ? (
+                    <span className="absolute -right-2 top-4 hidden text-slate-300 xl:block">
+                      <ArrowRight className="h-4 w-4" />
+                    </span>
+                  ) : null}
                 </div>
               );
             })}
           </div>
+        </div>
 
-          <Button asChild size="lg">
-            <Link href="/governance">
-              Go to governance lab
+        <div className="relative overflow-hidden rounded-[1.85rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.94)] px-5 py-5 shadow-[0_16px_36px_rgba(28,36,48,0.05)]">
+          <ImageWash
+            imageClassName="bg-right-bottom opacity-92"
+            overlayClassName="bg-[linear-gradient(90deg,rgba(246,244,238,0.96)_0%,rgba(246,244,238,0.82)_52%,rgba(246,244,238,0.14)_100%)]"
+            src="/atlas/home-new-here.png"
+          />
+          <div className="relative z-10 max-w-[13rem] space-y-3">
+            <h3 className="atlas-display text-[2rem] text-slate-900">New here?</h3>
+            <p className="text-sm leading-6 text-slate-600">Take a 2-minute quiz and we&apos;ll build your learning path.</p>
+            <Button asChild className="rounded-full px-5">
+              <Link href="/learn">Find my path</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="atlas-display text-[2.2rem] text-slate-900">Featured simulations</h2>
+          <Link className="text-sm font-semibold text-primary transition hover:text-blue-700" href="/simulator">
+            Browse all simulators
+          </Link>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          {featuredSimulations.map((simulation) => (
+            <SimulationCard key={simulation.title} {...simulation} />
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="atlas-display text-[2.2rem] text-slate-900">What the community is working on</h2>
+          <Link className="text-sm font-semibold text-primary transition hover:text-blue-700" href="/discussions">
+            View discussions
+          </Link>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-[repeat(4,minmax(0,1fr))_220px]">
+          {communityThreads.map((thread) => (
+            <CommunityCard key={thread.title} {...thread} />
+          ))}
+          <ActiveNowCard />
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden rounded-[2.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.92)] px-6 py-8 shadow-[0_24px_50px_rgba(28,36,48,0.06)] sm:px-8 sm:py-10">
+        <ImageWash
+          imageClassName="bg-[position:72%_58%] opacity-96"
+          overlayClassName="bg-[linear-gradient(90deg,rgba(246,244,238,0.94)_0%,rgba(246,244,238,0.86)_30%,rgba(246,244,238,0.46)_56%,rgba(246,244,238,0.04)_100%)]"
+          src="/atlas/home-footer-cta.png"
+        />
+        <div className="relative z-10 max-w-[31rem] space-y-5">
+          <p className="atlas-display text-[3rem] leading-[0.95] text-slate-900 sm:text-[3.7rem]">
+            The best way to predict the future is to design it together.
+          </p>
+          <Button asChild className="rounded-full px-7" size="lg">
+            <Link href="/learn">
+              Join the experiment
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-        </SoftPanel>
-      </div>
-    </SectionNarrative>
-  );
-}
-
-export function SocietyLabLanding() {
-  return (
-    <AtlasPage className="space-y-16 pb-24 md:space-y-20">
-      <HomeHeader />
-
-      <section className="grid gap-8 rounded-[2.75rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(245,240,229,0.82)_42%,rgba(231,239,244,0.72))] p-6 shadow-[0_32px_90px_rgba(28,36,48,0.08)] sm:p-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:p-10">
-        <div className="flex flex-col justify-between gap-8">
-          <div className="space-y-6">
-            <p className="atlas-kicker">Civic learning for complex societies</p>
-            <div className="space-y-4">
-              <h1 className="atlas-display max-w-3xl text-5xl leading-[0.92] text-slate-900 sm:text-6xl xl:text-7xl">
-                Understand the systems. Design better futures together.
-              </h1>
-              <p className="atlas-lede max-w-2xl">
-                Society Lab turns civic education into a connected atlas. Learn how systems work, run futures in
-                simulation, discuss tradeoffs in public, and move strong ideas toward governance.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg">
-                <Link href="/learn">
-                  Start learning
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/simulator/world3">
-                  Explore World3
-                  <Play className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="ghost">
-                <Link href="/map">
-                  Open the systems map
-                  <Map className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          <FeatureStrip
-            className="bg-white/72"
-            items={[
-              {
-                description: "Condensed pathways instead of scattered reading lists.",
-                icon: <BookOpenText className="h-4 w-4" />,
-                label: "Learning modules",
-                value: "29",
-              },
-              {
-                description: "From personal finance to World3 civilisation dynamics.",
-                icon: <FlaskConical className="h-4 w-4" />,
-                label: "Simulators",
-                value: "12",
-              },
-              {
-                description: "A simple journey from understanding into civic action.",
-                icon: <Compass className="h-4 w-4" />,
-                label: "Primary pathways",
-                value: "4",
-              },
-              {
-                description: "Shared visual context for inequality, wellbeing, and power.",
-                icon: <Map className="h-4 w-4" />,
-                label: "Atlas map",
-                value: "1",
-              },
-            ]}
-          />
         </div>
-
-        <CivilizationIllustration className="min-h-[25rem] lg:min-h-[38rem]" />
       </section>
 
-      <PathwaysSection />
-
-      <HowItWorksSection />
-
-      <FeaturedWorld3 />
-
-      <SectionNarrative
-        description="The homepage should make it obvious where to go next without forcing every experience into the same card grid."
-        eyebrow="Featured routes"
-        side={<p>These are the three flagship areas that make the platform feel coherent: deep learning, systems simulation, and collaborative governance.</p>}
-        title="Start with the part that matches your question"
-      >
-        <div className="grid gap-6 xl:grid-cols-3">
-          <InsightBlock
-            description="Move through curated learning journeys that connect money, inequality, ecology, power, and media into one readable picture."
-            icon={<BookOpenText className="h-5 w-5" />}
-            title="Learning journeys"
-            tone="blue"
-          />
-          <InsightBlock
-            description="Use simulators to test how delay, feedback, scarcity, policy, and behaviour change long-run outcomes."
-            icon={<FlaskConical className="h-5 w-5" />}
-            title="Systems simulations"
-            tone="gold"
-          />
-          <InsightBlock
-            description="Bring strong ideas into proposals, public reasoning, and shared refinement rather than leaving them as private opinions."
-            icon={<Landmark className="h-5 w-5" />}
-            title="Governance lab"
-            tone="green"
-          />
-        </div>
-      </SectionNarrative>
-
-      <FeaturedLearningJourney />
-
-      <FeaturedGovernanceLab />
-
-      <SoftPanel className="grid gap-6 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(245,240,229,0.9)_55%,rgba(232,240,228,0.92))] xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center" tone="green">
-        <div className="space-y-3">
-          <p className="atlas-kicker">Begin anywhere, stay connected</p>
-          <p className="atlas-display max-w-3xl text-4xl leading-tight text-slate-900 sm:text-5xl">
-            A better society starts with people who can see the system they are inside.
-          </p>
-          <p className="atlas-copy max-w-2xl text-base">
-            Learn the model, test the future, discuss the tradeoffs, and help design better public choices.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Button asChild size="lg">
-            <Link href="/learn">Enter the atlas</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/study">Browse resources</Link>
-          </Button>
-        </div>
-      </SoftPanel>
+      <div className="sr-only">{communitySummary} community threads featured on the homepage.</div>
     </AtlasPage>
   );
 }

@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpenText, MessageSquare, Scale, Sparkles, Users } from "lucide-react";
 
@@ -53,9 +50,9 @@ const DISCUSSION_ROLES = [
   },
 ];
 
-export default function DiscussionsPage() {
-  const [recentPosts] = useState<{ kind: string; content: string; author: string }[]>([]);
+const EMPTY_POSTS: { kind: string; content: string; author: string }[] = [];
 
+export default function DiscussionsPage() {
   return (
     <AtlasPage className="space-y-8 pb-14">
       <IllustratedTabHero
@@ -177,7 +174,7 @@ export default function DiscussionsPage() {
             </div>
           </SoftPanel>
 
-          <AgentPanel topic={DEMO_TOPIC} recentPosts={recentPosts} />
+          <AgentPanel topic={DEMO_TOPIC} recentPosts={EMPTY_POSTS} />
         </div>
       </div>
     </AtlasPage>
