@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { normalizeLinkedInUrl } from "@/lib/community/linkedin";
 import { getAbsoluteUrl } from "@/lib/site-url";
 import { hasSupabaseEnv } from "@/lib/supabase/public-env";
 import { createClient } from "@/lib/supabase/server";
@@ -14,6 +15,13 @@ function readString(formData: FormData, key: string) {
   const value = formData.get(key);
 
   return typeof value === "string" ? value.trim() : "";
+}
+
+function readStringArray(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter(Boolean);
 }
 
 function redirectToAuth(
@@ -76,6 +84,12 @@ export async function signUpAction(formData: FormData) {
   const email = readString(formData, "email");
   const password = readString(formData, "password");
   const fullName = readString(formData, "full_name");
+  const academicLevel = readString(formData, "academic_level");
+  const professionalStage = readString(formData, "professional_stage");
+  const professionalTitle = readString(formData, "professional_title");
+  const expertiseDomains = readStringArray(formData, "expertise_domains");
+  const linkedinUrl = normalizeLinkedInUrl(readString(formData, "linkedin_url"));
+  const shareLinkedInProfile = readString(formData, "share_linkedin_profile") === "on";
   const next = safeRedirectPath(readString(formData, "next"));
 
   if (!hasSupabaseEnv) {
@@ -92,7 +106,13 @@ export async function signUpAction(formData: FormData) {
     password,
     options: {
       data: {
+        academic_level: academicLevel || null,
+        expertise_domains: expertiseDomains,
         full_name: fullName || null,
+        linkedin_url: linkedinUrl || null,
+        professional_stage: professionalStage || null,
+        professional_title: professionalTitle || null,
+        share_linkedin_profile: shareLinkedInProfile,
       },
       emailRedirectTo: await getEmailRedirectTo(next),
     },

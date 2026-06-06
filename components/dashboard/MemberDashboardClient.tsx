@@ -4,34 +4,63 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
+  AlertCircle,
   ArrowRight,
   Bookmark,
+  CheckCircle2,
   ChevronRight,
   Clock3,
+  Eye,
   ListChecks,
+  Loader2,
   ShieldCheck,
   Trophy,
+  Users,
 } from "lucide-react";
 
 import { signOutAction } from "@/app/auth/actions";
 import { AtlasPage } from "@/components/atlas/AtlasPage";
 import { SoftPanel } from "@/components/atlas/SoftPanel";
 import { Button } from "@/components/ui/button";
+import {
+  ACADEMIC_LEVEL_OPTIONS,
+  EXPERTISE_DOMAIN_OPTIONS,
+  PROFESSIONAL_STAGE_OPTIONS,
+  labelsForValues,
+  optionLabel,
+} from "@/lib/community/profile-options";
+import { normalizeLinkedInUrl } from "@/lib/community/linkedin";
+import type { Database } from "@/lib/database.types";
 import { getLearningModuleBySlug, learningModules } from "@/lib/learn/modules";
 import { LEARNING_JOURNEYS } from "@/lib/learn/journeys";
 import { getLevelProgress, LEVELS } from "@/lib/progress/levels";
 import { useProgress } from "@/lib/progress/store";
 import { LEARNING_TRACKS } from "@/lib/tracks/config";
 import { useSubmissions, useVotes } from "@/lib/governance/votes";
+import { createClient as createSupabaseClient } from "@/lib/supabase/client";
+import { hasSupabaseEnv } from "@/lib/supabase/public-env";
 import { cn } from "@/lib/utils";
 
+type ContactPermission = Database["public"]["Enums"]["contact_permission"];
+
 type DashboardProfile = {
+  academicLevel: string | null;
+  allowParticipantInvites: boolean;
+  allowStudyCircleInvites: boolean;
   avatarUrl: string | null;
   bio: string | null;
+  contactPermission: ContactPermission;
+  discoverableBySharedModules: boolean;
   displayName: string;
   email: string | null;
+  expertiseDomains: string[];
+  linkedinUrl: string | null;
   providers: string;
+  professionalStage: string | null;
+  professionalTitle: string | null;
   reputationScore: number;
+  shareLinkedinProfile: boolean;
+  showLearningActivity: boolean;
   userId: string;
   username: string | null;
 };
@@ -49,12 +78,27 @@ type DashboardRecentItem = {
   title: string;
 };
 
-type DashboardTab = "overview" | "achievements" | "activity" | "bookmarks" | "lists";
+type DashboardTab = "overview" | "achievements" | "activity" | "privacy" | "bookmarks" | "lists";
+
+type PrivacySettings = {
+  academicLevel: string;
+  allowParticipantInvites: boolean;
+  allowStudyCircleInvites: boolean;
+  contactPermission: ContactPermission;
+  discoverableBySharedModules: boolean;
+  expertiseDomains: string[];
+  linkedinUrl: string;
+  professionalStage: string;
+  professionalTitle: string;
+  shareLinkedinProfile: boolean;
+  showLearningActivity: boolean;
+};
 
 const DASHBOARD_TABS: Array<{ id: DashboardTab; label: string }> = [
   { id: "overview", label: "Overview" },
   { id: "achievements", label: "Achievements" },
   { id: "activity", label: "Activity" },
+  { id: "privacy", label: "Privacy & discovery" },
   { id: "bookmarks", label: "Bookmarks" },
   { id: "lists", label: "Lists" },
 ];
@@ -134,6 +178,43 @@ function PanelTitle({
   );
 }
 
+function ToggleRow({
+  checked,
+  description,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  description: string;
+  label: string;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-[1.4rem] border border-slate-200 bg-slate-50/75 p-4">
+      <div className="space-y-1">
+        <p className="font-medium text-slate-900">{label}</p>
+        <p className="text-sm leading-6 text-slate-500">{description}</p>
+      </div>
+      <button
+        aria-pressed={checked}
+        className={cn(
+          "relative mt-1 inline-flex h-7 w-12 shrink-0 rounded-full border transition-colors",
+          checked ? "border-emerald-400 bg-emerald-500" : "border-slate-300 bg-white",
+        )}
+        onClick={() => onChange(!checked)}
+        type="button"
+      >
+        <span
+          className={cn(
+            "absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow-sm transition-all",
+            checked ? "left-[1.45rem]" : "left-1",
+          )}
+        />
+      </button>
+    </div>
+  );
+}
+
 export function MemberDashboardClient({
   profile,
   recentItems,
@@ -148,9 +229,25 @@ export function MemberDashboardClient({
   stats: DashboardStats;
 }) {
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
-  const { getModule, getNextUnlocked, getTotalCompleted } = useProgress();
+  const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
+    academicLevel: profile.academicLevel ?? "",
+    allowParticipantInvites: profile.allowParticipantInvites,
+    allowStudyCircleInvites: profile.allowStudyCircleInvites,
+    contactPermission: profile.contactPermission,
+    discoverableBySharedModules: profile.discoverableBySharedModules,
+    expertiseDomains: profile.expertiseDomains,
+    linkedinUrl: profile.linkedinUrl ?? "",
+    professionalStage: profile.professionalStage ?? "",
+    professionalTitle: profile.professionalTitle ?? "",
+    shareLinkedinProfile: profile.shareLinkedinProfile,
+    showLearningActivity: profile.showLearningActivity,
+  });
+  const [settingsState, setSettingsState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
+  const { getModule, getNextUnlocked, getTotalCompleted, syncState } = useProgress();
   const { voteCount } = useVotes();
   const { submissions } = useSubmissions();
+  const supabase = useMemo(() => (hasSupabaseEnv ? createSupabaseClient() : null), []);
 
   const totalCompleted = getTotalCompleted();
   const nextSlug = getNextUnlocked(ALL_TRACK_SLUGS);
@@ -277,6 +374,88 @@ export function MemberDashboardClient({
 
     return items.slice(0, 4);
   }, [completedModules, recentItems]);
+
+  const privacySummary = useMemo(() => {
+    if (!privacySettings.showLearningActivity) {
+      return "Your module activity is private.";
+    }
+
+    if (!privacySettings.discoverableBySharedModules) {
+      return "Your studied modules can be shown, but you are not discoverable yet.";
+    }
+
+    if (!privacySettings.allowStudyCircleInvites) {
+      return "You can be discovered through shared modules, but invites are turned off.";
+    }
+
+    return "You are discoverable through shared modules and can receive study-circle invites.";
+  }, [privacySettings]);
+
+  const profileSummary = useMemo(
+    () => ({
+      academicLevel: optionLabel(ACADEMIC_LEVEL_OPTIONS, privacySettings.academicLevel) ?? "Not set",
+      expertiseDomains:
+        labelsForValues(EXPERTISE_DOMAIN_OPTIONS, privacySettings.expertiseDomains).join(", ") || "Not set",
+      linkedinStatus: privacySettings.linkedinUrl
+        ? privacySettings.shareLinkedinProfile
+          ? "Visible on discussion avatars"
+          : "Saved privately"
+        : "Not set",
+      professionalStage: optionLabel(PROFESSIONAL_STAGE_OPTIONS, privacySettings.professionalStage) ?? "Not set",
+      professionalTitle: privacySettings.professionalTitle || "Not set",
+    }),
+    [
+      privacySettings.academicLevel,
+      privacySettings.expertiseDomains,
+      privacySettings.linkedinUrl,
+      privacySettings.professionalStage,
+      privacySettings.professionalTitle,
+      privacySettings.shareLinkedinProfile,
+    ],
+  );
+
+  const updatePrivacySetting = <K extends keyof PrivacySettings>(key: K, value: PrivacySettings[K]) => {
+    setPrivacySettings((prev) => ({ ...prev, [key]: value }));
+    setSettingsState("idle");
+    setSettingsMessage(null);
+  };
+
+  const savePrivacySettings = async () => {
+    if (!supabase) {
+      setSettingsState("error");
+      setSettingsMessage("Supabase is not configured for saving settings yet.");
+      return;
+    }
+
+    setSettingsState("saving");
+    setSettingsMessage(null);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        academic_level: privacySettings.academicLevel || null,
+        allow_participant_invites: privacySettings.allowParticipantInvites,
+        allow_study_circle_invites: privacySettings.allowStudyCircleInvites,
+        contact_permission: privacySettings.contactPermission,
+        discoverable_by_shared_modules: privacySettings.discoverableBySharedModules,
+        expertise_domains: privacySettings.expertiseDomains,
+        linkedin_url: normalizeLinkedInUrl(privacySettings.linkedinUrl) || null,
+        professional_stage: privacySettings.professionalStage || null,
+        professional_title: privacySettings.professionalTitle || null,
+        share_linkedin_profile: privacySettings.shareLinkedinProfile,
+        show_learning_activity: privacySettings.showLearningActivity,
+      })
+      .eq("id", profile.userId);
+
+    if (error) {
+      setSettingsState("error");
+      setSettingsMessage(error.message);
+      return;
+    }
+
+    setSettingsState("saved");
+      setSettingsMessage("Account background and discussion settings saved.");
+  };
 
   return (
     <AtlasPage className="space-y-8 md:space-y-10">
@@ -543,21 +722,74 @@ export function MemberDashboardClient({
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Reputation</p>
                     <p className="mt-2 text-sm font-medium text-slate-900">{profile.reputationScore}</p>
                   </div>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Academic level</p>
+                    <p className="mt-2 text-sm font-medium text-slate-900">{profileSummary.academicLevel}</p>
+                  </div>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Professional stage</p>
+                    <p className="mt-2 text-sm font-medium text-slate-900">{profileSummary.professionalStage}</p>
+                  </div>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4 sm:col-span-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Professional title</p>
+                    <p className="mt-2 text-sm font-medium text-slate-900">{profileSummary.professionalTitle}</p>
+                  </div>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4 sm:col-span-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Fields of experience</p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-900">{profileSummary.expertiseDomains}</p>
+                  </div>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4 sm:col-span-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">LinkedIn profile</p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm font-medium text-slate-900">
+                        {privacySettings.linkedinUrl || "Not set"}
+                      </p>
+                      <p className="text-xs uppercase tracking-[0.14em] text-slate-500">{profileSummary.linkedinStatus}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="rounded-[1.8rem] border border-[rgba(28,36,48,0.1)] bg-[linear-gradient(180deg,rgba(244,250,246,0.9),rgba(255,255,255,0.9))] p-5">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(28,36,48,0.12)] bg-white text-slate-700">
-                    <ShieldCheck className="h-4 w-4" />
+                <div className="space-y-5">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(28,36,48,0.12)] bg-white text-slate-700">
+                      <ShieldCheck className="h-4 w-4" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="font-semibold text-slate-900">Privacy & discovery</p>
+                      <p className="text-sm leading-7 text-slate-600">{privacySummary}</p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="font-semibold text-slate-900">Account foundation is live</p>
-                    <p className="text-sm leading-7 text-slate-600">
-                      Your protected account is already connected to learning progress, discussions, simulations, and governance signals. Profile editing,
-                      bookmarks, and lists can now grow from this member surface.
+                  <div className="rounded-[1.3rem] border border-slate-200 bg-white/80 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Learning sync</p>
+                      <span className={cn(
+                        "text-xs font-semibold uppercase tracking-[0.16em]",
+                        syncState === "error"
+                          ? "text-rose-500"
+                          : syncState === "synced"
+                            ? "text-emerald-600"
+                            : syncState === "syncing"
+                              ? "text-sky-600"
+                              : "text-slate-400",
+                      )}>
+                        {syncState === "error"
+                          ? "Sync issue"
+                          : syncState === "synced"
+                            ? "Synced"
+                            : syncState === "syncing"
+                              ? "Syncing"
+                              : "Local only"}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      Signed-in learning activity now syncs to your account so you can opt into module discovery and future study circles.
                     </p>
                   </div>
+                  <Button onClick={() => setActiveTab("privacy")} variant="outline">
+                    Open privacy settings
+                  </Button>
                 </div>
               </div>
             </div>
@@ -661,6 +893,244 @@ export function MemberDashboardClient({
               <ArrowRight className="h-4 w-4 text-slate-400" />
             </Link>
           </SoftPanel>
+        </section>
+      ) : null}
+
+      {activeTab === "privacy" ? (
+        <section className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(19rem,0.85fr)]">
+          <SoftPanel className="space-y-5 bg-white/92">
+            <PanelTitle title="Privacy & discovery settings" />
+            <div className="space-y-4">
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50/75 p-4">
+                <div className="space-y-2">
+                  <p className="font-medium text-slate-900">Background & participation profile</p>
+                  <p className="text-sm leading-6 text-slate-500">
+                    These self-declared details help other members understand your perspective and help public discussions request the kinds of participants they need.
+                  </p>
+                </div>
+
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <label className="space-y-2 sm:col-span-1">
+                    <span className="text-sm font-medium text-slate-700">Academic level</span>
+                    <select
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                      onChange={(event) => updatePrivacySetting("academicLevel", event.target.value)}
+                      value={privacySettings.academicLevel}
+                    >
+                      <option value="">Not set</option>
+                      {ACADEMIC_LEVEL_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="space-y-2 sm:col-span-1">
+                    <span className="text-sm font-medium text-slate-700">Professional stage</span>
+                    <select
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                      onChange={(event) => updatePrivacySetting("professionalStage", event.target.value)}
+                      value={privacySettings.professionalStage}
+                    >
+                      <option value="">Not set</option>
+                      {PROFESSIONAL_STAGE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="space-y-2 sm:col-span-2">
+                    <span className="text-sm font-medium text-slate-700">Professional title</span>
+                    <input
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/15"
+                      onChange={(event) => updatePrivacySetting("professionalTitle", event.target.value)}
+                      placeholder="Policy analyst, teacher, researcher, planner..."
+                      value={privacySettings.professionalTitle}
+                    />
+                  </label>
+
+                  <label className="space-y-2 sm:col-span-2">
+                    <span className="text-sm font-medium text-slate-700">LinkedIn profile</span>
+                    <input
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/15"
+                      onChange={(event) => updatePrivacySetting("linkedinUrl", event.target.value)}
+                      placeholder="linkedin.com/in/your-profile"
+                      value={privacySettings.linkedinUrl}
+                    />
+                  </label>
+
+                  <div className="space-y-2 sm:col-span-2">
+                    <span className="text-sm font-medium text-slate-700">Fields of experience</span>
+                    <div className="flex flex-wrap gap-2">
+                      {EXPERTISE_DOMAIN_OPTIONS.map((option) => {
+                        const selected = privacySettings.expertiseDomains.includes(option.value);
+                        return (
+                          <button
+                            className={cn(
+                              "rounded-full border px-3 py-2 text-sm transition",
+                              selected
+                                ? "border-[rgba(59,130,246,0.22)] bg-[rgba(59,130,246,0.08)] text-slate-900"
+                                : "border-slate-200 bg-white text-slate-600 hover:text-slate-900",
+                            )}
+                            key={option.value}
+                            onClick={() =>
+                              updatePrivacySetting(
+                                "expertiseDomains",
+                                selected
+                                  ? privacySettings.expertiseDomains.filter((value) => value !== option.value)
+                                  : [...privacySettings.expertiseDomains, option.value],
+                              )
+                            }
+                            type="button"
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ToggleRow
+                checked={privacySettings.showLearningActivity}
+                description="Let the modules you studied be visible on your member profile and shared-learning surfaces."
+                label="Show my studied modules"
+                onChange={(next) => updatePrivacySetting("showLearningActivity", next)}
+              />
+              <ToggleRow
+                checked={privacySettings.discoverableBySharedModules}
+                description="Allow other members to find you when they studied the same module or track."
+                label="Allow discovery through shared modules"
+                onChange={(next) => updatePrivacySetting("discoverableBySharedModules", next)}
+              />
+              <ToggleRow
+                checked={privacySettings.allowStudyCircleInvites}
+                description="Permit module-based or track-based study-circle invitations from other members."
+                label="Allow private study-circle invites"
+                onChange={(next) => updatePrivacySetting("allowStudyCircleInvites", next)}
+              />
+              <ToggleRow
+                checked={privacySettings.allowParticipantInvites}
+                description="If you join a private study circle, let other accepted participants invite additional people later."
+                label="Allow participants to invite others into my circles"
+                onChange={(next) => updatePrivacySetting("allowParticipantInvites", next)}
+              />
+              <ToggleRow
+                checked={privacySettings.shareLinkedinProfile}
+                description="If you saved a LinkedIn profile, let other members open it by clicking your discussion avatar."
+                label="Share my LinkedIn profile in discussions"
+                onChange={(next) => updatePrivacySetting("shareLinkedinProfile", next)}
+              />
+
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50/75 p-4">
+                <div className="space-y-2">
+                  <p className="font-medium text-slate-900">Who can invite me</p>
+                  <p className="text-sm leading-6 text-slate-500">
+                    Choose who can start a study circle with you when they share the same module or track.
+                  </p>
+                </div>
+                <select
+                  className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                  onChange={(event) => updatePrivacySetting("contactPermission", event.target.value as ContactPermission)}
+                  value={privacySettings.contactPermission}
+                >
+                  <option value="none">No one</option>
+                  <option value="shared_modules">Only people who share a module with me</option>
+                  <option value="any_member">Any signed-in member</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Button disabled={settingsState === "saving"} onClick={savePrivacySettings}>
+                {settingsState === "saving" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving settings
+                  </>
+                ) : (
+                  "Save settings"
+                )}
+              </Button>
+              {settingsMessage ? (
+                <div
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium",
+                    settingsState === "error"
+                      ? "bg-rose-50 text-rose-700"
+                      : "bg-emerald-50 text-emerald-700",
+                  )}
+                >
+                  {settingsState === "error" ? <AlertCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                  {settingsMessage}
+                </div>
+              ) : null}
+            </div>
+          </SoftPanel>
+
+          <div className="space-y-5">
+            <SoftPanel className="space-y-4 bg-white/92">
+              <PanelTitle title="How this works" />
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700">
+                    <Eye className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900">Visibility is opt-in</p>
+                    <p className="text-sm leading-6 text-slate-500">
+                      Nothing is exposed by default. Discovery only uses modules you actually opened and studied, not unrelated account activity.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900">Study circles are topic-based</p>
+                    <p className="text-sm leading-6 text-slate-500">
+                      Conversations will be tied to a module or track, so contact stays focused on shared learning rather than generic messaging.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900">You stay in control</p>
+                    <p className="text-sm leading-6 text-slate-500">
+                      These settings prepare your account now. Discovery and invite inboxes will respect them when the next social-learning surfaces are enabled.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </SoftPanel>
+
+            <SoftPanel className="space-y-4 bg-white/92">
+              <PanelTitle title="Current status" />
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4">
+                <p className="text-sm font-medium text-slate-900">{privacySummary}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Learning sync status:{" "}
+                  <span className="font-medium text-slate-700">
+                    {syncState === "synced"
+                      ? "Synced"
+                      : syncState === "syncing"
+                        ? "Syncing"
+                        : syncState === "error"
+                          ? "Sync issue"
+                          : "Local only"}
+                  </span>
+                </p>
+              </div>
+            </SoftPanel>
+          </div>
         </section>
       ) : null}
 

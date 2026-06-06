@@ -175,37 +175,34 @@ export function StudyHubPage() {
     }
   }, [selectedPath]);
 
+  const viewSwitcher = (
+    <div className="flex flex-wrap items-center gap-5 border-b border-[rgba(28,36,48,0.08)] pb-3">
+      {VIEW_OPTIONS.map((option) => (
+        <button
+          className={cn(
+            "border-b-2 pb-2 text-sm font-medium transition-colors",
+            activeView === option.id
+              ? "border-primary text-primary"
+              : "border-transparent text-slate-500 hover:text-slate-900",
+          )}
+          key={option.id}
+          onClick={() => setActiveView(option.id)}
+          type="button"
+        >
+          {option.label}
+        </button>
+      ))}
+
+      <div className="ml-auto hidden items-center gap-4 lg:flex">
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
+          {STUDY_PATHS.length} paths · {STUDY_CATEGORIES.length} topics · {STUDY_RESOURCES.length} resources
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <AtlasPage className="space-y-8 pb-14">
-      <header className="space-y-3">
-        <h1 className="atlas-display text-[3.6rem] leading-[0.94] text-slate-900 sm:text-[4.3rem]">Study Library</h1>
-        <p className="atlas-copy max-w-2xl text-base text-slate-600">Curated resources to go deeper.</p>
-      </header>
-
-      <div className="flex flex-wrap items-center gap-5 border-b border-[rgba(28,36,48,0.08)] pb-3">
-        {VIEW_OPTIONS.map((option) => (
-          <button
-            className={cn(
-              "border-b-2 pb-2 text-sm font-medium transition-colors",
-              activeView === option.id
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-900",
-            )}
-            key={option.id}
-            onClick={() => setActiveView(option.id)}
-            type="button"
-          >
-            {option.label}
-          </button>
-        ))}
-
-        <div className="ml-auto hidden items-center gap-4 lg:flex">
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-            {STUDY_PATHS.length} paths · {STUDY_CATEGORIES.length} topics · {STUDY_RESOURCES.length} resources
-          </p>
-        </div>
-      </div>
-
       {activeView === "paths" ? (
         <>
           <IllustratedTabHero
@@ -274,6 +271,8 @@ export function StudyHubPage() {
               </div>
             </div>
           </IllustratedTabHero>
+
+          {viewSwitcher}
 
           <section className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
@@ -395,6 +394,8 @@ export function StudyHubPage() {
             </div>
           </IllustratedTabHero>
 
+          {viewSwitcher}
+
           <section className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
@@ -503,6 +504,8 @@ export function StudyHubPage() {
               ))}
             </div>
           </IllustratedTabHero>
+
+          {viewSwitcher}
 
           <div id="study-library">
             <StudyLibrary initialCategory={selectedCategoryId} />

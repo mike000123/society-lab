@@ -42,7 +42,7 @@ export async function GET() {
 
   const profileResult = await supabase
     .from("profiles")
-    .select("id, full_name, username, avatar_url, bio, reputation_score, created_at, updated_at")
+    .select("id, full_name, username, avatar_url, bio, reputation_score, created_at, updated_at, show_learning_activity, discoverable_by_shared_modules, allow_study_circle_invites, contact_permission, allow_participant_invites, academic_level, professional_stage, professional_title, expertise_domains, linkedin_url, share_linkedin_profile")
     .eq("id", authData.user.id)
     .maybeSingle();
 

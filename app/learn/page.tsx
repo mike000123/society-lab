@@ -37,6 +37,7 @@ import { InsightBlock } from "@/components/atlas/InsightBlock";
 import { SoftPanel } from "@/components/atlas/SoftPanel";
 import { DevModeToggle } from "@/components/learn/DevModeToggle";
 import { ProgressBanner } from "@/components/learn/ProgressBanner";
+import { SharedLearnersPanel } from "@/components/social/SharedLearnersPanel";
 import { foundationalReferences, learningModules, type AccentTone, type LearningModule } from "@/lib/learn/modules";
 import { LEARNING_JOURNEYS, type LearningJourney } from "@/lib/learn/journeys";
 import { useProgress } from "@/lib/progress/store";
@@ -594,12 +595,17 @@ export default function LearnPage() {
     const params = new URLSearchParams(window.location.search);
     const requestedView = params.get("view");
     const requestedTrack = params.get("track");
+    const requestedJourney = params.get("journey");
     if (requestedView === "tracks" || requestedView === "modules" || requestedView === "journeys") {
       setActiveView(requestedView);
     }
 
     if (requestedTrack && LEARNING_TRACKS.some((track) => track.id === requestedTrack)) {
       setSelectedTrackId(requestedTrack);
+    }
+
+    if (requestedJourney && LEARNING_JOURNEYS.some((journey) => journey.id === requestedJourney)) {
+      setSelectedJourneyId(requestedJourney);
     }
   }, []);
 
@@ -737,114 +743,104 @@ export default function LearnPage() {
         };
       });
 
+  const viewSwitcher = (
+    <div className="flex flex-wrap items-center gap-5 border-b border-[rgba(28,36,48,0.08)] pb-3">
+      {VIEW_OPTIONS.map((option) => (
+        <button
+          className={cn(
+            "border-b-2 pb-2 text-sm font-medium transition-colors",
+            activeView === option.id
+              ? "border-primary text-primary"
+              : "border-transparent text-slate-500 hover:text-slate-900",
+          )}
+          key={option.id}
+          onClick={() => setActiveView(option.id)}
+          type="button"
+        >
+          {option.label}
+        </button>
+      ))}
+
+      <div className="ml-auto hidden items-center gap-4 lg:flex">
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
+          {LEARNING_JOURNEYS.length} journeys · {LEARNING_TRACKS.length} tracks · {learningModules.length} modules
+        </p>
+        <DevModeToggle editorial />
+      </div>
+    </div>
+  );
+
   return (
     <AtlasPage className="space-y-8 pb-14">
       {activeView === "journeys" ? (
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-white px-2 py-2 shadow-[0_10px_24px_rgba(28,36,48,0.04)]">
-              {VIEW_OPTIONS.map((option) => (
+          <IllustratedTabHero
+            actions={
+              <>
+                <Link
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.18)] transition hover:bg-blue-500"
+                  href={`/learn/${selectedJourneyNextSlug}`}
+                >
+                  {selectedJourneyStats.completed > 0 ? "Continue selected journey" : "Start selected journey"}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
                 <button
-                  className={cn(
-                    "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
-                    activeView === option.id
-                      ? "bg-[rgba(59,130,246,0.1)] text-primary"
-                      : "text-slate-500 hover:text-slate-900",
-                  )}
-                  key={option.id}
-                  onClick={() => setActiveView(option.id)}
+                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
+                  onClick={() => setActiveView("tracks")}
                   type="button"
                 >
-                  {option.label}
+                  Browse all tracks
+                  <ArrowRight className="h-4 w-4" />
                 </button>
-              ))}
-            </div>
-
-            <div className="hidden items-center gap-4 lg:flex">
-              <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-                {LEARNING_JOURNEYS.length} journeys · {LEARNING_TRACKS.length} tracks · {learningModules.length} modules
-              </p>
-              <DevModeToggle editorial />
-            </div>
-          </div>
-
-          <section className="relative ml-[calc(50%-50vw)] w-screen overflow-hidden border-y border-[rgba(28,36,48,0.08)] bg-white shadow-[0_30px_80px_rgba(28,36,48,0.05)]">
-            <Image
-              alt="Open book, globe, and city skyline representing a civilization atlas."
-              className="object-cover object-[92%_44%]"
-              fill
-              priority={false}
-              sizes="100vw"
-              src="/atlas/learn-hero.png"
-            />
-            <div className="absolute inset-y-0 left-0 w-[62%] bg-[linear-gradient(90deg,rgba(255,255,255,0.985)_0%,rgba(255,255,255,0.97)_24%,rgba(255,255,255,0.9)_46%,rgba(255,255,255,0.54)_70%,rgba(255,255,255,0)_100%)] lg:w-[58%]" />
-            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[rgba(255,255,255,0.12)] to-transparent" />
-
-            <div className="relative z-10 mx-auto min-h-[28rem] max-w-[88rem] px-8 py-5 sm:min-h-[30rem] sm:px-12 sm:py-6 lg:min-h-[31.5rem] lg:px-16 lg:py-7">
-              <div className="max-w-[34rem] space-y-6 lg:max-w-[35rem]">
-                <div className="space-y-4">
-                  <h1 className="atlas-display max-w-[29rem] text-[2.3rem] leading-[0.94] tracking-[-0.03em] text-slate-900 sm:text-[2.95rem] lg:text-[3.55rem]">
-                    <span className="block">Understand the systems.</span>
-                    <span className="block">Change the future.</span>
-                  </h1>
-                  <p className="atlas-copy max-w-[28rem] text-base leading-8 text-slate-600">
-                    Learn the hidden structures behind today&apos;s biggest challenges. From money and power to ecology and technology, master the systems that shape civilization.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-5">
-                  {[
-                    {
-                      icon: BookOpenText,
-                      label: "Lessons",
-                      value: `${learningModules.length}+`,
-                    },
-                    {
-                      icon: LibraryBig,
-                      label: "System tracks",
-                      value: String(LEARNING_TRACKS.length),
-                    },
-                    {
-                      icon: Clock3,
-                      label: "Learning time",
-                      value: `${Math.max(1, Math.round(totalLearningMinutes / 60))}h+`,
-                    },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div className="flex items-center gap-3" key={item.label}>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white/78 text-slate-700 backdrop-blur">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-[1.95rem] font-semibold leading-none text-slate-900">{item.value}</p>
-                          <p className="text-sm text-slate-500">{item.label}</p>
-                        </div>
+              </>
+            }
+            description="Learn the hidden structures behind today&apos;s biggest challenges. From money and power to ecology and technology, master the systems that shape civilization."
+            eyebrow="Learn"
+            imageAlt="Open book, globe, and city skyline representing a civilization atlas."
+            imageClassName="object-cover object-[90%_44%]"
+            imageSrc="/atlas/learn-hero.png"
+            title="Understand the systems. Change the future."
+          >
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                {
+                  icon: BookOpenText,
+                  label: "Lessons",
+                  value: `${learningModules.length}+`,
+                },
+                {
+                  icon: LibraryBig,
+                  label: "System tracks",
+                  value: String(LEARNING_TRACKS.length),
+                },
+                {
+                  icon: Clock3,
+                  label: "Learning time",
+                  value: `${Math.max(1, Math.round(totalLearningMinutes / 60))}h+`,
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    className="rounded-[1.4rem] border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4 shadow-[0_14px_32px_rgba(28,36,48,0.04)]"
+                    key={item.label}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.8)] text-slate-700">
+                        <Icon className="h-5 w-5" />
                       </div>
-                    );
-                  })}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <Link
-                    className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.18)] transition hover:bg-blue-500"
-                    href={`/learn/${selectedJourneyNextSlug}`}
-                  >
-                    {selectedJourneyStats.completed > 0 ? "Continue selected journey" : "Start selected journey"}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                  <button
-                    className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 backdrop-blur transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
-                    onClick={() => setActiveView("tracks")}
-                    type="button"
-                  >
-                    Browse all tracks
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
+                      <div>
+                        <p className="text-[1.95rem] font-semibold leading-none text-slate-900">{item.value}</p>
+                        <p className="text-sm text-slate-500">{item.label}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </section>
+          </IllustratedTabHero>
+
+          {viewSwitcher}
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.9fr)]">
             <section className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:px-6">
@@ -932,39 +928,7 @@ export default function LearnPage() {
             </section>
           </div>
         </div>
-      ) : (
-        <>
-          <header className="space-y-3">
-            <h1 className="atlas-display text-[3.6rem] leading-[0.94] text-slate-900 sm:text-[4.3rem]">Learn</h1>
-            <p className="atlas-copy max-w-2xl text-base text-slate-600">Understand the systems that shape our world.</p>
-          </header>
-
-          <div className="flex flex-wrap items-center gap-5 border-b border-[rgba(28,36,48,0.08)] pb-3">
-            {VIEW_OPTIONS.map((option) => (
-              <button
-                className={cn(
-                  "border-b-2 pb-2 text-sm font-medium transition-colors",
-                  activeView === option.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-slate-500 hover:text-slate-900",
-                )}
-                key={option.id}
-                onClick={() => setActiveView(option.id)}
-                type="button"
-              >
-                {option.label}
-              </button>
-            ))}
-
-            <div className="ml-auto hidden items-center gap-4 lg:flex">
-              <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-                {LEARNING_JOURNEYS.length} journeys · {LEARNING_TRACKS.length} tracks · {learningModules.length} modules
-              </p>
-              <DevModeToggle editorial />
-            </div>
-          </div>
-        </>
-      )}
+      ) : null}
 
       {activeView === "journeys" ? (
         <>
@@ -1163,6 +1127,8 @@ export default function LearnPage() {
             </div>
           </IllustratedTabHero>
 
+          {viewSwitcher}
+
           <ProgressBanner editorial />
 
           <section className="space-y-4">
@@ -1226,6 +1192,13 @@ export default function LearnPage() {
               })}
             </div>
           </SoftPanel>
+
+          <SharedLearnersPanel
+            contextSlug={selectedTrack.id}
+            contextTitle={selectedTrack.title}
+            contextType="track"
+            moduleSlugs={selectedTrack.moduleSlugs}
+          />
         </>
       ) : null}
 
@@ -1271,6 +1244,8 @@ export default function LearnPage() {
               ))}
             </div>
           </IllustratedTabHero>
+
+          {viewSwitcher}
 
           <ProgressBanner editorial />
 

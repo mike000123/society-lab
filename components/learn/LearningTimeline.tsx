@@ -41,6 +41,39 @@ const accentClasses: Record<
   },
 };
 
+const eventCycle = [
+  {
+    chip: "border-blue-200 bg-blue-50 text-blue-700",
+    dot: "bg-blue-500 shadow-[0_0_0_7px_rgba(59,130,246,0.12)]",
+    frame: "border-blue-100 bg-blue-50/30",
+  },
+  {
+    chip: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    dot: "bg-emerald-500 shadow-[0_0_0_7px_rgba(76,175,80,0.12)]",
+    frame: "border-emerald-100 bg-emerald-50/30",
+  },
+  {
+    chip: "border-amber-200 bg-amber-50 text-amber-700",
+    dot: "bg-amber-500 shadow-[0_0_0_7px_rgba(212,168,79,0.12)]",
+    frame: "border-amber-100 bg-amber-50/30",
+  },
+  {
+    chip: "border-violet-200 bg-violet-50 text-violet-700",
+    dot: "bg-violet-500 shadow-[0_0_0_7px_rgba(139,92,246,0.12)]",
+    frame: "border-violet-100 bg-violet-50/30",
+  },
+  {
+    chip: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    dot: "bg-cyan-500 shadow-[0_0_0_7px_rgba(6,182,212,0.12)]",
+    frame: "border-cyan-100 bg-cyan-50/30",
+  },
+  {
+    chip: "border-orange-200 bg-orange-50 text-orange-700",
+    dot: "bg-orange-500 shadow-[0_0_0_7px_rgba(249,115,22,0.12)]",
+    frame: "border-orange-100 bg-orange-50/30",
+  },
+] as const;
+
 export function LearningTimeline({
   accent,
   timeline,
@@ -68,72 +101,136 @@ export function LearningTimeline({
           <p className="atlas-copy max-w-4xl text-sm">{timeline.intro}</p>
         </div>
 
-        <div className="relative mt-8 space-y-5">
+        <div className="mt-8 hidden lg:block">
+          <div className="relative overflow-x-auto pb-3">
+            <div className="absolute left-6 right-6 top-[2.45rem] h-px bg-[rgba(28,36,48,0.14)]" />
+            <div
+              className="grid min-w-[70rem] gap-4"
+              style={{ gridTemplateColumns: `repeat(${timeline.events.length}, minmax(0, 1fr))` }}
+            >
+              {timeline.events.map((event, index) => {
+                const palette = eventCycle[index % eventCycle.length];
+                return (
+                  <article className="relative pt-2" key={`${event.timeLabel}-${event.title}`}>
+                    <div className="flex flex-col items-center">
+                      <span
+                        className={cn(
+                          "relative z-10 inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em]",
+                          palette.chip,
+                        )}
+                      >
+                        {event.timeLabel}
+                      </span>
+                      <div className={cn("mt-4 h-4 w-4 rounded-full border-4 border-white", palette.dot)} />
+                    </div>
+
+                    <div className={cn("mt-4 rounded-[1.5rem] border px-4 py-4 shadow-[0_14px_30px_rgba(28,36,48,0.04)]", palette.frame)}>
+                      <div className="space-y-3">
+                        <div>
+                          <h3 className="atlas-display text-[1.45rem] leading-tight text-slate-900">{event.title}</h3>
+                          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{event.family}</p>
+                        </div>
+
+                        <div className="space-y-3 text-sm leading-7 text-slate-700">
+                          <p>{event.whyItStarted}</p>
+                          <div className="rounded-[1rem] bg-white/88 px-3 py-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Turning point</p>
+                            <p className="mt-2 leading-6 text-slate-700">{event.turningPoint}</p>
+                          </div>
+                          <div className="rounded-[1rem] bg-white/88 px-3 py-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Outcome</p>
+                            <p className="mt-2 leading-6 text-slate-700">{event.outcome}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {event.characteristics.map((characteristic) => (
+                            <span
+                              className="inline-flex rounded-full border border-[rgba(28,36,48,0.08)] bg-white/86 px-2.5 py-1 text-[11px] font-medium text-slate-600"
+                              key={characteristic}
+                            >
+                              {characteristic}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="relative mt-8 space-y-5 lg:hidden">
           <div className="absolute bottom-0 left-[1.05rem] top-2 w-px bg-[rgba(28,36,48,0.12)] sm:left-[9.15rem]" />
 
-          {timeline.events.map((event) => (
-            <article className="relative grid gap-4 sm:grid-cols-[8rem_1fr]" key={`${event.timeLabel}-${event.title}`}>
-              <div className="pl-10 sm:pl-0">
-                <span
-                  className={cn(
-                    "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em]",
-                    styles.badge,
-                  )}
-                >
-                  {event.timeLabel}
-                </span>
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-400">{event.family}</p>
-              </div>
+          {timeline.events.map((event, index) => {
+            const palette = eventCycle[index % eventCycle.length];
+            return (
+              <article className="relative grid gap-4 sm:grid-cols-[8rem_1fr]" key={`${event.timeLabel}-${event.title}`}>
+                <div className="pl-10 sm:pl-0">
+                  <span
+                    className={cn(
+                      "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em]",
+                      palette.chip,
+                    )}
+                  >
+                    {event.timeLabel}
+                  </span>
+                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-400">{event.family}</p>
+                </div>
 
-              <div className="relative pl-10 sm:pl-0">
-                <div
-                  className={cn(
-                    "absolute left-[0.68rem] top-3 h-4 w-4 rounded-full border-4 border-[rgba(246,244,238,1)] sm:left-[-2.35rem]",
-                    styles.dot,
-                  )}
-                />
+                <div className="relative pl-10 sm:pl-0">
+                  <div
+                    className={cn(
+                      "absolute left-[0.68rem] top-3 h-4 w-4 rounded-full border-4 border-[rgba(246,244,238,1)] sm:left-[-2.35rem]",
+                      palette.dot,
+                    )}
+                  />
 
-                <div className={cn("rounded-[1.6rem] border p-5", styles.event)}>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h3 className="atlas-display text-2xl leading-tight text-slate-900">{event.title}</h3>
-                      <p className="mt-3 text-sm leading-7 text-slate-600">{event.whyItStarted}</p>
-                    </div>
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                        styles.family,
-                      )}
-                    >
-                      {event.family}
-                    </span>
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {event.characteristics.map((characteristic) => (
+                  <div className={cn("rounded-[1.6rem] border p-5", palette.frame)}>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h3 className="atlas-display text-2xl leading-tight text-slate-900">{event.title}</h3>
+                        <p className="mt-3 text-sm leading-7 text-slate-600">{event.whyItStarted}</p>
+                      </div>
                       <span
-                        className="inline-flex rounded-full border border-[rgba(28,36,48,0.08)] bg-white/86 px-3 py-1 text-xs font-medium text-slate-600"
-                        key={characteristic}
+                        className={cn(
+                          "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
+                          styles.family,
+                        )}
                       >
-                        {characteristic}
+                        {event.family}
                       </span>
-                    ))}
-                  </div>
-
-                  <div className="mt-5 grid gap-3 lg:grid-cols-2">
-                    <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/86 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Turning point</p>
-                      <p className="mt-2 text-sm leading-7 text-slate-700">{event.turningPoint}</p>
                     </div>
-                    <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/86 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Outcome</p>
-                      <p className="mt-2 text-sm leading-7 text-slate-700">{event.outcome}</p>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {event.characteristics.map((characteristic) => (
+                        <span
+                          className="inline-flex rounded-full border border-[rgba(28,36,48,0.08)] bg-white/86 px-3 py-1 text-xs font-medium text-slate-600"
+                          key={characteristic}
+                        >
+                          {characteristic}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="mt-5 grid gap-3 lg:grid-cols-2">
+                      <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/86 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Turning point</p>
+                        <p className="mt-2 text-sm leading-7 text-slate-700">{event.turningPoint}</p>
+                      </div>
+                      <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/86 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Outcome</p>
+                        <p className="mt-2 text-sm leading-7 text-slate-700">{event.outcome}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

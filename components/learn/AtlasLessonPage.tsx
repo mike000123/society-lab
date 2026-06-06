@@ -9,6 +9,7 @@ import {
   Compass,
   ExternalLink,
   Layers3,
+  Download,
   MessageSquare,
   Play,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { AtlasPage } from "@/components/atlas/AtlasPage";
 import { CausalLoopDiagram } from "@/components/learn/CausalLoopDiagram";
 import { LearningTimeline } from "@/components/learn/LearningTimeline";
 import { MiniLesson } from "@/components/learn/MiniLesson";
+import { SharedLearnersPanel } from "@/components/social/SharedLearnersPanel";
 import { Button } from "@/components/ui/button";
 import type {
   LearningArticleBlock,
@@ -331,6 +333,39 @@ function RealWorldExamplesSection({
   accent: AccentTone;
   examples: RealWorldExample[];
 }) {
+  if (examples.length >= 4) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {examples.map((example, index) => (
+          <article
+            className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white/84 px-4 py-4 shadow-[0_12px_26px_rgba(28,36,48,0.04)]"
+            key={example.title}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span
+                className={cn(
+                  "inline-flex h-8 w-8 flex-none items-center justify-center rounded-full text-xs font-semibold",
+                  accentClasses[accent].step,
+                )}
+              >
+                {index + 1}
+              </span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Example</span>
+            </div>
+
+            <h3 className="mt-4 atlas-display text-[1.45rem] leading-tight text-slate-900">{example.title}</h3>
+            <p className="mt-3 text-sm leading-7 text-slate-700">{example.outcome}</p>
+
+            <div className="mt-4 rounded-[1rem] bg-[rgba(246,244,238,0.72)] px-3 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Why it matters</p>
+              <p className="mt-2 text-sm leading-6 text-slate-700">{example.insight}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       {examples.map((example, index) => (
@@ -539,6 +574,22 @@ function SidebarNav({
               </p>
             </div>
 
+            <div className="flex items-center gap-2">
+              {trackModules.map((trackModule, index) => (
+                <span
+                  className={cn(
+                    "h-2.5 flex-1 rounded-full",
+                    index < currentIndex
+                      ? "bg-[rgba(59,130,246,0.45)]"
+                      : index === currentIndex
+                        ? "bg-[rgb(var(--atlas-primary))]"
+                        : "bg-[rgba(28,36,48,0.12)]",
+                  )}
+                  key={trackModule.slug}
+                />
+              ))}
+            </div>
+
             <div className="space-y-3">
               {trackModules.map((trackModule, index) => {
                 const isCurrent = trackModule.slug === module.slug;
@@ -590,6 +641,35 @@ function SidebarNav({
               </a>
             ))}
           </nav>
+        </div>
+
+        <div className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white/82 px-4 py-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.9)] text-slate-700">
+              <Download className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Lesson resources</p>
+              <p className="text-sm font-semibold text-slate-900">Go deeper</p>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <Link
+              className="flex items-center justify-between rounded-[1rem] px-3 py-2 text-sm text-slate-600 transition hover:bg-[rgba(246,244,238,0.72)] hover:text-slate-900"
+              href="/study"
+            >
+              <span>Open study library</span>
+              <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+            </Link>
+            <Link
+              className="flex items-center justify-between rounded-[1rem] px-3 py-2 text-sm text-slate-600 transition hover:bg-[rgba(246,244,238,0.72)] hover:text-slate-900"
+              href="/learn?view=tracks"
+            >
+              <span>Open track explorer</span>
+              <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+            </Link>
+          </div>
         </div>
       </div>
     </aside>
@@ -894,6 +974,12 @@ export function AtlasLessonPage({
               module={module}
               nextModule={nextModule}
               quizQuestionCount={quizQuestionCount}
+            />
+
+            <SharedLearnersPanel
+              contextSlug={module.slug}
+              contextTitle={module.title}
+              contextType="module"
             />
           </section>
         </main>

@@ -87,6 +87,8 @@ export function useSubmissions() {
     category: ProposalCategory;
     moduleSlug: string | null;
     moduleTitle: string | null;
+    discussionThreadId?: string | null;
+    discussionThreadTitle?: string | null;
     authorName: string;
   }): string => {
     const id = crypto.randomUUID();

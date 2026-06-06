@@ -46,7 +46,7 @@ if exist ".next" (
   rmdir /s /q ".next"
 )
 
-call "%NPM_CMD%" run dev -- --hostname 0.0.0.0 --port 3001
+call "%NPM_CMD%" run dev -- --hostname 127.0.0.1 --port 3001
 
 echo.
 echo Society Lab server stopped.

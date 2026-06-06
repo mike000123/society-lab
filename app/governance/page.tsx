@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ElementType } from "react";
+import { useEffect, useMemo, useState, type ElementType } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -9,6 +9,8 @@ import {
   ChevronUp,
   Cpu,
   Leaf,
+  MessageSquare,
+  MessageSquareQuote,
   PiggyBank,
   PlusCircle,
   Scale,
@@ -16,8 +18,11 @@ import {
 } from "lucide-react";
 
 import { AtlasPage } from "@/components/atlas/AtlasPage";
+import { IllustratedTabHero } from "@/components/atlas/IllustratedTabHero";
 import { SoftPanel } from "@/components/atlas/SoftPanel";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
+import { hasSupabaseEnv } from "@/lib/supabase/public-env";
 import { cn } from "@/lib/utils";
 import {
   SEEDED_PROPOSALS,
@@ -242,10 +247,12 @@ function getThemeForProposal(proposal: Proposal) {
 export default function GovernancePage() {
   const { getLocalDelta } = useVotes();
   const { submissions } = useSubmissions();
+  const supabase = useMemo(() => (hasSupabaseEnv ? createClient() : null), []);
 
   const [activeTheme, setActiveTheme] = useState<GovernanceThemeKey>("all");
   const [sort, setSort] = useState<SortKey>("votes");
   const [blueprintOpen, setBlueprintOpen] = useState(false);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
 
   const allProposals = useMemo(() => getAllProposals(submissions), [submissions]);
 
@@ -287,49 +294,77 @@ export default function GovernancePage() {
   const contributorCount = 3200 + submissions.length;
   const activeDiscussions = filtered.length;
 
+  useEffect(() => {
+    const client = supabase;
+    if (!client) return;
+    const proposalIds = proposalsWithScores.map((proposal) => proposal.id);
+    if (proposalIds.length === 0) {
+      setCommentCounts({});
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadCommentCounts() {
+      const { data, error } = await client!
+        .from("proposal_comments")
+        .select("proposal_id")
+        .in("proposal_id", proposalIds);
+
+      if (cancelled) return;
+      if (error || !data) {
+        setCommentCounts({});
+        return;
+      }
+
+      const nextCounts = data.reduce<Record<string, number>>((counts, row) => {
+        counts[row.proposal_id] = (counts[row.proposal_id] ?? 0) + 1;
+        return counts;
+      }, {});
+
+      setCommentCounts(nextCounts);
+    }
+
+    void loadCommentCounts();
+    return () => {
+      cancelled = true;
+    };
+  }, [proposalsWithScores, supabase]);
+
   return (
     <AtlasPage className="space-y-8 pb-14">
-      <section className="space-y-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <h1 className="atlas-display text-4xl text-slate-900 sm:text-5xl">Governance Lab</h1>
-            <p className="max-w-3xl text-sm leading-7 text-slate-600 sm:text-[15px]">
-              Propose. Evaluate. Improve. Build better systems together.
-            </p>
-          </div>
-
+      <IllustratedTabHero
+        actions={
           <Button asChild className="rounded-full px-5">
             <Link href="/governance/submit">
               <PlusCircle className="h-4 w-4" />
               Create Proposal
             </Link>
           </Button>
+        }
+        description="Propose. Evaluate. Improve. Build better systems together."
+        eyebrow="Governance"
+        imageAlt="People approaching a civic building used to represent the governance lab."
+        imageSrc="/atlas/governance-hero.png"
+        title="Governance Lab"
+      >
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            { label: "Proposals", value: formatCompactCount(allProposals.length) },
+            { label: "Total votes", value: `${(totalVotes / 1000).toFixed(1)}K` },
+            { label: "Contributors", value: `${(contributorCount / 1000).toFixed(1)}K` },
+            { label: "Active discussions", value: formatCompactCount(activeDiscussions) },
+          ].map((stat) => (
+            <div
+              className="rounded-[1.4rem] border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4 shadow-[0_14px_32px_rgba(28,36,48,0.04)]"
+              key={stat.label}
+            >
+              <p className="text-[2rem] font-semibold leading-none text-slate-900 md:text-[2.15rem]">{stat.value}</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">{stat.label}</p>
+            </div>
+          ))}
         </div>
-
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-stretch">
-          <div className="grid overflow-hidden rounded-[1.8rem] border border-[rgba(28,36,48,0.1)] bg-white shadow-[0_18px_40px_rgba(28,36,48,0.04)] sm:grid-cols-2 xl:grid-cols-4">
-            {[
-              { label: "Proposals", value: formatCompactCount(allProposals.length) },
-              { label: "Total votes", value: `${(totalVotes / 1000).toFixed(1)}K` },
-              { label: "Contributors", value: `${(contributorCount / 1000).toFixed(1)}K` },
-              { label: "Active discussions", value: formatCompactCount(activeDiscussions) },
-            ].map((stat, index) => (
-              <div
-                className={cn(
-                  "px-5 py-5",
-                  index < 3 ? "border-b border-[rgba(28,36,48,0.08)] xl:border-b-0 xl:border-r" : "",
-                  index === 1 ? "sm:border-l xl:border-l-0" : "",
-                  index === 2 ? "sm:border-b-0 xl:border-l" : "",
-                )}
-                key={stat.label}
-              >
-                <p className="text-[2rem] font-semibold leading-none text-slate-900 md:text-[2.15rem]">{stat.value}</p>
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      </IllustratedTabHero>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18.5rem] xl:items-start">
         <div className="space-y-6">
@@ -421,6 +456,21 @@ export default function GovernancePage() {
                           By {proposal.authorName} · {theme.label}
                         </p>
                         <p className="mt-2 text-sm leading-6 text-slate-600">{proposal.description}</p>
+                        {proposal.discussionThreadId ? (
+                          <div className="mt-3 rounded-[1rem] border border-[rgba(59,130,246,0.14)] bg-[rgba(59,130,246,0.06)] px-3 py-2.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(59,130,246,0.16)] bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                                <MessageSquareQuote className="h-3.5 w-3.5" />
+                                Linked discussion
+                              </span>
+                              {proposal.discussionThreadTitle ? (
+                                <span className="text-xs font-medium text-slate-700">
+                                  {proposal.discussionThreadTitle}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
 
@@ -430,9 +480,20 @@ export default function GovernancePage() {
                     </div>
 
                     <div className="sm:text-right">
-                      <Button asChild className="rounded-full px-4" size="sm" variant="outline">
-                        <Link href={`/governance/${proposal.id}`}>View</Link>
-                      </Button>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(28,36,48,0.1)] bg-[rgba(246,244,238,0.92)] px-3 py-2 text-xs font-semibold text-slate-600">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                          {commentCounts[proposal.id] ?? 0}
+                        </span>
+                        {proposal.discussionThreadId ? (
+                          <Button asChild className="rounded-full px-4" size="sm" variant="outline">
+                            <Link href={`/discussions?thread=${proposal.discussionThreadId}`}>Discussion</Link>
+                          </Button>
+                        ) : null}
+                        <Button asChild className="rounded-full px-4" size="sm" variant="outline">
+                          <Link href={`/governance/${proposal.id}`}>View</Link>
+                        </Button>
+                      </div>
                     </div>
                   </article>
                 );

@@ -194,21 +194,29 @@ const GROUPS = [
   {
     label: "Banking and crises",
     description: "How bubbles inflate, why banks fail, and how panic spreads.",
+    iconAlt: "Banking and crises category icon",
+    iconSrc: "/atlas/banking-crisis.png",
     slugs: ["/simulator/bank-run", "/simulator/svb-crisis", "/simulator/financial-crisis"],
   },
   {
     label: "Economics",
     description: "Macro policy, wealth concentration, debt, inflation, and real income.",
+    iconAlt: "Economics category icon",
+    iconSrc: "/atlas/economics.png",
     slugs: ["/simulator/macro-economy", "/simulator/wealth-gap", "/simulator/debt", "/simulator/purchasing-power"],
   },
   {
     label: "Society and politics",
     description: "Collective action, governance, and institutional decision-making.",
+    iconAlt: "Society and politics category icon",
+    iconSrc: "/atlas/society and politics.png",
     slugs: ["/simulator/political-talent", "/simulator/social-movements", "/simulator/eu-decision-making", "/simulator/us-decision-making"],
   },
   {
     label: "Ecology and systems",
     description: "Long-run civilization dynamics under planetary limits.",
+    iconAlt: "Ecology and systems category icon",
+    iconSrc: "/atlas/ecology and planet.png",
     slugs: ["/simulator/world3"],
   },
 ];
@@ -402,12 +410,21 @@ export default function SimulatorHubPage() {
         <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {GROUPS.map((group) => (
             <div
-              className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4"
+              className="flex flex-col justify-center rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white/88 px-4 py-4 text-center sm:min-h-[14rem] xl:aspect-[4/3] xl:min-h-0"
               key={group.label}
             >
+              <div className="mb-3 flex items-center justify-center">
+                <Image
+                  alt={group.iconAlt}
+                  className="h-[4.25rem] w-[4.25rem] object-contain"
+                  height={68}
+                  src={group.iconSrc}
+                  width={68}
+                />
+              </div>
               <p className="text-sm font-semibold text-slate-900">{group.label}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{group.description}</p>
-              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              <p className="mx-auto mt-1.5 max-w-[15rem] text-sm leading-6 text-slate-600">{group.description}</p>
+              <p className="mt-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
                 {group.slugs.length} simulator{group.slugs.length > 1 ? "s" : ""}
               </p>
             </div>

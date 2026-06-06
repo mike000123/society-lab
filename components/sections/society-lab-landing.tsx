@@ -21,6 +21,7 @@ import {
 
 import { AtlasPage } from "@/components/atlas/AtlasPage";
 import { AuthControls } from "@/components/layout/auth-controls";
+import { ToolbarSearch } from "@/components/layout/toolbar-search";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -208,25 +209,29 @@ const communityPulse = [22, 28, 24, 35, 30, 42, 31, 44, 39];
 
 function HomeHeader() {
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-[rgba(28,36,48,0.08)] pb-2 pt-1">
+    <header className="flex items-center justify-between gap-6 border-b border-[rgba(28,36,48,0.08)] py-3">
       <Link className="flex min-w-0 items-center gap-3" href="/">
         <Image
           alt="Society Lab logo"
-          className="h-11 w-11 flex-none"
+          className="h-10 w-10 flex-none"
           height={44}
           src="/atlas/society-lab-logo.png"
           width={44}
         />
         <div className="min-w-0">
-          <span className="atlas-display block truncate text-[1.85rem] leading-none text-slate-900">Society Lab</span>
-          <span className="block truncate text-[11px] text-slate-500">Civic intelligence for a better future</span>
+          <span className="block truncate text-[1.9rem] font-semibold leading-none tracking-[-0.04em] text-slate-950">
+            Society Lab
+          </span>
+          <span className="block truncate text-[11px] font-medium leading-tight text-slate-500">
+            Civic intelligence for a better future
+          </span>
         </div>
       </Link>
 
-      <nav className="hidden items-center gap-8 lg:flex">
+      <nav className="hidden items-center gap-8 xl:gap-10 lg:flex">
         {navigation.map((item) => (
           <Link
-            className="text-sm font-medium text-slate-700 transition hover:text-slate-900"
+            className="relative py-2 text-[15px] font-bold tracking-[-0.01em] text-slate-700 transition hover:text-slate-950"
             href={item.href}
             key={item.href}
           >
@@ -235,22 +240,31 @@ function HomeHeader() {
         ))}
       </nav>
 
-      <div className="hidden items-center gap-2 lg:flex">
-        {[Search, Bell, Bookmark].map((Icon, index) => (
+      <div className="hidden items-center gap-3 lg:flex">
+        <ToolbarSearch />
+        {[Bell, Bookmark].map((Icon, index) => (
           <button
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white/84 text-slate-600 transition hover:border-[rgba(28,36,48,0.16)] hover:text-slate-900"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-[rgba(28,36,48,0.04)] hover:text-slate-950"
             key={index}
             type="button"
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-5 w-5" />
           </button>
         ))}
-        <ThemeToggle />
+        <ThemeToggle compact />
         <AuthControls />
       </div>
 
-      <div className="lg:hidden">
-        <ThemeToggle />
+      <div className="flex items-center gap-2 lg:hidden">
+        <button
+          aria-label="Search"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white text-slate-600"
+          type="button"
+        >
+          <Search className="h-4 w-4" />
+        </button>
+        <ThemeToggle compact />
+        <AuthControls />
       </div>
     </header>
   );

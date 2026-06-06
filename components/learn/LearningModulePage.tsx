@@ -1,4 +1,5 @@
 import { AtlasLessonPage } from "@/components/learn/AtlasLessonPage";
+import { LessonVisitTracker } from "@/components/learn/LessonVisitTracker";
 import type { LearningArticleDocument } from "@/lib/learn/content";
 import { getLessonHeroImage } from "@/lib/learn/hero-art";
 import { getLearningModuleBySlug, type LearningModule } from "@/lib/learn/modules";
@@ -25,16 +26,19 @@ export function LearningModulePage({
     .filter((trackModule): trackModule is LearningModule => Boolean(trackModule));
 
   return (
-    <AtlasLessonPage
-      article={article}
-      currentIndex={currentIndex}
-      currentTrack={currentTrack}
-      heroImageSrc={getLessonHeroImage(module.slug, currentTrack?.id)}
-      module={module}
-      nextModule={nextModule}
-      previousModule={previousModule}
-      quizQuestionCount={quiz?.questions.length}
-      trackModules={trackModules}
-    />
+    <>
+      <LessonVisitTracker slug={module.slug} />
+      <AtlasLessonPage
+        article={article}
+        currentIndex={currentIndex}
+        currentTrack={currentTrack}
+        heroImageSrc={getLessonHeroImage(module.slug, currentTrack?.id)}
+        module={module}
+        nextModule={nextModule}
+        previousModule={previousModule}
+        quizQuestionCount={quiz?.questions.length}
+        trackModules={trackModules}
+      />
+    </>
   );
 }

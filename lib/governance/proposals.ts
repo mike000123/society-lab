@@ -12,6 +12,8 @@ export interface Proposal {
   category: ProposalCategory;
   moduleSlug: string | null;
   moduleTitle: string | null;
+  discussionThreadId?: string | null;
+  discussionThreadTitle?: string | null;
   authorName: string;
   isSeeded: boolean;
   seedUpvotes: number;

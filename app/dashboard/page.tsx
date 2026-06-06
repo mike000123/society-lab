@@ -160,12 +160,23 @@ export default async function DashboardPage() {
   return (
     <MemberDashboardClient
       profile={{
+        academicLevel: profile?.academic_level ?? null,
+        allowParticipantInvites: profile?.allow_participant_invites ?? false,
+        allowStudyCircleInvites: profile?.allow_study_circle_invites ?? false,
         avatarUrl: profile?.avatar_url ?? (typeof user.user_metadata.avatar_url === "string" ? user.user_metadata.avatar_url : null),
         bio: profile?.bio ?? null,
+        contactPermission: profile?.contact_permission ?? "none",
+        discoverableBySharedModules: profile?.discoverable_by_shared_modules ?? false,
         displayName,
         email: user.email ?? null,
+        expertiseDomains: profile?.expertise_domains ?? [],
+        linkedinUrl: profile?.linkedin_url ?? null,
         providers,
+        professionalStage: profile?.professional_stage ?? null,
+        professionalTitle: profile?.professional_title ?? null,
         reputationScore: profile?.reputation_score ?? 0,
+        shareLinkedinProfile: profile?.share_linkedin_profile ?? false,
+        showLearningActivity: profile?.show_learning_activity ?? false,
         userId: user.id,
         username: profile?.username ?? null,
       }}

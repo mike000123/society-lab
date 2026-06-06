@@ -6,6 +6,11 @@ import { magicLinkAction, signInAction, signUpAction } from "@/app/auth/actions"
 import { AtlasPage } from "@/components/atlas/AtlasPage";
 import { SoftPanel } from "@/components/atlas/SoftPanel";
 import { Button } from "@/components/ui/button";
+import {
+  ACADEMIC_LEVEL_OPTIONS,
+  EXPERTISE_DOMAIN_OPTIONS,
+  PROFESSIONAL_STAGE_OPTIONS,
+} from "@/lib/community/profile-options";
 import { hasSupabaseEnv } from "@/lib/supabase/public-env";
 import { createOptionalClient } from "@/lib/supabase/server";
 import { safeRedirectPath } from "@/lib/utils";
@@ -48,6 +53,36 @@ function InputField({
         required={required}
         type={type}
       />
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  name,
+  options,
+  placeholder,
+}: {
+  label: string;
+  name: string;
+  options: ReadonlyArray<{ label: string; value: string }>;
+  placeholder: string;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <select
+        className="w-full rounded-2xl border border-[rgba(28,36,48,0.14)] bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary"
+        defaultValue=""
+        name={name}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }
@@ -165,6 +200,66 @@ export default async function AuthPage({ searchParams }: { searchParams: SearchP
               <InputField autoComplete="name" label="Full name" name="full_name" placeholder="Society Lab member" required={false} />
               <InputField autoComplete="email" label="Email" name="email" placeholder="you@societylab.org" type="email" />
               <InputField autoComplete="new-password" label="Password" name="password" placeholder="Choose a strong password" type="password" />
+              <div className="rounded-[1.4rem] border border-[rgba(28,36,48,0.08)] bg-slate-50/80 p-4">
+                <p className="text-sm font-semibold text-slate-900">Optional background profile</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Help others understand the perspective you bring to discussions. These fields are self-declared and can be edited later in your account.
+                </p>
+
+                <div className="mt-4 grid gap-4">
+                  <SelectField
+                    label="Academic level"
+                    name="academic_level"
+                    options={ACADEMIC_LEVEL_OPTIONS}
+                    placeholder="Select academic level"
+                  />
+                  <SelectField
+                    label="Professional stage"
+                    name="professional_stage"
+                    options={PROFESSIONAL_STAGE_OPTIONS}
+                    placeholder="Select professional stage"
+                  />
+                  <InputField
+                    autoComplete="organization-title"
+                    label="Professional title"
+                    name="professional_title"
+                    placeholder="Policy analyst, urban planner, researcher..."
+                    required={false}
+                  />
+                  <InputField
+                    autoComplete="url"
+                    label="LinkedIn profile"
+                    name="linkedin_url"
+                    placeholder="linkedin.com/in/your-profile"
+                    required={false}
+                  />
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-slate-700">Fields of experience</p>
+                    <div className="flex flex-wrap gap-2">
+                      {EXPERTISE_DOMAIN_OPTIONS.map((option) => (
+                        <label
+                          className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[rgba(28,36,48,0.1)] bg-white px-3 py-2 text-sm text-slate-700"
+                          key={option.value}
+                        >
+                          <input className="h-4 w-4 rounded border-slate-300 text-primary" name="expertise_domains" type="checkbox" value={option.value} />
+                          <span>{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="inline-flex items-start gap-3 rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-3 text-sm text-slate-700">
+                    <input
+                      className="mt-1 h-4 w-4 rounded border-slate-300 text-primary"
+                      name="share_linkedin_profile"
+                      type="checkbox"
+                      value="on"
+                    />
+                    <span className="leading-6">
+                      Allow my LinkedIn profile to open when people click my discussion avatar.
+                    </span>
+                  </label>
+                </div>
+              </div>
               <Button className="w-full">Create account</Button>
             </form>
           </div>

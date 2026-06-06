@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, PlusCircle, Landmark } from "lucide-react";
+import { ArrowLeft, Loader2, MessageSquareQuote, PlusCircle, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { SEEDED_PROPOSALS, CATEGORY_META, type ProposalCategory } from "@/lib/governance/proposals";
 import { useSubmissions } from "@/lib/governance/votes";
+import { createClient } from "@/lib/supabase/client";
+import { hasSupabaseEnv } from "@/lib/supabase/public-env";
 
 const CATEGORIES: { key: ProposalCategory; label: string; description: string }[] = [
   { key: "economic",    label: "Economic",    description: "Money, taxation, markets, banking" },
@@ -26,15 +28,51 @@ const MODULE_OPTIONS = Array.from(
 export default function SubmitProposalPage() {
   const router = useRouter();
   const { addSubmission } = useSubmissions();
+  const supabase = useMemo(() => (hasSupabaseEnv ? createClient() : null), []);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [rationale, setRationale] = useState("");
   const [category, setCategory] = useState<ProposalCategory | "">("");
   const [moduleSlug, setModuleSlug] = useState<string>("");
+  const [discussionThreadId, setDiscussionThreadId] = useState<string>("");
   const [authorName, setAuthorName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [discussionThreads, setDiscussionThreads] = useState<{ id: string; title: string; prompt: string | null }[]>([]);
+  const [loadingThreads, setLoadingThreads] = useState(Boolean(supabase));
+
+  useEffect(() => {
+    if (!supabase) {
+      setLoadingThreads(false);
+      return;
+    }
+
+    const activeSupabase = supabase;
+    let cancelled = false;
+
+    async function loadThreads() {
+      setLoadingThreads(true);
+      const { data } = await activeSupabase
+        .from("threads")
+        .select("id,title,prompt")
+        .eq("kind", "public_discussion")
+        .eq("visibility", "public")
+        .eq("status", "open")
+        .order("updated_at", { ascending: false })
+        .limit(24);
+
+      if (!cancelled) {
+        setDiscussionThreads(data ?? []);
+        setLoadingThreads(false);
+      }
+    }
+
+    void loadThreads();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
 
   function validate() {
     if (!title.trim() || title.trim().length < 10) return "Title must be at least 10 characters.";
@@ -53,11 +91,14 @@ export default function SubmitProposalPage() {
     setSubmitting(true);
 
     const selectedModule = MODULE_OPTIONS.find((m) => m.slug === moduleSlug);
+    const selectedDiscussion = discussionThreads.find((thread) => thread.id === discussionThreadId);
     const id = addSubmission({
       title: title.trim(),
       description: description.trim(),
       rationale: rationale.trim(),
       category: category as ProposalCategory,
+      discussionThreadId: selectedDiscussion?.id ?? null,
+      discussionThreadTitle: selectedDiscussion?.title ?? null,
       moduleSlug: selectedModule?.slug ?? null,
       moduleTitle: selectedModule?.title ?? null,
       authorName: authorName.trim(),
@@ -185,6 +226,57 @@ export default function SubmitProposalPage() {
               <option key={m.slug} value={m.slug}>{m.title}</option>
             ))}
           </select>
+        </div>
+
+        <div className="rounded-[1.75rem] border border-slate-800 bg-panel/90 p-5 sm:p-6 space-y-2">
+          <label htmlFor="discussion-thread" className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-500">
+            <MessageSquareQuote className="h-3.5 w-3.5" />
+            Discussion that informed this proposal <span className="text-slate-600">(optional)</span>
+          </label>
+          <p className="text-xs text-slate-600">
+            Link this proposal back to a public discussion thread so readers can trace the reasoning that led to it.
+          </p>
+          {loadingThreads ? (
+            <div className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm text-slate-400">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading public discussions...
+            </div>
+          ) : (
+            <select
+              id="discussion-thread"
+              value={discussionThreadId}
+              onChange={(e) => setDiscussionThreadId(e.target.value)}
+              className="w-full rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm text-slate-100 focus:border-amber-500/60 focus:outline-none"
+            >
+              <option value="">— No linked discussion —</option>
+              {discussionThreads.map((thread) => (
+                <option key={thread.id} value={thread.id}>
+                  {thread.title}
+                </option>
+              ))}
+            </select>
+          )}
+          {discussionThreadId ? (
+            (() => {
+              const selectedDiscussion = discussionThreads.find((thread) => thread.id === discussionThreadId);
+              if (!selectedDiscussion) return null;
+              return (
+                <div className="rounded-2xl border border-slate-700 bg-slate-900/65 px-4 py-3">
+                  <p className="text-sm font-medium text-slate-100">{selectedDiscussion.title}</p>
+                  {selectedDiscussion.prompt ? (
+                    <p className="mt-1 text-xs leading-6 text-slate-400">{selectedDiscussion.prompt}</p>
+                  ) : null}
+                  <Link
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-cyan-300 transition hover:text-cyan-200"
+                    href={`/discussions?thread=${selectedDiscussion.id}`}
+                    target="_blank"
+                  >
+                    Preview discussion
+                  </Link>
+                </div>
+              );
+            })()
+          ) : null}
         </div>
 
         {/* Author */}
