@@ -34,10 +34,6 @@ export function SiteHeader() {
     setMenuOpen(false);
   }, [pathname]);
 
-  if (pathname === "/") {
-    return null;
-  }
-
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (

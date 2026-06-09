@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Loader2, PlusCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,7 @@ type ThreadParticipationMode = Database["public"]["Enums"]["thread_participation
 
 export function PublicDiscussionStarter() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = useMemo(() => (hasSupabaseEnv ? createClient() : null), []);
   const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -36,6 +37,9 @@ export function PublicDiscussionStarter() {
     desiredAcademicLevels.length > 0 ||
     desiredProfessionalStages.length > 0 ||
     desiredExpertiseDomains.length > 0;
+
+  const prefilledTitle = searchParams.get("title")?.trim() ?? "";
+  const prefilledPrompt = searchParams.get("prompt")?.trim() ?? "";
 
   const participationSummary = summarizeBackgroundFilters({
     academicLevels: desiredAcademicLevels,
@@ -74,6 +78,20 @@ export function PublicDiscussionStarter() {
       cancelled = true;
     };
   }, [supabase]);
+
+  useEffect(() => {
+    if (!prefilledTitle && !prefilledPrompt) {
+      return;
+    }
+
+    if (prefilledTitle) {
+      setTitle(prefilledTitle);
+    }
+
+    if (prefilledPrompt) {
+      setPrompt(prefilledPrompt);
+    }
+  }, [prefilledPrompt, prefilledTitle]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();

@@ -1,0 +1,1 @@
+robocopy "C:\Users\dimzo\Documents\ENTERTAINMENT\Coding\new_society" "C:\Users\dimzo\Documents\ENTERTAINMENT\Coding\new_society-backup_github\Uploaded_on_github" /MIR /COPY:DAT /DCOPY:T /R:2 /W:2

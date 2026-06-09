@@ -76,9 +76,11 @@ const eventCycle = [
 
 export function LearningTimeline({
   accent,
+  compact = false,
   timeline,
 }: {
   accent: AccentTone;
+  compact?: boolean;
   timeline: LearningTimelineData;
 }) {
   const styles = accentClasses[accent];
@@ -88,18 +90,25 @@ export function LearningTimeline({
       <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b", styles.glow)} />
 
       <div className="relative">
-        <div className="space-y-3">
-          <span
-            className={cn(
-              "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
-              styles.badge,
-            )}
-          >
-            Visual timeline
-          </span>
-          <h2 className="atlas-display text-3xl leading-tight text-slate-900">{timeline.title}</h2>
-          <p className="atlas-copy max-w-4xl text-sm">{timeline.intro}</p>
-        </div>
+        {!compact ? (
+          <div className="space-y-3">
+            <span
+              className={cn(
+                "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
+                styles.badge,
+              )}
+            >
+              Visual timeline
+            </span>
+            <h2 className="atlas-display text-3xl leading-tight text-slate-900">{timeline.title}</h2>
+            <p className="atlas-copy max-w-4xl text-sm">{timeline.intro}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-slate-900">{timeline.title}</h3>
+            <p className="text-sm leading-7 text-slate-600">{timeline.intro}</p>
+          </div>
+        )}
 
         <div className="mt-8 hidden lg:block">
           <div className="relative overflow-x-auto pb-3">

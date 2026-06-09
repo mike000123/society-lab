@@ -79,9 +79,11 @@ function computeMetric(metric: MiniLessonMetric, sliderValue: number): ComputedM
 
 function InteractiveMiniLesson({
   accent,
+  compact = false,
   lesson,
 }: {
   accent: AccentTone;
+  compact?: boolean;
   lesson: MiniLessonConfig;
 }) {
   const [sliderValue, setSliderValue] = useState(lesson.defaultValue);
@@ -99,19 +101,31 @@ function InteractiveMiniLesson({
       .at(-1)?.insight ?? lesson.bands[0]?.insight;
 
   return (
-    <section className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6">
-      <div className="space-y-3">
-        <span
-          className={cn(
-            "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
-            styles.badge,
-          )}
-        >
-          Interactive mini lesson
-        </span>
-        <h2 className="atlas-display text-3xl leading-tight text-slate-900">{lesson.title}</h2>
-        <p className="atlas-copy max-w-4xl text-sm">{lesson.description}</p>
-      </div>
+    <section
+      className={cn(
+        "rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6",
+        compact ? "shadow-none" : "",
+      )}
+    >
+      {!compact ? (
+        <div className="space-y-3">
+          <span
+            className={cn(
+              "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
+              styles.badge,
+            )}
+          >
+            Interactive mini lesson
+          </span>
+          <h2 className="atlas-display text-3xl leading-tight text-slate-900">{lesson.title}</h2>
+          <p className="atlas-copy max-w-4xl text-sm">{lesson.description}</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-slate-900">{lesson.title}</h3>
+          <p className="text-sm leading-7 text-slate-600">{lesson.description}</p>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
         <div className="rounded-[1.7rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(246,244,238,0.88))] p-5">
@@ -197,27 +211,41 @@ function signalColor(signal: string): string {
 
 function StaticMiniLessonCard({
   accent,
+  compact = false,
   lesson,
 }: {
   accent: AccentTone;
+  compact?: boolean;
   lesson: StaticMiniLesson;
 }) {
   const styles = toneClasses[accent];
 
   return (
-    <section className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6">
-      <div className="space-y-3">
-        <span
-          className={cn(
-            "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
-            styles.badge,
-          )}
-        >
-          Mini lesson
-        </span>
-        <h2 className="atlas-display text-3xl leading-tight text-slate-900">{lesson.title}</h2>
-        <p className="atlas-copy max-w-4xl text-sm">{lesson.subtitle}</p>
-      </div>
+    <section
+      className={cn(
+        "rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6",
+        compact ? "shadow-none" : "",
+      )}
+    >
+      {!compact ? (
+        <div className="space-y-3">
+          <span
+            className={cn(
+              "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
+              styles.badge,
+            )}
+          >
+            Mini lesson
+          </span>
+          <h2 className="atlas-display text-3xl leading-tight text-slate-900">{lesson.title}</h2>
+          <p className="atlas-copy max-w-4xl text-sm">{lesson.subtitle}</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-slate-900">{lesson.title}</h3>
+          <p className="text-sm leading-7 text-slate-600">{lesson.subtitle}</p>
+        </div>
+      )}
 
       <div className="mt-6 space-y-3">
         {lesson.metrics.map((metric) => (
@@ -253,13 +281,15 @@ function StaticMiniLessonCard({
 
 export function MiniLesson({
   accent,
+  compact = false,
   lesson,
 }: {
   accent: AccentTone;
+  compact?: boolean;
   lesson: MiniLessonConfig | StaticMiniLesson;
 }) {
   if (isStaticMiniLesson(lesson)) {
-    return <StaticMiniLessonCard accent={accent} lesson={lesson} />;
+    return <StaticMiniLessonCard accent={accent} compact={compact} lesson={lesson} />;
   }
-  return <InteractiveMiniLesson accent={accent} lesson={lesson} />;
+  return <InteractiveMiniLesson accent={accent} compact={compact} lesson={lesson} />;
 }

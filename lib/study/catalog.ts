@@ -16,6 +16,9 @@ export type StudyAccent = "amber" | "cyan" | "emerald" | "rose";
 
 export type StudyResource = {
   access: StudyAccess;
+  communityKind?: "article" | "link";
+  contributionSource?: "community" | "curated";
+  contributorName?: string | null;
   format: StudyFormat;
   id: string;
   level: StudyLevel;
@@ -25,6 +28,9 @@ export type StudyResource = {
   title: string;
   url: string;
 };
+
+export const STUDY_LEVELS: StudyLevel[] = ["Starter", "Intermediate", "Deep dive"];
+export const STUDY_ACCESS_OPTIONS: StudyAccess[] = ["Free", "Mixed", "Paid"];
 
 export type StudyCategory = {
   accent: StudyAccent;
@@ -944,6 +950,18 @@ export const STUDY_CATEGORIES: StudyCategory[] = [
         tags: ["open government", "accountability", "transparency"],
         title: "Open Government Partnership",
         url: "https://www.opengovpartnership.org/",
+      },
+      {
+        access: "Free",
+        format: "Website",
+        id: "demo-world-justice-project",
+        level: "Starter",
+        source: "World Justice Project",
+        summary:
+          "A strong gateway for rule of law, institutional accountability, civic justice, and comparative governance indicators across countries.",
+        tags: ["rule of law", "governance", "justice", "institutions"],
+        title: "World Justice Project",
+        url: "https://worldjusticeproject.org/",
       },
       {
         access: "Free",

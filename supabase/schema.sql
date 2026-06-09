@@ -54,6 +54,20 @@ end $$;
 
 do $$
 begin
+  create type public.study_resource_submission_status as enum ('pending', 'approved', 'rejected');
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  create type public.study_resource_submission_kind as enum ('link', 'article');
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
   create type public.contact_permission as enum ('none', 'shared_modules', 'any_member');
 exception
   when duplicate_object then null;
@@ -109,6 +123,7 @@ create table if not exists public.profiles (
 
 alter table public.profiles
   add column if not exists academic_level text,
+  add column if not exists can_review_study_resources boolean not null default false,
   add column if not exists show_learning_activity boolean not null default false,
   add column if not exists discoverable_by_shared_modules boolean not null default false,
   add column if not exists allow_study_circle_invites boolean not null default false,
@@ -226,6 +241,37 @@ create table if not exists public.user_module_progress (
   unique (user_id, module_slug)
 );
 
+create table if not exists public.study_resource_submissions (
+  id uuid primary key default gen_random_uuid(),
+  submitter_id uuid not null references public.profiles (id) on delete cascade,
+  submission_kind public.study_resource_submission_kind not null default 'link',
+  category_id text not null,
+  title text not null,
+  url text,
+  format text not null,
+  level text not null,
+  access text not null,
+  source text not null,
+  summary text not null,
+  rationale text not null,
+  body_markdown text,
+  tags text[] not null default '{}'::text[],
+  status public.study_resource_submission_status not null default 'pending',
+  reviewer_id uuid references public.profiles (id) on delete set null,
+  reviewer_notes text,
+  reviewed_at timestamptz,
+  published_at timestamptz,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.study_resource_submissions
+  add column if not exists submission_kind public.study_resource_submission_kind not null default 'link',
+  add column if not exists body_markdown text;
+
+alter table public.study_resource_submissions
+  alter column url drop not null;
+
 create table if not exists public.thread_participants (
   id uuid primary key default gen_random_uuid(),
   thread_id uuid not null references public.threads (id) on delete cascade,
@@ -250,6 +296,9 @@ create index if not exists proposal_comments_proposal_id_idx on public.proposal_
 create index if not exists proposal_comments_author_id_idx on public.proposal_comments (author_id);
 create index if not exists user_module_progress_user_id_idx on public.user_module_progress (user_id);
 create index if not exists user_module_progress_module_slug_idx on public.user_module_progress (module_slug);
+create index if not exists study_resource_submissions_submitter_id_idx on public.study_resource_submissions (submitter_id);
+create index if not exists study_resource_submissions_status_idx on public.study_resource_submissions (status);
+create index if not exists study_resource_submissions_category_id_idx on public.study_resource_submissions (category_id);
 create index if not exists thread_participants_thread_id_idx on public.thread_participants (thread_id);
 create index if not exists thread_participants_user_id_idx on public.thread_participants (user_id);
 
@@ -291,6 +340,11 @@ for each row execute function public.touch_updated_at();
 drop trigger if exists user_module_progress_set_updated_at on public.user_module_progress;
 create trigger user_module_progress_set_updated_at
 before update on public.user_module_progress
+for each row execute function public.touch_updated_at();
+
+drop trigger if exists study_resource_submissions_set_updated_at on public.study_resource_submissions;
+create trigger study_resource_submissions_set_updated_at
+before update on public.study_resource_submissions
 for each row execute function public.touch_updated_at();
 
 drop trigger if exists thread_participants_set_updated_at on public.thread_participants;
@@ -459,6 +513,23 @@ as $$
   );
 $$;
 
+create or replace function public.is_study_reviewer(
+  target_user_id uuid default auth.uid()
+)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1
+    from public.profiles
+    where public.profiles.id = target_user_id
+      and public.profiles.can_review_study_resources = true
+  );
+$$;
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
@@ -479,6 +550,7 @@ alter table public.proposals enable row level security;
 alter table public.proposal_votes enable row level security;
 alter table public.proposal_comments enable row level security;
 alter table public.user_module_progress enable row level security;
+alter table public.study_resource_submissions enable row level security;
 alter table public.thread_participants enable row level security;
 
 drop policy if exists "profiles are viewable by everyone" on public.profiles;
@@ -719,6 +791,44 @@ create policy "users can delete their own module progress"
 on public.user_module_progress
 for delete
 using (auth.uid() = user_id);
+
+drop policy if exists "approved or owned study submissions are viewable" on public.study_resource_submissions;
+create policy "approved or owned study submissions are viewable"
+on public.study_resource_submissions
+for select
+using (
+  status = 'approved'
+  or auth.uid() = submitter_id
+  or public.is_study_reviewer(auth.uid())
+);
+
+drop policy if exists "members can create their own study submissions" on public.study_resource_submissions;
+create policy "members can create their own study submissions"
+on public.study_resource_submissions
+for insert
+with check (
+  auth.uid() = submitter_id
+  and status = 'pending'
+  and reviewer_id is null
+  and reviewed_at is null
+  and published_at is null
+);
+
+drop policy if exists "reviewers can update study submissions" on public.study_resource_submissions;
+create policy "reviewers can update study submissions"
+on public.study_resource_submissions
+for update
+using (public.is_study_reviewer(auth.uid()))
+with check (public.is_study_reviewer(auth.uid()));
+
+drop policy if exists "submitters can delete pending study submissions" on public.study_resource_submissions;
+create policy "submitters can delete pending study submissions"
+on public.study_resource_submissions
+for delete
+using (
+  auth.uid() = submitter_id
+  and status = 'pending'
+);
 
 drop policy if exists "thread members can view participants" on public.thread_participants;
 drop policy if exists "thread authors and invitees can view participants" on public.thread_participants;

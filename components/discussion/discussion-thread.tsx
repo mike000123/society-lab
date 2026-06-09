@@ -10,8 +10,9 @@ import {
   backgroundFilterGroups,
   summarizeBackgroundFilters,
 } from "@/lib/community/profile-options";
+import { getSeededPublicThreadById } from "@/lib/discussion/seeded-public-threads";
 import { normalizeLinkedInUrl } from "@/lib/community/linkedin";
-import { CATEGORY_META, getAllProposals } from "@/lib/governance/proposals";
+import { CATEGORY_META, getAllProposals, type Proposal } from "@/lib/governance/proposals";
 import { useSubmissions } from "@/lib/governance/votes";
 import type { Database, Json } from "@/lib/database.types";
 import { hasSupabaseEnv } from "@/lib/supabase/public-env";
@@ -162,6 +163,83 @@ function proposalTone(category?: string | null) {
 function proposalCategoryLabel(category?: string | null) {
   if (!category) return null;
   return CATEGORY_META[category as keyof typeof CATEGORY_META]?.label ?? category;
+}
+
+function LinkedProposalsBlock({
+  discussionThreadId,
+  proposals,
+}: {
+  discussionThreadId: string;
+  proposals: Proposal[];
+}) {
+  return (
+    <div className="space-y-3 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Proposal actions</p>
+          <h3 className="mt-1 text-base font-semibold text-slate-900">Turn this discussion into concrete proposals</h3>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Discussions do not need to wait for a final synthesis. If an idea becomes concrete enough, anyone can draft a proposal and link it back here.
+          </p>
+        </div>
+
+        <Button asChild className="rounded-full px-5">
+          <Link href={`/governance/submit?discussion=${encodeURIComponent(discussionThreadId)}`}>
+            Create proposal from this discussion
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
+
+      {proposals.length > 0 ? (
+        <div className="grid gap-3 md:grid-cols-2">
+          {proposals.map((proposal) => (
+            <div
+              className="rounded-[1.15rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.62)] px-4 py-4"
+              key={proposal.id}
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${proposalTone(
+                    proposal.category,
+                  )}`}
+                >
+                  {proposalCategoryLabel(proposal.category)}
+                </span>
+                {!proposal.isSeeded ? (
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Drafted from discussion</span>
+                ) : null}
+              </div>
+              <p className="mt-2 text-sm font-semibold text-slate-900">{proposal.title}</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{proposal.description}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition hover:text-slate-900"
+                  href={`/governance/${proposal.id}`}
+                >
+                  Open proposal
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+                {proposal.moduleSlug ? (
+                  <Link
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 transition hover:text-slate-900"
+                    href={`/learn/${proposal.moduleSlug}`}
+                  >
+                    Open related module
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-[1.15rem] border border-dashed border-[rgba(28,36,48,0.12)] bg-[rgba(246,244,238,0.42)] px-4 py-4 text-sm leading-6 text-slate-600">
+          No proposals have been linked to this discussion yet.
+        </div>
+      )}
+    </div>
+  );
 }
 
 function viewerMatchesThreadBackground(
@@ -439,18 +517,71 @@ function Composer({
 }
 
 function StaticThread({
-  message = "Connect Supabase to enable live discussions. Showing example posts for now.",
+  message,
+  seededThreadId,
 }: {
   message?: string;
+  seededThreadId?: string;
 }) {
+  const seededThread = seededThreadId ? getSeededPublicThreadById(seededThreadId) : null;
+  const posts = seededThread?.posts ?? SEED_POSTS;
+  const { submissions } = useSubmissions();
+  const linkedProposals = useMemo(
+    () =>
+      seededThreadId
+        ? getAllProposals(submissions).filter((proposal) => proposal.discussionThreadId === seededThreadId)
+        : [],
+    [seededThreadId, submissions],
+  );
+
   return (
     <div className="space-y-3">
-      <p className="rounded-[1.1rem] border border-amber-200 bg-amber-50/80 px-4 py-3 text-xs text-amber-700">
-        {message}
-      </p>
+      {message ? (
+        <p className="rounded-[1.1rem] border border-amber-200 bg-amber-50/80 px-4 py-3 text-xs text-amber-700">
+          {message}
+        </p>
+      ) : null}
 
       <ThreadShell>
-        {SEED_POSTS.map((post) => (
+        {seededThread ? (
+          <div className="space-y-3 py-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-800">
+                Open participation
+              </span>
+              <span className="text-xs text-slate-500">Canonical public discussion</span>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-slate-900">{seededThread.title}</h3>
+              <p className="text-sm leading-7 text-slate-600">{seededThread.prompt}</p>
+            </div>
+            {seededThread.posts.find((post) => post.proposalReference)?.proposalReference ? (
+              <div className="rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.62)] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Related governance proposal</p>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {seededThread.posts.find((post) => post.proposalReference)?.proposalReference?.title}
+                    </p>
+                  </div>
+                  <Link
+                    className="inline-flex items-center gap-1 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-3 py-2 text-xs font-semibold text-primary transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
+                    href={`/governance/${seededThread.proposalId}`}
+                  >
+                    Open proposal
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {seededThread ? (
+          <LinkedProposalsBlock discussionThreadId={seededThread.id} proposals={linkedProposals} />
+        ) : null}
+
+        {posts.map((post) => (
           <PostRow key={post.id} post={post} />
         ))}
       </ThreadShell>
@@ -475,6 +606,10 @@ function LiveThread({ threadId }: { threadId: string }) {
 
   const supabase = useMemo(() => createClient(), []);
   const { submissions } = useSubmissions();
+  const linkedProposals = useMemo(
+    () => getAllProposals(submissions).filter((proposal) => proposal.discussionThreadId === threadId),
+    [submissions, threadId],
+  );
   const proposalOptions = useMemo(
     () =>
       getAllProposals(submissions).map((proposal) => ({
@@ -852,6 +987,10 @@ function LiveThread({ threadId }: { threadId: string }) {
         </div>
       ) : null}
 
+      {threadMeta?.kind === "public_discussion" ? (
+        <LinkedProposalsBlock discussionThreadId={threadId} proposals={linkedProposals} />
+      ) : null}
+
       {loading ? (
         <p className="py-4 text-sm text-slate-500">Loading discussion...</p>
       ) : loadError ? (
@@ -866,7 +1005,17 @@ function LiveThread({ threadId }: { threadId: string }) {
   );
 }
 
-export function DiscussionThread({ threadId }: { threadId?: string }) {
+export function DiscussionThread({
+  seededThreadId,
+  threadId,
+}: {
+  seededThreadId?: string;
+  threadId?: string;
+}) {
+  if (seededThreadId) {
+    return <StaticThread seededThreadId={seededThreadId} />;
+  }
+
   if (!hasSupabaseEnv) {
     return <StaticThread />;
   }

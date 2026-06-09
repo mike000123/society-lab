@@ -92,6 +92,7 @@ function getLabelPoint(start: CausalLoopNode, end: CausalLoopNode, bend = 0) {
 
 export function CausalLoopDiagram({
   accent,
+  compact = false,
   description,
   edges,
   loops,
@@ -99,6 +100,7 @@ export function CausalLoopDiagram({
   title,
 }: {
   accent: AccentTone;
+  compact?: boolean;
   description: string;
   edges: CausalLoopEdge[];
   loops: (string | CausalLoop)[];
@@ -111,19 +113,31 @@ export function CausalLoopDiagram({
   const negativeMarkerId = `arrow-negative-${accent}`;
 
   return (
-    <section className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6">
-      <div className="space-y-3">
-        <span
-          className={cn(
-            "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
-            styles.badge,
-          )}
-        >
-          System map
-        </span>
-        <h2 className="atlas-display text-3xl leading-tight text-slate-900">{title}</h2>
-        <p className="atlas-copy max-w-4xl text-sm">{description}</p>
-      </div>
+    <section
+      className={cn(
+        "rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6",
+        compact ? "shadow-none" : "",
+      )}
+    >
+      {!compact ? (
+        <div className="space-y-3">
+          <span
+            className={cn(
+              "inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
+              styles.badge,
+            )}
+          >
+            System map
+          </span>
+          <h2 className="atlas-display text-3xl leading-tight text-slate-900">{title}</h2>
+          <p className="atlas-copy max-w-4xl text-sm">{description}</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+          <p className="text-sm leading-7 text-slate-600">{description}</p>
+        </div>
+      )}
 
       <div className="relative mt-6 overflow-hidden rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(246,244,238,0.92))] p-4 sm:p-5">
         <div className="atlas-grid absolute inset-0 opacity-50" />

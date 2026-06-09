@@ -73,13 +73,14 @@ export const STUDY_PATHS: StudyPath[] = [
     tagline: "From participation design to accountability systems",
     summary:
       "This path focuses on participation, institutional redesign, anti-corruption, open government, and practical cases that show how governance can become more capable and more democratic.",
-    duration: "6 resources · 4-6 hrs",
+    duration: "7 resources · 4-6 hrs",
     outcome:
       "You leave with a more concrete sense of how democratic capacity is built through institutions, process design, and accountable implementation.",
     resourceIds: [
       "demo-participedia",
       "demo-democracynext",
       "demo-ogp",
+      "demo-world-justice-project",
       "corr-open-contracting",
       "demo-vtaiwan",
       "demo-brennan",

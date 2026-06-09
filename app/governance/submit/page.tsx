@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, MessageSquareQuote, PlusCircle, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { SEEDED_PROPOSALS, CATEGORY_META, type ProposalCategory } from "@/lib/governance/proposals";
+import { SEEDED_PUBLIC_THREADS } from "@/lib/discussion/seeded-public-threads";
 import { useSubmissions } from "@/lib/governance/votes";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/public-env";
@@ -25,10 +26,17 @@ const MODULE_OPTIONS = Array.from(
   ).values()
 );
 
+type DiscussionOption = { id: string; title: string; prompt: string | null };
+
 export default function SubmitProposalPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addSubmission } = useSubmissions();
   const supabase = useMemo(() => (hasSupabaseEnv ? createClient() : null), []);
+  const requestedDiscussionId =
+    typeof searchParams.get("discussion") === "string" && searchParams.get("discussion")?.trim()
+      ? searchParams.get("discussion")!.trim()
+      : "";
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -39,7 +47,11 @@ export default function SubmitProposalPage() {
   const [authorName, setAuthorName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [discussionThreads, setDiscussionThreads] = useState<{ id: string; title: string; prompt: string | null }[]>([]);
+  const [discussionThreads, setDiscussionThreads] = useState<DiscussionOption[]>(SEEDED_PUBLIC_THREADS.map((thread) => ({
+    id: thread.id,
+    prompt: thread.prompt,
+    title: thread.title,
+  })));
   const [loadingThreads, setLoadingThreads] = useState(Boolean(supabase));
 
   useEffect(() => {
@@ -63,7 +75,18 @@ export default function SubmitProposalPage() {
         .limit(24);
 
       if (!cancelled) {
-        setDiscussionThreads(data ?? []);
+        const combined = new Map<string, DiscussionOption>();
+        SEEDED_PUBLIC_THREADS.forEach((thread) => {
+          combined.set(thread.id, {
+            id: thread.id,
+            prompt: thread.prompt,
+            title: thread.title,
+          });
+        });
+        (data ?? []).forEach((thread) => {
+          combined.set(thread.id, thread);
+        });
+        setDiscussionThreads(Array.from(combined.values()));
         setLoadingThreads(false);
       }
     }
@@ -73,6 +96,15 @@ export default function SubmitProposalPage() {
       cancelled = true;
     };
   }, [supabase]);
+
+  useEffect(() => {
+    if (!requestedDiscussionId) return;
+    if (discussionThreadId === requestedDiscussionId) return;
+    const match = discussionThreads.find((thread) => thread.id === requestedDiscussionId);
+    if (match) {
+      setDiscussionThreadId(match.id);
+    }
+  }, [discussionThreadId, discussionThreads, requestedDiscussionId]);
 
   function validate() {
     if (!title.trim() || title.trim().length < 10) return "Title must be at least 10 characters.";
@@ -126,6 +158,11 @@ export default function SubmitProposalPage() {
           Proposals should address a specific structural problem — not a symptom. Link it to a learning
           module if you can. Your submission is saved locally in this browser.
         </p>
+        {discussionThreadId ? (
+          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100">
+            This proposal will be linked back to the discussion that led to it.
+          </div>
+        ) : null}
       </section>
 
       {/* Form */}

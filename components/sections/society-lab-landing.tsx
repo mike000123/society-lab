@@ -2,323 +2,179 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { Route } from "next";
 import type { ElementType } from "react";
 import {
   ArrowRight,
-  Bell,
-  Bookmark,
+  Banknote,
   BookOpenText,
   Building2,
+  ChartColumnBig,
+  CircleDot,
+  Compass,
   FlaskConical,
+  Globe2,
+  House,
   Landmark,
-  MessageSquare,
-  Play,
-  Search,
+  Leaf,
+  MessagesSquare,
+  Newspaper,
   Users,
-  Vote,
 } from "lucide-react";
 
 import { AtlasPage } from "@/components/atlas/AtlasPage";
-import { AuthControls } from "@/components/layout/auth-controls";
-import { ToolbarSearch } from "@/components/layout/toolbar-search";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { getSeededPublicThreadById, SEEDED_PUBLIC_THREADS } from "@/lib/discussion/seeded-public-threads";
+import {
+  POPULAR_QUESTIONS,
+  type PopularQuestionCard,
+} from "@/lib/learn/discovery";
 import { cn } from "@/lib/utils";
 
-const navigation: { href: Route; label: string }[] = [
-  { href: "/learn", label: "Learn" },
-  { href: "/simulator", label: "Simulate" },
-  { href: "/discussions", label: "Discuss" },
-  { href: "/governance", label: "Governance" },
-  { href: "/map", label: "Map" },
-  { href: "/study", label: "Study" },
-];
+const QUESTION_ICONS: Record<PopularQuestionCard["icon"], ElementType> = {
+  banking: Banknote,
+  city: House,
+  ecology: Leaf,
+  media: MessagesSquare,
+  metrics: ChartColumnBig,
+  politics: Landmark,
+};
 
-const heroStats = [
-  { label: "Learning tracks", value: "4" },
-  { label: "Modules", value: "29" },
-  { label: "Simulators", value: "12" },
-  { label: "Countries", value: "180+" },
-  { label: "Community", value: "10K+" },
-];
-
-const domainCards: {
-  accent: string;
-  artSrc: string;
-  description: string;
-  href: Route;
-  icon: ElementType;
-  title: string;
-}[] = [
+const QUESTION_CARD_TONES: Record<
+  PopularQuestionCard["icon"],
   {
-    accent: "bg-[rgba(59,130,246,0.12)] text-[rgb(var(--atlas-primary))]",
-    artSrc: "/atlas/home-domain-economy.png",
-    description: "Money, markets, work, and how value is created and captured.",
-    href: "/learn?view=tracks&track=economy" as Route,
-    icon: Landmark,
-    title: "Economy",
+    card: string;
+    icon: string;
+  }
+> = {
+  banking: {
+    card: "bg-[linear-gradient(180deg,rgba(240,252,244,0.95),rgba(255,255,255,0.98))]",
+    icon: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  },
+  city: {
+    card: "bg-[linear-gradient(180deg,rgba(255,247,237,0.96),rgba(255,255,255,0.98))]",
+    icon: "border-amber-200 bg-amber-50 text-amber-700",
+  },
+  ecology: {
+    card: "bg-[linear-gradient(180deg,rgba(240,253,250,0.96),rgba(255,255,255,0.98))]",
+    icon: "border-cyan-200 bg-cyan-50 text-cyan-700",
+  },
+  media: {
+    card: "bg-[linear-gradient(180deg,rgba(254,242,242,0.96),rgba(255,255,255,0.98))]",
+    icon: "border-rose-200 bg-rose-50 text-rose-700",
+  },
+  metrics: {
+    card: "bg-[linear-gradient(180deg,rgba(239,246,255,0.96),rgba(255,255,255,0.98))]",
+    icon: "border-blue-200 bg-blue-50 text-blue-700",
+  },
+  politics: {
+    card: "bg-[linear-gradient(180deg,rgba(245,243,255,0.96),rgba(255,255,255,0.98))]",
+    icon: "border-violet-200 bg-violet-50 text-violet-700",
+  },
+};
+
+const WHY_IT_EXISTS = [
+  {
+    description: "Events and headlines tell us what is happening in the world.",
+    icon: Newspaper,
+    imageSrc: "/atlas/home-domain-media-information.png",
+    prompt: "What happened?",
+    title: "1. News",
   },
   {
-    accent: "bg-[rgba(76,175,80,0.14)] text-[rgb(var(--atlas-green))]",
-    artSrc: "/atlas/home-domain-politics-democracy.png",
-    description: "Power, institutions, participation, and the rules we live by.",
-    href: "/learn?view=tracks&track=politics-and-democracy" as Route,
-    icon: Users,
-    title: "Politics & Democracy",
-  },
-  {
-    accent: "bg-[rgba(212,168,79,0.16)] text-[rgb(var(--atlas-gold))]",
-    artSrc: "/atlas/home-domain-cities-everyday-life.png",
-    description: "Ecological limits, pollution, housing, transport, and how urban systems shape daily life.",
-    href: "/learn?view=tracks&track=cities-and-ecology" as Route,
+    description: "We study the underlying systems and structures that drive outcomes.",
     icon: Building2,
-    title: "Cities & Ecology",
+    imageSrc: "/atlas/home-domain-economy.png",
+    prompt: "Why did it happen?",
+    title: "2. Systems",
   },
   {
-    accent: "bg-[rgba(99,102,241,0.14)] text-[rgb(99,102,241)]",
-    artSrc: "/atlas/home-domain-media-information.png",
-    description: "Attention, narratives, truth, and the systems that shape opinion.",
-    href: "/learn?view=tracks&track=media-and-information" as Route,
-    icon: MessageSquare,
-    title: "Media & Information",
-  },
-];
-
-const worldMetrics = [
-  {
-    delta: "+2.1",
-    label: "Global Wellbeing",
-    note: "(median)",
-    value: "65 /100",
-  },
-  {
-    delta: "+1.8",
-    label: "Inequality (Gini)",
-    note: "(higher = worse)",
-    value: "63 /100",
-  },
-  {
-    delta: "+0.7",
-    label: "Corruption (CPI)",
-    note: "(higher = better)",
-    value: "43 /100",
-  },
-  {
-    delta: "-0.3",
-    label: "Press Freedom",
-    note: "(higher = better)",
-    value: "38 /100",
-  },
-  {
-    delta: "+0.04",
-    label: "Temp. Increase",
-    note: "vs pre-industrial",
-    value: "1.24 °C",
-  },
-];
-
-const civicSteps: {
-  description: string;
-  href: Route;
-  icon: ElementType;
-  title: string;
-}[] = [
-  {
-    description: "Understand core systems",
-    href: "/learn",
-    icon: BookOpenText,
-    title: "Learn",
-  },
-  {
-    description: "Test scenarios and models",
-    href: "/simulator",
+    description: "We test ideas and policies in models to explore alternative futures.",
     icon: FlaskConical,
-    title: "Simulate",
+    imageSrc: "/atlas/home-world3-card.png",
+    prompt: "What if we change the rules?",
+    title: "3. Simulations",
   },
   {
-    description: "Debate ideas with others",
-    href: "/discussions",
-    icon: MessageSquare,
-    title: "Discuss",
-  },
-  {
-    description: "Design and vote on solutions",
-    href: "/governance",
-    icon: Vote,
-    title: "Govern",
+    description: "We discuss, challenge assumptions, and design better solutions together.",
+    icon: Users,
+    imageSrc: "/atlas/discuss-hero.png",
+    prompt: "What should we do about it?",
+    title: "4. Discussion & Action",
   },
 ];
 
-const featuredSimulations: {
-  artSrc: string;
-  badge?: string;
-  description: string;
-  href: Route;
-  tone: "dark" | "light" | "medium";
-  title: string;
-}[] = [
+const VALUE_STRIP = [
   {
-    artSrc: "/atlas/home-world3-card.png",
-    badge: "Most complex",
-    description: "Explore 200 years of civilization. Resources, population, pollution, technology, and wellbeing.",
-    href: "/simulator/world3",
-    tone: "light",
-    title: "World3 Civilization Simulator",
+    description: "Grounded in data and research",
+    icon: BookOpenText,
+    title: "Evidence-first",
   },
   {
-    artSrc: "/atlas/simulator-financial-crisis-card.png",
-    description: "Bubbles, leverage, contagion, and systemic risk in action.",
-    href: "/simulator/financial-crisis",
-    tone: "medium",
-    title: "Financial Crisis Simulator",
+    description: "See the big picture, not just parts",
+    icon: Globe2,
+    title: "Systems thinking",
   },
   {
-    artSrc: "/atlas/simulator-macro-economy-card.png",
-    description: "Fiscal policy, monetary inflation, debt, and growth in one model.",
+    description: "Explore multiple perspectives",
+    icon: Compass,
+    title: "Open & neutral",
+  },
+  {
+    description: "Better together than alone",
+    icon: CircleDot,
+    title: "People-powered",
+  },
+];
+
+const SIMULATION_PROMPTS = [
+  {
+    badge: "Intermediate",
     href: "/simulator/macro-economy",
-    tone: "light",
-    title: "Macro Economy Lab",
+    imageSrc: "/atlas/learn-track-money-wealth.png",
+    subtitle: "Macro Economy Lab",
+    title: "…banks stop creating money?",
+  },
+  {
+    badge: "Intermediate",
+    href: "/simulator/financial-crisis",
+    imageSrc: "/atlas/simulator-financial-crisis-card.png",
+    subtitle: "Financial Crisis Simulator",
+    title: "…a housing bubble bursts?",
+  },
+  {
+    badge: "Advanced",
+    href: "/simulator/world3",
+    imageSrc: "/atlas/home-world3-card.png",
+    subtitle: "World3 Simulator",
+    title: "…growth hits ecological limits?",
+  },
+  {
+    badge: "Beginner",
+    href: "/simulator/purchasing-power",
+    imageSrc: "/atlas/simulator-purchasing-power-card.png",
+    subtitle: "Purchasing Power",
+    title: "…inflation stays high for 10 years?",
   },
 ];
 
-const communityThreads = [
-  {
-    kind: "Claim",
-    meta: "18 comments",
-    title: "Basic income reduces poverty without destroying incentives.",
-  },
-  {
-    kind: "Proposal",
-    meta: "1.2K votes",
-    title: "Public banks for green and housing investment.",
-  },
-  {
-    kind: "Counterpoint",
-    meta: "23 comments",
-    title: "Growth is not the enemy — distribution is.",
-  },
-  {
-    kind: "Question",
-    meta: "17 comments",
-    title: "What metrics should replace GDP as the main score?",
-  },
+const COMMUNITY_EXPLORING = SEEDED_PUBLIC_THREADS.map((thread) => {
+  const linkedProposal = getSeededPublicThreadById(thread.id)?.proposalId;
+
+  return {
+    discussionHref: `/discussions?thread=${thread.id}`,
+    kind: thread.homeKind,
+    meta: thread.homeMeta,
+    proposalHref: linkedProposal ? `/governance/${linkedProposal}` : null,
+    title: thread.title,
+  };
+});
+
+const FOOTER_STEPS = [
+  { href: "/learn", title: "Learn how it works." },
+  { href: "/simulator", title: "Test your assumptions." },
+  { href: "/discussions", title: "Discuss what matters." },
+  { href: "/governance", title: "Build better systems together." },
 ];
-
-const communityPulse = [22, 28, 24, 35, 30, 42, 31, 44, 39];
-
-function HomeHeader() {
-  return (
-    <header className="flex items-center justify-between gap-6 border-b border-[rgba(28,36,48,0.08)] py-3">
-      <Link className="flex min-w-0 items-center gap-3" href="/">
-        <Image
-          alt="Society Lab logo"
-          className="h-10 w-10 flex-none"
-          height={44}
-          src="/atlas/society-lab-logo.png"
-          width={44}
-        />
-        <div className="min-w-0">
-          <span className="block truncate text-[1.9rem] font-semibold leading-none tracking-[-0.04em] text-slate-950">
-            Society Lab
-          </span>
-          <span className="block truncate text-[11px] font-medium leading-tight text-slate-500">
-            Civic intelligence for a better future
-          </span>
-        </div>
-      </Link>
-
-      <nav className="hidden items-center gap-8 xl:gap-10 lg:flex">
-        {navigation.map((item) => (
-          <Link
-            className="relative py-2 text-[15px] font-bold tracking-[-0.01em] text-slate-700 transition hover:text-slate-950"
-            href={item.href}
-            key={item.href}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-
-      <div className="hidden items-center gap-3 lg:flex">
-        <ToolbarSearch />
-        {[Bell, Bookmark].map((Icon, index) => (
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-[rgba(28,36,48,0.04)] hover:text-slate-950"
-            key={index}
-            type="button"
-          >
-            <Icon className="h-5 w-5" />
-          </button>
-        ))}
-        <ThemeToggle compact />
-        <AuthControls />
-      </div>
-
-      <div className="flex items-center gap-2 lg:hidden">
-        <button
-          aria-label="Search"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white text-slate-600"
-          type="button"
-        >
-          <Search className="h-4 w-4" />
-        </button>
-        <ThemeToggle compact />
-        <AuthControls />
-      </div>
-    </header>
-  );
-}
-
-function ImageWash({
-  className,
-  imageClassName,
-  overlayClassName,
-  src,
-}: {
-  className?: string;
-  imageClassName?: string;
-  overlayClassName?: string;
-  src: string;
-}) {
-  return (
-    <div className={cn("absolute inset-0", className)}>
-      <div
-        className={cn("absolute inset-0 bg-cover bg-center bg-no-repeat", imageClassName)}
-        style={{ backgroundImage: `url('${src}')` }}
-      />
-      <div className={cn("absolute inset-0", overlayClassName)} />
-    </div>
-  );
-}
-
-function MiniSparkline({ values }: { values: number[] }) {
-  const width = 120;
-  const height = 46;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const points = values
-    .map((value, index) => {
-      const x = (index / Math.max(values.length - 1, 1)) * width;
-      const y = height - ((value - min) / range) * height;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <svg aria-hidden="true" className="h-12 w-[7.5rem]" viewBox={`0 0 ${width} ${height}`}>
-      <polyline
-        fill="none"
-        points={points}
-        stroke="rgb(76,175,80)"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="3"
-      />
-    </svg>
-  );
-}
 
 function CommunityAvatars() {
   const hues = ["bg-blue-100 text-blue-700", "bg-green-100 text-green-700", "bg-amber-100 text-amber-700", "bg-rose-100 text-rose-700"];
@@ -339,111 +195,60 @@ function CommunityAvatars() {
   );
 }
 
-function DomainCard({
-  accent,
-  artSrc,
-  description,
-  href,
-  icon: Icon,
-  title,
-}: (typeof domainCards)[number]) {
+function QuestionCard({ question }: { question: PopularQuestionCard }) {
+  const Icon = QUESTION_ICONS[question.icon];
+  const tone = QUESTION_CARD_TONES[question.icon];
+
   return (
     <Link
-      className="group relative min-h-[17.5rem] overflow-hidden rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_36px_rgba(28,36,48,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_50px_rgba(28,36,48,0.08)]"
-      href={href}
+      className={cn(
+        "group flex h-full flex-col justify-between rounded-[1.65rem] border border-[rgba(28,36,48,0.08)] px-4 py-4 shadow-[0_14px_28px_rgba(28,36,48,0.04)] transition-all hover:border-[rgba(28,36,48,0.18)] hover:shadow-[0_18px_36px_rgba(28,36,48,0.06)]",
+        tone.card,
+      )}
+      href={`/learn?question=${question.id}#popular-questions`}
     >
-      <ImageWash
-        imageClassName="bg-right-bottom opacity-96"
-        overlayClassName="bg-[radial-gradient(circle_at_17%_18%,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.9)_18%,rgba(255,255,255,0.48)_38%,rgba(255,255,255,0.1)_58%,rgba(255,255,255,0)_76%)]"
-        src={artSrc}
-      />
+      <div className="space-y-4">
+        <div className={cn("flex h-11 w-11 items-center justify-center rounded-full border", tone.icon)}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="space-y-3">
+          <h3 className="text-[1.05rem] font-semibold leading-7 text-slate-900">{question.title}</h3>
+          <p className="text-sm leading-6 text-slate-600">{question.description}</p>
+        </div>
+      </div>
 
-      <div className="relative z-10 flex h-full max-w-[16rem] flex-col justify-between space-y-3">
-        <div className="flex items-start gap-3">
-          <div className={cn("flex h-12 w-12 flex-none items-center justify-center rounded-full", accent)}>
-            <Icon className="h-5 w-5" />
-          </div>
-          <h3 className="atlas-display max-w-[11.6rem] pt-1 text-[1.58rem] leading-[0.98] text-slate-900">{title}</h3>
+      <div className="mt-5 flex items-center justify-between gap-3 text-sm">
+        <div className="flex items-center gap-3 text-slate-500">
+          <span>{question.moduleCount} lessons</span>
+          <CommunityAvatars />
+          <span>+{question.learnerCount}</span>
         </div>
-        <div className="space-y-3 pl-[3.75rem]">
-          <p className="max-w-[11.9rem] text-sm leading-6 text-slate-700">{description}</p>
-        </div>
-        <span className="inline-flex items-center gap-2 pl-[3.75rem] text-sm font-semibold text-primary">
-          Explore
-          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-        </span>
+        <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-primary" />
       </div>
     </Link>
   );
 }
 
-function SimulationCard({
-  artSrc,
+function SimulationPromptCard({
   badge,
-  description,
   href,
-  tone,
+  imageSrc,
+  subtitle,
   title,
-}: (typeof featuredSimulations)[number]) {
-  const isDark = tone === "dark";
-  const isMedium = tone === "medium";
-
+}: (typeof SIMULATION_PROMPTS)[number]) {
   return (
     <Link
-      className={cn(
-        "group relative flex min-h-[13.75rem] flex-col justify-between overflow-hidden rounded-[1.85rem] border border-[rgba(28,36,48,0.08)] px-5 py-5 shadow-[0_16px_40px_rgba(28,36,48,0.12)]",
-        isDark ? "bg-slate-900 text-white" : "bg-white text-slate-900",
-      )}
+      className="group rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white p-3 shadow-[0_12px_26px_rgba(28,36,48,0.04)] transition-all hover:border-[rgba(28,36,48,0.18)] hover:shadow-[0_16px_30px_rgba(28,36,48,0.06)]"
       href={href}
     >
-      <ImageWash
-        imageClassName="bg-[position:center_48%] opacity-[0.97]"
-        overlayClassName={
-          isDark
-            ? "bg-[linear-gradient(180deg,rgba(11,19,34,0.14),rgba(11,19,34,0.48)_44%,rgba(11,19,34,0.84)_100%)]"
-            : isMedium
-              ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(18,31,53,0.12)_38%,rgba(18,31,53,0.42)_100%)]"
-              : "bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.06)_32%,rgba(255,255,255,0.34)_100%)]"
-        }
-        src={artSrc}
-      />
-      <div className="relative z-10 space-y-4">
-        {badge ? (
-          <span className={cn(
-            "inline-flex rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
-            isDark || isMedium
-              ? "bg-[rgba(37,99,235,0.92)] text-white"
-              : "bg-[rgba(37,99,235,0.1)] text-primary",
-          )}>
-            {badge}
-          </span>
-        ) : null}
-        <div className="space-y-2">
-          <h3 className={cn(
-            "atlas-display max-w-[16rem] text-[2.1rem] leading-[0.96]",
-            isDark || isMedium ? "text-white" : "text-slate-900",
-          )}>
-            {title}
-          </h3>
-          <p className={cn(
-            "max-w-[18rem] text-sm leading-6",
-            isDark ? "text-white/86" : isMedium ? "text-white/86" : "text-slate-700",
-          )}>
-            {description}
-          </p>
-        </div>
+      <div className="relative h-[8.25rem] overflow-hidden rounded-[1rem]">
+        <Image alt={title} className="object-cover object-center" fill sizes="280px" src={imageSrc} />
       </div>
-      <div className="relative z-10 pt-4">
-        <span className={cn(
-          "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold backdrop-blur",
-          isDark
-            ? "border border-white/22 bg-white/12 text-white"
-            : isMedium
-              ? "border border-white/22 bg-white/12 text-white"
-              : "border border-[rgba(59,130,246,0.16)] bg-white/85 text-primary",
-        )}>
-          Launch
-          <ArrowRight className="h-4 w-4" />
+      <div className="space-y-2 px-1 pb-1 pt-3">
+        <h3 className="text-[1rem] font-semibold leading-6 text-slate-900">{title}</h3>
+        <p className="text-sm text-slate-500">{subtitle}</p>
+        <span className="inline-flex rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.84)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+          {badge}
         </span>
       </div>
     </Link>
@@ -451,272 +256,280 @@ function SimulationCard({
 }
 
 function CommunityCard({
+  discussionHref,
   kind,
   meta,
+  proposalHref,
   title,
-}: (typeof communityThreads)[number]) {
+}: (typeof COMMUNITY_EXPLORING)[number]) {
   const tone =
     kind === "Claim"
       ? "bg-blue-50 text-blue-700"
       : kind === "Proposal"
         ? "bg-green-50 text-green-700"
-        : kind === "Counterpoint"
-          ? "bg-violet-50 text-violet-700"
-          : "bg-amber-50 text-amber-700";
+        : kind === "Question"
+          ? "bg-amber-50 text-amber-700"
+          : "bg-violet-50 text-violet-700";
 
   return (
-    <div className="rounded-[1.5rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_14px_28px_rgba(28,36,48,0.04)]">
+    <div className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_12px_26px_rgba(28,36,48,0.04)]">
       <div className="space-y-4">
         <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]", tone)}>
           {kind}
         </span>
-        <p className="text-[1.08rem] font-semibold leading-7 text-slate-900">{title}</p>
+        <Link className="block text-[1.02rem] font-semibold leading-7 text-slate-900 transition hover:text-primary" href={discussionHref}>
+          {title}
+        </Link>
       </div>
-      <div className="mt-4 flex items-center justify-between gap-4">
+      <div className="mt-4 flex items-center justify-between gap-3">
         <span className="text-sm text-slate-500">{meta}</span>
         <CommunityAvatars />
       </div>
-    </div>
-  );
-}
-
-function ActiveNowCard() {
-  return (
-    <div className="rounded-[1.5rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_14px_28px_rgba(28,36,48,0.04)]">
-      <div className="space-y-3">
-        <p className="atlas-display text-[1.9rem] text-slate-900">Active now</p>
-        <div className="space-y-1">
-          <p className="text-[2rem] font-semibold text-slate-900">342 people</p>
-          <p className="text-sm text-slate-500">online</p>
-        </div>
-      </div>
-      <div className="mt-3 flex justify-end">
-        <MiniSparkline values={communityPulse} />
+      <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold">
+        <Link className="inline-flex items-center gap-1 text-primary transition hover:text-blue-700" href={discussionHref}>
+          Open discussion
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+        {proposalHref ? (
+          <Link className="inline-flex items-center gap-1 text-slate-600 transition hover:text-slate-900" href={proposalHref}>
+            Related proposal
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        ) : null}
       </div>
     </div>
   );
 }
 
 export function SocietyLabLanding() {
-  const communitySummary = communityThreads.length;
-
   return (
-    <AtlasPage className="space-y-4 pb-20 md:space-y-6">
-      <HomeHeader />
+    <AtlasPage className="space-y-6 pb-20">
+      <section className="relative ml-[calc(50%-50vw)] w-screen overflow-hidden border-y border-[rgba(28,36,48,0.08)] bg-white shadow-[0_28px_72px_rgba(28,36,48,0.05)]">
+        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] md:block lg:w-[55%] xl:w-[53%]">
+          <Image
+            alt="People looking over a city while asking what kind of future is being built."
+            className="object-cover object-right-center"
+            fill
+            sizes="(min-width: 1280px) 53vw, (min-width: 1024px) 55vw, 58vw"
+            src="/atlas/home-hero.png"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0.92)_14%,rgba(255,255,255,0.58)_34%,rgba(255,255,255,0.16)_56%,rgba(255,255,255,0)_74%)]" />
+        </div>
 
-      <section className="relative ml-[calc(50%-50vw)] w-screen overflow-hidden border-y border-[rgba(28,36,48,0.08)] bg-white shadow-[0_30px_80px_rgba(28,36,48,0.05)]">
-        <ImageWash
-          imageClassName="bg-[position:74%_36%] opacity-98"
-          overlayClassName="bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.9)_16%,rgba(255,255,255,0.58)_32%,rgba(255,255,255,0.12)_48%,rgba(255,255,255,0)_62%)]"
-          src="/atlas/home-hero.png"
-        />
+        <div className="relative z-10 mx-auto max-w-[88rem] px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+          <div className="flex min-h-[20rem] max-w-[37rem] flex-col justify-center gap-5 lg:min-h-[22rem]">
+            <h1 className="atlas-display max-w-[31rem] text-[2.8rem] leading-[0.94] text-slate-900 sm:text-[3.45rem] lg:text-[4.1rem]">
+              Why does the world feel harder than it should?
+            </h1>
 
-        <div className="relative z-10 mx-auto min-h-[28rem] max-w-[88rem] px-8 py-5 sm:min-h-[30rem] sm:px-12 sm:py-6 lg:min-h-[32rem] lg:px-16 lg:py-7">
-          <div className="max-w-[35.5rem] space-y-5">
-            <span className="inline-flex rounded-full bg-[rgba(59,130,246,0.1)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-              A Civilization Atlas
-            </span>
-
-            <div className="space-y-4">
-              <h1 className="atlas-display text-[2.28rem] leading-[0.93] tracking-[-0.03em] text-slate-900 sm:text-[2.95rem] lg:text-[3.45rem]">
-                <span className="block">Understand systems.</span>
-                <span className="block">
-                  Design <span className="italic text-primary">better futures.</span>
-                </span>
-              </h1>
-              <p className="max-w-[26rem] text-[0.95rem] leading-7 text-slate-700">
-                Explore how the world works. Test your ideas. Shape policies, economies, and societies that work for everyone.
-              </p>
+            <div className="flex flex-wrap gap-4 text-sm font-medium text-slate-700">
+              <span className="inline-flex items-center gap-2">
+                <House className="h-4 w-4 text-primary" />
+                Housing becomes less affordable.
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <ChartColumnBig className="h-4 w-4 text-primary" />
+                Stress rises despite economic growth.
+              </span>
             </div>
+
+            <p className="max-w-[31rem] text-[0.98rem] leading-8 text-slate-700">
+              Society Lab helps you understand the systems behind these problems, explore alternative futures, and discuss solutions together.
+            </p>
 
             <div className="flex flex-wrap gap-3">
               <Button asChild className="rounded-full px-6" size="lg">
-                <Link href="/learn">Start learning</Link>
+                <Link href="/learn#popular-questions">Start with a question</Link>
               </Button>
               <Button asChild className="rounded-full px-6" size="lg" variant="outline">
                 <Link href="/simulator">
-                  <Play className="mr-2 h-4 w-4" />
                   Explore simulations
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </div>
-
-            <div className="grid max-w-[32rem] grid-cols-3 gap-4 pt-1 sm:grid-cols-5">
-              {heroStats.map((stat) => (
-                <div key={stat.label}>
-                  <p className="atlas-display text-[1.5rem] text-slate-900">{stat.value}</p>
-                  <p className="mt-1 text-[0.85rem] text-slate-600">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 lg:bottom-10 lg:right-10">
-            <div className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white/92 px-4 py-4 shadow-[0_18px_40px_rgba(28,36,48,0.12)] backdrop-blur">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                Live now
-              </div>
-              <p className="mt-2 text-sm text-slate-600">128 people exploring</p>
-              <div className="mt-3 flex items-center gap-3">
-                <CommunityAvatars />
-                <span className="text-sm text-slate-500">+124</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-          <span className="h-3 w-1 rounded-full bg-[rgb(var(--atlas-gold))]" />
-          Four domains. One world.
-        </div>
-        <div className="grid gap-4 xl:grid-cols-4">
-          {domainCards.map((card) => (
-            <DomainCard key={card.title} {...card} />
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-6 py-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)]">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h2 className="atlas-display text-[1.95rem] leading-[0.98] tracking-[-0.02em] text-slate-900 sm:text-[2.15rem]">
-              The world right now
-            </h2>
-            <p className="mt-1 text-[0.95rem] text-slate-500">Key indicators at a glance</p>
-          </div>
-          <Link className="text-sm font-semibold text-primary transition hover:text-blue-700" href="/map">
-            View full map
-          </Link>
-        </div>
-
-        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_240px] xl:items-center">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            {worldMetrics.map((metric, index) => (
-              <div
-                className="rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(249,248,243,0.75)] px-4 py-4"
-                key={metric.label}
-              >
-                <p className="text-[0.8rem] font-semibold text-slate-500">{metric.label}</p>
-                <p className="atlas-display mt-3 text-[1.95rem] leading-none tracking-[-0.02em] text-slate-900">{metric.value}</p>
-                <div className="mt-2 flex items-center justify-between gap-3">
-                  <span className="text-xs text-slate-500">{metric.note}</span>
-                  <span className={cn("text-xs font-semibold", index === 3 || index === 4 ? "text-rose-600" : "text-green-600")}>
-                    {metric.delta}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="relative h-[11rem] overflow-hidden rounded-[1.5rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(247,249,246,0.94),rgba(255,255,255,0.92))]">
-            <ImageWash
-              imageClassName="bg-center opacity-95"
-              overlayClassName="bg-[linear-gradient(180deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05))]"
-              src="/atlas/home-world-map.png"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
-        <div className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-6 py-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)]">
-          <h2 className="atlas-display text-[1.95rem] leading-[0.98] tracking-[-0.02em] text-slate-900 sm:text-[2.15rem]">
-            How Society Lab works
-          </h2>
-          <div className="mt-5 grid gap-5 lg:grid-cols-4">
-            {civicSteps.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <div className="relative flex gap-4" key={step.title}>
-                  <div className="flex h-12 w-12 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.74)] text-primary">
-                    <Icon className="h-5 w-5" />
+      <section className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-6 py-6 shadow-[0_18px_40px_rgba(28,36,48,0.05)]">
+        <h2 className="text-[1.85rem] font-semibold text-slate-900">Why Society Lab exists</h2>
+        <div className="mt-6 grid gap-5 xl:grid-cols-4 xl:items-stretch">
+          {WHY_IT_EXISTS.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <div className="relative h-full" key={step.title}>
+                <div className="relative h-full min-h-[12.5rem] overflow-hidden rounded-[1.55rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_12px_26px_rgba(28,36,48,0.04)]">
+                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <Image
+                      alt={step.title}
+                      className="object-cover object-center opacity-100"
+                      fill
+                      sizes="(min-width: 1280px) 21vw, (min-width: 768px) 42vw, 100vw"
+                      src={step.imageSrc}
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.52)_0%,rgba(255,255,255,0.36)_20%,rgba(255,255,255,0.18)_46%,rgba(255,255,255,0.12)_72%,rgba(255,255,255,0.34)_100%)]" />
                   </div>
-                  <div className="space-y-1.5">
-                    <p className="atlas-display text-[1.38rem] leading-[0.98] text-slate-900">{step.title}</p>
-                    <p className="max-w-[10rem] text-sm leading-6 text-slate-600">{step.description}</p>
-                    <Link className="text-sm font-semibold text-primary" href={step.href}>
-                      Open
-                    </Link>
+
+                  <div className="relative z-10 flex items-start gap-4">
+                    <div className="flex h-14 w-14 flex-none items-center justify-center rounded-[1.4rem] border border-[rgba(28,36,48,0.12)] bg-white text-primary shadow-[0_8px_18px_rgba(28,36,48,0.05)]">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 space-y-2 pt-0.5">
+                      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">{step.title}</p>
+                      <p className="text-[1.02rem] font-semibold text-slate-900">{step.prompt}</p>
+                      <p className="text-sm leading-6 text-slate-600">{step.description}</p>
+                    </div>
                   </div>
-                  {index < civicSteps.length - 1 ? (
-                    <span className="absolute -right-2 top-4 hidden text-slate-300 xl:block">
-                      <ArrowRight className="h-4 w-4" />
+                </div>
+
+                {index < WHY_IT_EXISTS.length - 1 ? (
+                  <div className="pointer-events-none absolute -right-7 top-1/2 z-20 hidden -translate-y-1/2 items-center xl:flex">
+                    <span className="h-px w-7 bg-[rgba(28,36,48,0.22)]" />
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(28,36,48,0.12)] bg-white shadow-[0_10px_18px_rgba(28,36,48,0.08)]">
+                      <ArrowRight className="h-4 w-4 text-slate-500" />
                     </span>
-                  ) : null}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-0 rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-4 text-center shadow-[0_10px_24px_rgba(28,36,48,0.03)]">
+          <p className="text-[1.12rem] font-semibold text-slate-900">
+            Society Lab connects <span className="text-primary">all four.</span>
+          </p>
+        </div>
+
+        <div className="mt-0 rounded-[1.4rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {VALUE_STRIP.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div className="flex items-start gap-3 rounded-[1.05rem] bg-white px-3 py-3" key={item.title}>
+                  <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.1)] bg-white text-primary">
+                    <Icon className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                    <p className="text-xs leading-5 text-slate-600">{item.description}</p>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
+      </section>
 
-        <div className="relative overflow-hidden rounded-[1.85rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.94)] px-5 py-5 shadow-[0_16px_36px_rgba(28,36,48,0.05)]">
-          <ImageWash
-            imageClassName="bg-right-bottom opacity-92"
-            overlayClassName="bg-[linear-gradient(90deg,rgba(246,244,238,0.96)_0%,rgba(246,244,238,0.82)_52%,rgba(246,244,238,0.14)_100%)]"
-            src="/atlas/home-new-here.png"
-          />
-          <div className="relative z-10 max-w-[13rem] space-y-3">
-            <h3 className="atlas-display text-[2rem] text-slate-900">New here?</h3>
-            <p className="text-sm leading-6 text-slate-600">Take a 2-minute quiz and we&apos;ll build your learning path.</p>
-            <Button asChild className="rounded-full px-5">
-              <Link href="/learn">Find my path</Link>
-            </Button>
+      <section className="space-y-4" id="start-with-a-question">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="space-y-2">
+            <h2 className="text-[1.95rem] font-semibold text-slate-900">Start with a question</h2>
+            <p className="text-sm leading-7 text-slate-600">Pick a topic that resonates with you.</p>
+          </div>
+          <Link className="text-sm font-semibold text-primary transition hover:text-blue-700" href="/learn#popular-questions">
+            Explore all questions
+          </Link>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {POPULAR_QUESTIONS.map((question) => (
+            <QuestionCard key={question.id} question={question} />
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+        <div className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-6 py-6 shadow-[0_18px_40px_rgba(28,36,48,0.05)]">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-slate-500">Explore the world</p>
+            <h2 className="text-[1.9rem] font-semibold text-slate-900">Why do some societies perform better than others?</h2>
+            <p className="text-sm leading-7 text-slate-600">Compare countries across wellbeing, inequality, corruption, media freedom, and more.</p>
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-center">
+            <div className="space-y-3 text-sm text-slate-600">
+              {["Wellbeing", "Inequality", "Corruption", "Media freedom", "And more..."].map((item) => (
+                <div className="flex items-center gap-2" key={item}>
+                  <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                  {item}
+                </div>
+              ))}
+              <Button asChild className="mt-2 rounded-full px-5" variant="outline">
+                <Link href="/map">
+                  Open the map
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="relative h-[15rem] overflow-hidden rounded-[1.5rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(247,249,246,0.94),rgba(255,255,255,0.92))]">
+              <Image alt="Global systems map" className="object-cover object-center" fill sizes="700px" src="/atlas/home-world-map.png" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[2rem] border border-[rgba(28,36,48,0.08)] bg-white px-6 py-6 shadow-[0_18px_40px_rgba(28,36,48,0.05)]">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-500">Simulate the future</p>
+              <h2 className="text-[1.9rem] font-semibold text-slate-900">What happens if...</h2>
+            </div>
+            <Link className="text-sm font-semibold text-primary transition hover:text-blue-700" href="/simulator">
+              Browse all simulations
+            </Link>
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            {SIMULATION_PROMPTS.map((prompt) => (
+              <SimulationPromptCard key={prompt.title} {...prompt} />
+            ))}
           </div>
         </div>
       </section>
 
       <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="atlas-display text-[2.2rem] text-slate-900">Featured simulations</h2>
-          <Link className="text-sm font-semibold text-primary transition hover:text-blue-700" href="/simulator">
-            Browse all simulators
-          </Link>
-        </div>
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1fr)]">
-          {featuredSimulations.map((simulation) => (
-            <SimulationCard key={simulation.title} {...simulation} />
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="atlas-display text-[2.2rem] text-slate-900">What the community is working on</h2>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="space-y-2">
+            <h2 className="text-[1.95rem] font-semibold text-slate-900">What the community is exploring</h2>
+            <p className="text-sm leading-7 text-slate-600">Claims, questions and proposals from across Society Lab.</p>
+          </div>
           <Link className="text-sm font-semibold text-primary transition hover:text-blue-700" href="/discussions">
-            View discussions
+            See all activity
           </Link>
         </div>
-        <div className="grid gap-4 xl:grid-cols-[repeat(4,minmax(0,1fr))_220px]">
-          {communityThreads.map((thread) => (
-            <CommunityCard key={thread.title} {...thread} />
+
+        <div className="grid gap-4 xl:grid-cols-4">
+          {COMMUNITY_EXPLORING.map((item) => (
+            <CommunityCard key={item.title} {...item} />
           ))}
-          <ActiveNowCard />
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-[2.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.92)] px-6 py-8 shadow-[0_24px_50px_rgba(28,36,48,0.06)] sm:px-8 sm:py-10">
-        <ImageWash
-          imageClassName="bg-[position:72%_58%] opacity-96"
-          overlayClassName="bg-[linear-gradient(90deg,rgba(246,244,238,0.94)_0%,rgba(246,244,238,0.86)_30%,rgba(246,244,238,0.46)_56%,rgba(246,244,238,0.04)_100%)]"
-          src="/atlas/home-footer-cta.png"
-        />
-        <div className="relative z-10 max-w-[31rem] space-y-5">
-          <p className="atlas-display text-[3rem] leading-[0.95] text-slate-900 sm:text-[3.7rem]">
-            The best way to predict the future is to design it together.
-          </p>
-          <Button asChild className="rounded-full px-7" size="lg">
-            <Link href="/learn">
-              Join the experiment
+      <section className="overflow-hidden rounded-[2.2rem] bg-[linear-gradient(135deg,#131c37,#1c2548_55%,#24335f)] px-6 py-8 text-white shadow-[0_24px_50px_rgba(10,16,32,0.18)] sm:px-8 sm:py-10">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+          <div className="space-y-5">
+            <h2 className="atlas-display max-w-[28rem] text-[2.6rem] leading-[0.96] text-white sm:text-[3.3rem]">
+              The world is too complex for simple answers.
+            </h2>
+            <div className="flex flex-wrap gap-6 text-sm text-white/80">
+              {FOOTER_STEPS.map((step) => (
+                <Link className="transition hover:text-white" href={step.href} key={step.title}>
+                  {step.title}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <Button asChild className="rounded-full bg-white px-7 text-slate-900 hover:bg-slate-100" size="lg">
+            <Link href="/auth">
+              Join Society Lab
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
       </section>
-
-      <div className="sr-only">{communitySummary} community threads featured on the homepage.</div>
     </AtlasPage>
   );
 }

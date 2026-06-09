@@ -103,6 +103,7 @@ export type Database = {
           allow_study_circle_invites: boolean;
           avatar_url: string | null;
           bio: string | null;
+          can_review_study_resources: boolean;
           contact_permission: Database["public"]["Enums"]["contact_permission"];
           created_at: string;
           discoverable_by_shared_modules: boolean;
@@ -124,6 +125,7 @@ export type Database = {
           allow_study_circle_invites?: boolean;
           avatar_url?: string | null;
           bio?: string | null;
+          can_review_study_resources?: boolean;
           contact_permission?: Database["public"]["Enums"]["contact_permission"];
           created_at?: string;
           discoverable_by_shared_modules?: boolean;
@@ -145,6 +147,7 @@ export type Database = {
           allow_study_circle_invites?: boolean;
           avatar_url?: string | null;
           bio?: string | null;
+          can_review_study_resources?: boolean;
           contact_permission?: Database["public"]["Enums"]["contact_permission"];
           created_at?: string;
           discoverable_by_shared_modules?: boolean;
@@ -312,6 +315,93 @@ export type Database = {
           {
             foreignKeyName: "simulations_owner_id_fkey";
             columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      study_resource_submissions: {
+        Row: {
+          access: string;
+          body_markdown: string | null;
+          category_id: string;
+          created_at: string;
+          format: string;
+          id: string;
+          level: string;
+          published_at: string | null;
+          rationale: string;
+          reviewed_at: string | null;
+          reviewer_id: string | null;
+          reviewer_notes: string | null;
+          source: string;
+          submission_kind: Database["public"]["Enums"]["study_resource_submission_kind"];
+          status: Database["public"]["Enums"]["study_resource_submission_status"];
+          submitter_id: string;
+          summary: string;
+          tags: string[];
+          title: string;
+          updated_at: string;
+          url: string | null;
+        };
+        Insert: {
+          access: string;
+          body_markdown?: string | null;
+          category_id: string;
+          created_at?: string;
+          format: string;
+          id?: string;
+          level: string;
+          published_at?: string | null;
+          rationale: string;
+          reviewed_at?: string | null;
+          reviewer_id?: string | null;
+          reviewer_notes?: string | null;
+          source: string;
+          submission_kind?: Database["public"]["Enums"]["study_resource_submission_kind"];
+          status?: Database["public"]["Enums"]["study_resource_submission_status"];
+          submitter_id: string;
+          summary: string;
+          tags?: string[];
+          title: string;
+          updated_at?: string;
+          url?: string | null;
+        };
+        Update: {
+          access?: string;
+          body_markdown?: string | null;
+          category_id?: string;
+          created_at?: string;
+          format?: string;
+          id?: string;
+          level?: string;
+          published_at?: string | null;
+          rationale?: string;
+          reviewed_at?: string | null;
+          reviewer_id?: string | null;
+          reviewer_notes?: string | null;
+          source?: string;
+          submission_kind?: Database["public"]["Enums"]["study_resource_submission_kind"];
+          status?: Database["public"]["Enums"]["study_resource_submission_status"];
+          submitter_id?: string;
+          summary?: string;
+          tags?: string[];
+          title?: string;
+          updated_at?: string;
+          url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "study_resource_submissions_reviewer_id_fkey";
+            columns: ["reviewer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "study_resource_submissions_submitter_id_fkey";
+            columns: ["submitter_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
@@ -547,6 +637,8 @@ export type Database = {
         | "risk_tradeoff"
         | "clarifying_question";
       proposal_status: "draft" | "open" | "accepted" | "rejected";
+      study_resource_submission_kind: "link" | "article";
+      study_resource_submission_status: "pending" | "approved" | "rejected";
       thread_context_type: "general" | "module" | "track";
       thread_kind: "public_discussion" | "private_circle";
       thread_participant_role: "owner" | "member";

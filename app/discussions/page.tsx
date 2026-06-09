@@ -21,6 +21,7 @@ import { DiscussionThread } from "@/components/discussion/discussion-thread";
 import { Button } from "@/components/ui/button";
 import { summarizeBackgroundFilters } from "@/lib/community/profile-options";
 import type { Database } from "@/lib/database.types";
+import { isSeededPublicThreadId, SEEDED_PUBLIC_THREADS } from "@/lib/discussion/seeded-public-threads";
 import { LEARNING_TRACKS } from "@/lib/tracks/config";
 import { createOptionalClient } from "@/lib/supabase/server";
 
@@ -141,7 +142,24 @@ export default async function DiscussionsPage({
   const supabase = await createOptionalClient();
 
   let currentUserId: string | null = null;
-  let publicThreads: PublicThreadSummary[] = [];
+  let publicThreads: PublicThreadSummary[] = SEEDED_PUBLIC_THREADS.map((thread) => ({
+    authorId: `seeded:${thread.id}`,
+    authorLabel: thread.authorLabel,
+    contextSlug: thread.contextSlug,
+    contextType: thread.contextType,
+    desiredAcademicLevels: thread.desiredAcademicLevels,
+    desiredExpertiseDomains: thread.desiredExpertiseDomains,
+    desiredProfessionalStages: thread.desiredProfessionalStages,
+    hasUserContribution: false,
+    id: thread.id,
+    isFollowed: false,
+    participationMode: thread.participationMode,
+    participationSummary: "Open to everyone",
+    postCount: thread.posts.length,
+    prompt: thread.prompt,
+    title: thread.title,
+    updatedAt: thread.updatedAt,
+  }));
 
   if (supabase) {
     const {
@@ -210,7 +228,7 @@ export default async function DiscussionsPage({
       }
     }
 
-    publicThreads = threadRows.map((thread) => {
+    const liveThreads = threadRows.map((thread) => {
       const contextSlug = thread.context_slug;
       const participationSummary = summarizeBackgroundFilters({
         academicLevels: thread.desired_academic_levels,
@@ -245,6 +263,8 @@ export default async function DiscussionsPage({
         updatedAt: thread.updated_at,
       } satisfies PublicThreadSummary;
     });
+
+    publicThreads = [...publicThreads, ...liveThreads];
   }
 
   const filteredPublicThreads = publicThreads.filter((thread) => {
@@ -260,7 +280,14 @@ export default async function DiscussionsPage({
       }
     | null = null;
 
-  if (supabase && requestedThreadId) {
+  if (requestedThreadId && isSeededPublicThreadId(requestedThreadId)) {
+    activeThread = {
+      id: requestedThreadId,
+      kind: "public_discussion",
+    };
+  }
+
+  if (supabase && requestedThreadId && !activeThread) {
     const { data } = await supabase
       .from("threads")
       .select("id, kind")
@@ -272,7 +299,7 @@ export default async function DiscussionsPage({
     }
   }
 
-  if (supabase && !activeThread) {
+  if (!activeThread) {
     const firstFilteredThread = filteredPublicThreads[0];
     if (firstFilteredThread) {
       activeThread = {
@@ -283,6 +310,8 @@ export default async function DiscussionsPage({
   }
 
   const selectedThreadId = activeThread?.id;
+  const selectedSeededThreadId =
+    selectedThreadId && isSeededPublicThreadId(selectedThreadId) ? selectedThreadId : undefined;
   const isPrivateCircle = activeThread?.kind === "private_circle";
   const showFilteredPublicThreads = !isPrivateCircle;
   const visibleThreads = filteredPublicThreads.slice(0, 6);
@@ -438,12 +467,19 @@ export default async function DiscussionsPage({
 
           {!isPrivateCircle ? <PublicDiscussionStarter /> : null}
 
-          {!isPrivateCircle && !hasFilteredResults ? null : <DiscussionThread threadId={selectedThreadId} />}
+          {!isPrivateCircle && !hasFilteredResults ? null : (
+            <DiscussionThread
+              seededThreadId={selectedSeededThreadId}
+              threadId={selectedSeededThreadId ? undefined : selectedThreadId}
+            />
+          )}
         </SoftPanel>
 
         <div className="space-y-6">
           <PrivateCirclesPanel selectedThreadId={selectedThreadId} />
-          {selectedThreadId ? <PrivateCircleParticipantsPanel threadId={selectedThreadId} /> : null}
+          {selectedThreadId && !selectedSeededThreadId ? (
+            <PrivateCircleParticipantsPanel threadId={selectedThreadId} />
+          ) : null}
 
           <SoftPanel>
             <div className="flex items-center gap-3">
