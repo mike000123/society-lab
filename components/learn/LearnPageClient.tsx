@@ -330,14 +330,10 @@ function QuestionCard({
             +{question.learnerCount}
           </span>
         </div>
-        <Link
-          className="inline-flex items-center gap-1 font-semibold text-primary"
-          href={startHref}
-          onClick={(event) => event.stopPropagation()}
-        >
+        <span className="inline-flex items-center gap-1 font-semibold text-primary">
           Open
           <ArrowRight className="h-4 w-4" />
-        </Link>
+        </span>
       </div>
     </Link>
   );
@@ -481,7 +477,7 @@ function TopicCard({
           sizes="(min-width: 1280px) 22vw, (min-width: 768px) 45vw, 100vw"
           src={imageSrc}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.66)_0%,rgba(255,255,255,0.52)_28%,rgba(255,255,255,0.28)_58%,rgba(255,255,255,0.4)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.10)_40%,rgba(255,255,255,0.22)_100%)]" />
       </div>
 
       <div className="relative z-10 space-y-4">

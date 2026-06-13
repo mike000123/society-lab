@@ -3,10 +3,12 @@ import Link from "next/link";
 import { ArrowLeft, BookOpenText, ClipboardCheck, Clock3, Layers3, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import type { LearningModule } from "@/lib/learn/modules";
+import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
 
 import { getLessonPromise, getLessonTakeaway, lessonAccentClasses } from "@/components/learn/lesson-theme";
+import { ShareLesson } from "@/components/learn/ShareLesson";
+import { StartDiscussionModal } from "@/components/learn/StartDiscussionModal";
 
 export function LessonHero({
   heroImageSrc,
@@ -14,7 +16,7 @@ export function LessonHero({
   quizQuestionCount,
 }: {
   heroImageSrc: string;
-  module: LearningModule;
+  module: ResolvedLearningModule;
   quizQuestionCount?: number;
 }) {
   const accent = lessonAccentClasses[module.accent];
@@ -112,6 +114,8 @@ export function LessonHero({
                 Open study resources
                 <BookOpenText className="h-4 w-4" />
               </Link>
+              <StartDiscussionModal module={module} />
+              <ShareLesson slug={module.slug} summary={module.summary} title={module.title} />
             </div>
           </div>
         </div>

@@ -1,9 +1,9 @@
 import { MiniLesson } from "@/components/learn/MiniLesson";
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
 import { lessonAccentClasses } from "@/components/learn/lesson-theme";
-import type { LearningModule } from "@/lib/learn/modules";
+import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 
-export function LessonInteractive({ module }: { module: LearningModule }) {
+export function LessonInteractive({ module }: { module: ResolvedLearningModule }) {
   const accent = lessonAccentClasses[module.accent];
   const keyLesson = module.heroHighlights[1] ?? module.systemBug.summary;
 

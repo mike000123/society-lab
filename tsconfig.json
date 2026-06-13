@@ -37,6 +37,7 @@
   ],
   "exclude": [
     "node_modules",
-    "Uploaded_on_github"
+    "Uploaded_on_github",
+    "scripts"
   ]
 }

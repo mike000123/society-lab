@@ -16,6 +16,7 @@ type ContactPermission = Database["public"]["Enums"]["contact_permission"];
 type ThreadContextType = Database["public"]["Enums"]["thread_context_type"];
 
 type SharedLearnersPanelProps = {
+  onSuccess?: () => void;
   contextSlug: string;
   contextTitle: string;
   contextType: Extract<ThreadContextType, "module" | "track">;
@@ -58,6 +59,7 @@ export function SharedLearnersPanel({
   contextTitle,
   contextType,
   moduleSlugs = [],
+  onSuccess,
 }: SharedLearnersPanelProps) {
   const router = useRouter();
   const supabase = useMemo(() => (hasSupabaseEnv ? createClient() : null), []);
@@ -267,6 +269,7 @@ export function SharedLearnersPanel({
       return;
     }
 
+    if (onSuccess) onSuccess();
     router.push(`/discussions?thread=${thread.id}`);
     router.refresh();
   }

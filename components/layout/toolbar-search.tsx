@@ -93,14 +93,14 @@ const SIMULATOR_SEARCH_ITEMS: SearchEntry[] = [
 
 const SEARCH_ITEMS: SearchEntry[] = [
   ...LEARNING_TRACKS.map((track) => ({
-    href: `/learn?view=tracks&track=${track.id}`,
+    href: `/learn?track=${track.id}`,
     keywords: `${track.title} ${track.tagline} ${track.description}`,
     subtitle: track.tagline,
     title: track.title,
     type: "Track" as const,
   })),
   ...LEARNING_JOURNEYS.map((journey) => ({
-    href: `/learn?view=journeys&journey=${journey.id}`,
+    href: `/learn?journey=${journey.id}`,
     keywords: `${journey.title} ${journey.tagline} ${journey.summary}`,
     subtitle: journey.tagline,
     title: journey.title,
@@ -108,9 +108,9 @@ const SEARCH_ITEMS: SearchEntry[] = [
   })),
   ...learningModules.map((module) => ({
     href: `/learn/${module.slug}`,
-    keywords: `${module.title} ${module.summary} ${module.eyebrow}`,
-    subtitle: module.eyebrow,
-    title: module.title,
+    keywords: `${module.title ?? ""} ${module.summary ?? ""} ${module.eyebrow ?? ""}`,
+    subtitle: module.eyebrow ?? "",
+    title: module.title ?? "",
     type: "Module" as const,
   })),
   ...SIMULATOR_SEARCH_ITEMS,

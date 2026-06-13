@@ -1,3 +1,12 @@
+---
+accent: rose
+difficulty: Intermediate
+eyebrow: Movement families
+readingTime: 8 min
+summary: Rights-based movements expand citizenship when visible injustice, broad coalitions, and disciplined disruption are converted into enforceable reforms rather than left as temporary moral outrage.
+title: How rights-based movements expand citizenship
+---
+
 :::cards Quick map
 These movements expose contradiction | They show the gap between a society's stated ideals and the groups it still excludes in practice.
 Visibility matters | Turning hidden harm into undeniable public reality is often the first breakthrough.

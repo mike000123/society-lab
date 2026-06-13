@@ -9,21 +9,21 @@ import type { StudyPath } from "@/lib/study/paths";
 
 export function StudyJourneyCard({
   description,
-  discussionHref,
   imageSrc,
   linkedTopics,
   path,
   progress,
   startHref,
+  onDiscuss,
   onPreview,
 }: {
   description: string;
-  discussionHref: string;
   imageSrc: string;
   linkedTopics: string[];
   path: StudyPath;
   progress: number;
   startHref?: string;
+  onDiscuss: () => void;
   onPreview: () => void;
 }) {
   return (
@@ -72,27 +72,25 @@ export function StudyJourneyCard({
           {startHref ? (
             <Button asChild className="rounded-full">
               <a href={startHref} rel={startHref.startsWith("http") ? "noreferrer" : undefined} target={startHref.startsWith("http") ? "_blank" : undefined}>
-                Start journey
+                Start reading
                 <ArrowRight className="h-4 w-4" />
               </a>
             </Button>
           ) : (
             <Button className="rounded-full" disabled type="button">
-              Start journey
+              Start reading
               <ArrowRight className="h-4 w-4" />
             </Button>
           )}
 
           <Button className="rounded-full" onClick={onPreview} type="button" variant="outline">
             <BookOpenText className="h-4 w-4" />
-            Preview
+            Relevant material
           </Button>
 
-          <Button asChild className="rounded-full" variant="outline">
-            <Link href={discussionHref}>
-              <MessageSquare className="h-4 w-4" />
-              Start discussion
-            </Link>
+          <Button className="rounded-full" onClick={onDiscuss} type="button" variant="outline">
+            <MessageSquare className="h-4 w-4" />
+            Discuss
           </Button>
         </div>
       </div>

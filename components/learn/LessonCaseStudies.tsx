@@ -1,6 +1,6 @@
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
 import { lessonAccentClasses } from "@/components/learn/lesson-theme";
-import type { LearningModule, RealWorldExample } from "@/lib/learn/modules";
+import type { AccentTone, LearningModule, RealWorldExample , ResolvedLearningModule } from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
 
 function CaseStudyItem({
@@ -8,7 +8,7 @@ function CaseStudyItem({
   example,
   index,
 }: {
-  accent: LearningModule["accent"];
+  accent: AccentTone;
   example: RealWorldExample;
   index: number;
 }) {
@@ -55,7 +55,7 @@ function CaseStudyItem({
   );
 }
 
-export function LessonCaseStudies({ module }: { module: LearningModule }) {
+export function LessonCaseStudies({ module }: { module: ResolvedLearningModule }) {
   return (
     <section className="space-y-6" id="real-world-examples">
       <LessonSectionHeader

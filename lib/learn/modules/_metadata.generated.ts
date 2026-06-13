@@ -45,6 +45,14 @@ export const generatedMetadata: Record<string, GeneratedMetadata> = {
     summary: "Banking, land speculation, urban design, and wealth inequality all feed the housing crisis. This capstone draws together the reform agenda that addresses each driver.",
     title: "Making Housing Affordable Again",
   },
+  "how-anti-colonial-movements-dismantled-empires-final": {
+    accent: "emerald",
+    difficulty: "",
+    eyebrow: "",
+    readingTime: "",
+    summary: "",
+    title: "",
+  },
   "how-anti-colonial-movements-dismantled-empires": {
     accent: "amber",
     difficulty: "Intermediate",
@@ -52,6 +60,14 @@ export const generatedMetadata: Record<string, GeneratedMetadata> = {
     readingTime: "7 min",
     summary: "The dismantling of European empires in the twentieth century was one of history's largest political transformations — achieved through a combination of armed resistance, mass non-cooperation, legal challenge, and the strategic exploitation of Cold War geopolitics.",
     title: "How anti-colonial movements dismantled empires",
+  },
+  "how-banking-crises-repeat-final": {
+    accent: "emerald",
+    difficulty: "",
+    eyebrow: "",
+    readingTime: "",
+    summary: "",
+    title: "",
   },
   "how-banking-crises-repeat": {
     accent: "rose",
@@ -61,6 +77,14 @@ export const generatedMetadata: Record<string, GeneratedMetadata> = {
     summary: "Banking crises look different each time — different assets, different institutions, different decades — but the underlying structure repeats: leverage, interconnection, and the socialisation of losses.",
     title: "How banking crises repeat",
   },
+  "how-banks-create-money-final": {
+    accent: "emerald",
+    difficulty: "",
+    eyebrow: "",
+    readingTime: "",
+    summary: "",
+    title: "",
+  },
   "how-banks-create-money": {
     accent: "cyan",
     difficulty: "Starter",
@@ -68,6 +92,14 @@ export const generatedMetadata: Record<string, GeneratedMetadata> = {
     readingTime: "7 min",
     summary: "Commercial banks do not lend out existing deposits — they create new money by issuing loans, making private credit decisions a form of economic policy.",
     title: "How banks create money",
+  },
+  "how-capitalism-socialism-and-communism-differ-final": {
+    accent: "emerald",
+    difficulty: "",
+    eyebrow: "",
+    readingTime: "",
+    summary: "",
+    title: "",
   },
   "how-capitalism-socialism-and-communism-differ": {
     accent: "amber",

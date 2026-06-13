@@ -1,6 +1,5 @@
-"use client";
-
 import Image from "next/image";
+import { CardCarousel } from "@/components/ui/CardCarousel";
 import Link from "next/link";
 import type { ElementType } from "react";
 import {
@@ -90,7 +89,7 @@ const WHY_IT_EXISTS = [
   {
     description: "We test ideas and policies in models to explore alternative futures.",
     icon: FlaskConical,
-    imageSrc: "/atlas/home-world3-card.png",
+    imageSrc: "/atlas/simulators/world3.png",
     prompt: "What if we change the rules?",
     title: "3. Simulations",
   },
@@ -130,28 +129,28 @@ const SIMULATION_PROMPTS = [
   {
     badge: "Intermediate",
     href: "/simulator/macro-economy",
-    imageSrc: "/atlas/learn-track-money-wealth.png",
+    imageSrc: "/atlas/simulators/macro-economy.png",
     subtitle: "Macro Economy Lab",
     title: "…banks stop creating money?",
   },
   {
     badge: "Intermediate",
     href: "/simulator/financial-crisis",
-    imageSrc: "/atlas/simulator-financial-crisis-card.png",
+    imageSrc: "/atlas/simulators/financial-crisis.png",
     subtitle: "Financial Crisis Simulator",
     title: "…a housing bubble bursts?",
   },
   {
     badge: "Advanced",
     href: "/simulator/world3",
-    imageSrc: "/atlas/home-world3-card.png",
+    imageSrc: "/atlas/simulators/world3.png",
     subtitle: "World3 Simulator",
     title: "…growth hits ecological limits?",
   },
   {
     badge: "Beginner",
     href: "/simulator/purchasing-power",
-    imageSrc: "/atlas/simulator-purchasing-power-card.png",
+    imageSrc: "/atlas/simulators/purchasing-power.png",
     subtitle: "Purchasing Power",
     title: "…inflation stays high for 10 years?",
   },
@@ -219,7 +218,7 @@ function QuestionCard({ question }: { question: PopularQuestionCard }) {
 
       <div className="mt-5 flex items-center justify-between gap-3 text-sm">
         <div className="flex items-center gap-3 text-slate-500">
-          <span>{question.moduleCount} lessons</span>
+          <span>{question.moduleCount} modules</span>
           <CommunityAvatars />
           <span>+{question.learnerCount}</span>
         </div>
@@ -433,11 +432,11 @@ export function SocietyLabLanding() {
           </Link>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        <CardCarousel perPage={5} className="px-6">
           {POPULAR_QUESTIONS.map((question) => (
             <QuestionCard key={question.id} question={question} />
           ))}
-        </div>
+        </CardCarousel>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">

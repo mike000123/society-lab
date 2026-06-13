@@ -1,3 +1,12 @@
+---
+accent: emerald
+difficulty: Starter
+eyebrow: Ecological economics
+readingTime: 8 min
+summary: Doughnut economics asks whether society keeps everyone above a social foundation while staying below ecological ceilings. It shifts the question from how fast the economy grows to whether it remains socially fair and biophysically viable.
+title: How Doughnut economics puts the economy inside limits
+---
+
 :::cards Quick map
 Two boundaries matter | A viable economy has to keep people above a social floor while staying below ecological ceilings.
 Nature is not external | Energy, water, land, climate stability, and biodiversity are not side issues. They are the material conditions the economy runs inside.

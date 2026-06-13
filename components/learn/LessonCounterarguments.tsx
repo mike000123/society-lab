@@ -1,9 +1,9 @@
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
 import { lessonAccentClasses } from "@/components/learn/lesson-theme";
-import type { LearningModule } from "@/lib/learn/modules";
+import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
 
-export function LessonCounterarguments({ module }: { module: LearningModule }) {
+export function LessonCounterarguments({ module }: { module: ResolvedLearningModule }) {
   const accent = lessonAccentClasses[module.accent];
 
   return (

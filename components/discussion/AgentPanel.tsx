@@ -13,6 +13,7 @@ interface AgentResponse {
 }
 
 interface AgentPanelProps {
+  defaultOpen?: boolean;
   recentPosts: { author: string; content: string; kind: string }[];
   topic: string;
 }
@@ -45,8 +46,8 @@ function AgentCard({
   );
 }
 
-export function AgentPanel({ topic, recentPosts }: AgentPanelProps) {
-  const [open, setOpen] = useState(false);
+export function AgentPanel({ defaultOpen = false, topic, recentPosts }: AgentPanelProps) {
+  const [open, setOpen] = useState(defaultOpen);
   const [selectedId, setSelectedId] = useState<string>(AGENT_PERSONAS[0].id);
   const [userPrompt, setUserPrompt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -105,8 +106,8 @@ export function AgentPanel({ topic, recentPosts }: AgentPanelProps) {
             <Bot className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">Ask an AI agent</p>
-            <p className="text-xs text-slate-500">Multiple perspectives for testing arguments, not replacing them.</p>
+            <p className="text-sm font-semibold text-slate-900">Test Your Argument</p>
+            <p className="text-xs text-slate-500">Get perspectives from AI agents.</p>
           </div>
         </div>
         {open ? <ChevronUp className="h-4 w-4 text-slate-500" /> : <ChevronDown className="h-4 w-4 text-slate-500" />}

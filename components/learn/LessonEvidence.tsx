@@ -7,7 +7,7 @@ import type {
   LearningArticleDocument,
   LearningArticleSource,
 } from "@/lib/learn/content";
-import type { AccentTone, LearningEvidenceLink, LearningModule } from "@/lib/learn/modules";
+import type { AccentTone, LearningEvidenceLink, LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 
 function renderSourceLink(link: LearningArticleSource | LearningEvidenceLink) {
   return (
@@ -221,7 +221,7 @@ export function LessonEvidence({
   module,
 }: {
   article?: LearningArticleDocument | null;
-  module: LearningModule;
+  module: ResolvedLearningModule;
 }) {
   const accent = lessonAccentClasses[module.accent];
   const expectedObservations = getExpectedObservations(module);

@@ -9,3 +9,13 @@ Uploaded_on_github/
 tsconfig.tsbuildinfo
 tmp_visual/
 tmp_visual_dev/
+
+# Generated at build time — do not commit
+lib/learn/modules/_metadata.generated.ts
+
+# Temporary browser/tool artifacts — not part of the project
+tmp_visual_dev/
+tmp_pptx/
+tmp_pptx_icons/
+.tmp-edge*/
+transcripts/

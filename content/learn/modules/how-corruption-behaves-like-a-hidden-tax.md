@@ -1,3 +1,12 @@
+---
+accent: rose
+difficulty: Starter
+eyebrow: Institutional integrity
+readingTime: 6 min
+summary: Corruption quietly increases costs, delays, and uncertainty across the system, much like an unofficial tax that buys worse outcomes.
+title: How corruption behaves like a hidden tax
+---
+
 :::cards Quick map
 Corruption raises the cost of normal life | People pay in money, time, uncertainty, and lost fairness.
 The damage is wider than one bribe | Procurement scams, favoritism, and gatekeeping degrade entire institutions.

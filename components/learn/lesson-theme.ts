@@ -1,5 +1,4 @@
-import type { LearningModule } from "@/lib/learn/modules";
-import type { AccentTone, CausalLoopNode } from "@/lib/learn/modules";
+import type { AccentTone, CausalLoopNode, LearningModule, ResolvedLearningModule } from "@/lib/learn/modules";
 
 export const lessonAccentClasses: Record<
   AccentTone,
@@ -63,15 +62,15 @@ export function extractFirstSentence(text: string | undefined) {
   return (match?.[0] ?? normalized).trim();
 }
 
-export function getLessonPromise(module: LearningModule) {
+export function getLessonPromise(module: ResolvedLearningModule) {
   return extractFirstSentence(module.simpleExplanation[0]) || module.summary;
 }
 
-export function getLessonTakeaway(module: LearningModule) {
+export function getLessonTakeaway(module: ResolvedLearningModule) {
   return module.heroHighlights[0] ?? (extractFirstSentence(module.systemBug.summary) || module.summary);
 }
 
-export function getExpectedObservations(module: LearningModule) {
+export function getExpectedObservations(module: ResolvedLearningModule) {
   return module.systemBug.signals.slice(0, 3);
 }
 

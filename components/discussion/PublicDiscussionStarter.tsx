@@ -19,7 +19,21 @@ import { cn } from "@/lib/utils";
 
 type ThreadParticipationMode = Database["public"]["Enums"]["thread_participation_mode"];
 
-export function PublicDiscussionStarter() {
+export function PublicDiscussionStarter({
+  compact,
+  contextSlug,
+  contextType = "general",
+  initialPrompt,
+  initialTitle,
+  onSuccess,
+}: {
+  compact?: boolean;
+  contextSlug?: string;
+  contextType?: string;
+  initialPrompt?: string;
+  initialTitle?: string;
+  onSuccess?: () => void;
+} = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => (hasSupabaseEnv ? createClient() : null), []);
@@ -80,18 +94,12 @@ export function PublicDiscussionStarter() {
   }, [supabase]);
 
   useEffect(() => {
-    if (!prefilledTitle && !prefilledPrompt) {
-      return;
-    }
-
-    if (prefilledTitle) {
-      setTitle(prefilledTitle);
-    }
-
-    if (prefilledPrompt) {
-      setPrompt(prefilledPrompt);
-    }
-  }, [prefilledPrompt, prefilledTitle]);
+    const resolvedTitle = initialTitle ?? prefilledTitle;
+    const resolvedPrompt = initialPrompt ?? prefilledPrompt;
+    if (resolvedTitle) setTitle(resolvedTitle);
+    if (resolvedPrompt) setPrompt(resolvedPrompt);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -123,8 +131,8 @@ export function PublicDiscussionStarter() {
       .from("threads")
       .insert({
         author_id: user.id,
-        context_slug: null,
-        context_type: "general",
+        context_slug: contextSlug ?? null,
+        context_type: contextType as Database["public"]["Enums"]["thread_context_type"],
         desired_academic_levels: participationMode === "background_guided" ? desiredAcademicLevels : [],
         desired_expertise_domains: participationMode === "background_guided" ? desiredExpertiseDomains : [],
         desired_professional_stages: participationMode === "background_guided" ? desiredProfessionalStages : [],
@@ -151,6 +159,7 @@ export function PublicDiscussionStarter() {
     setDesiredProfessionalStages([]);
     setDesiredExpertiseDomains([]);
     setSubmitting(false);
+    if (onSuccess) onSuccess();
     router.push(`/discussions?filter=all&thread=${data.id}#discussion-board`);
   }
 
@@ -163,22 +172,32 @@ export function PublicDiscussionStarter() {
       className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.55)] px-4 py-4"
       id="start-discussion"
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="atlas-kicker">Start a public discussion</p>
-          <h3 className="mt-1 text-lg font-semibold text-slate-900">Open a new public thread</h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Frame the core question clearly, then use the thread below to add claims, evidence, counterclaims,
-            and synthesis around it.
-          </p>
-        </div>
+      {!compact ? (
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="atlas-kicker">Start a public discussion</p>
+            <h3 className="mt-1 text-lg font-semibold text-slate-900">Open a new public thread</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Frame the core question clearly, then use the thread below to add claims, evidence, counterclaims,
+              and synthesis around it.
+            </p>
+          </div>
 
-        {!userId ? (
-          <Link className="text-sm font-semibold text-primary transition hover:text-slate-900" href="/auth">
-            Sign in to post <ArrowRight className="ml-1 inline h-4 w-4" />
-          </Link>
-        ) : null}
-      </div>
+          {!userId ? (
+            <Link className="text-sm font-semibold text-primary transition hover:text-slate-900" href="/auth">
+              Sign in to post <ArrowRight className="ml-1 inline h-4 w-4" />
+            </Link>
+          ) : null}
+        </div>
+      ) : (
+        !userId ? (
+          <div className="flex justify-end">
+            <Link className="text-sm font-semibold text-primary transition hover:text-slate-900" href="/auth">
+              Sign in to post <ArrowRight className="ml-1 inline h-4 w-4" />
+            </Link>
+          </div>
+        ) : null
+      )}
 
       <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
         <input

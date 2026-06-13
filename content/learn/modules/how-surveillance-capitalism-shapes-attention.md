@@ -1,3 +1,12 @@
+---
+accent: rose
+difficulty: Beginner
+eyebrow: Information system
+readingTime: 9 min
+summary: Surveillance capitalism turns human behavioral data into prediction products sold to influence behavior — with outrage amplification as a structural side effect of the business model.
+title: How surveillance capitalism shapes attention
+---
+
 :::cards Quick map
 The commodity is prediction | Platforms do not only host content. They extract behavior, model it, and sell influence over what people do next.
 Tracking is only the first step | Data becomes valuable when it can be packaged into targeting, ranking, nudging, and differential messaging.

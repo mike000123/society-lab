@@ -1,3 +1,12 @@
+---
+accent: amber
+difficulty: Intermediate
+eyebrow: Movement synthesis
+readingTime: 9 min
+summary: From pamphlets to hashtags, movements repeatedly change history when new coordination tools, durable organization, and elite vulnerability combine strongly enough to turn grievance into institutional transformation.
+title: How social movements reshape history
+---
+
 :::cards Quick map
 Movements are different on the surface but not random underneath | Across centuries, grievance, communication, organization, and institutional weakness recur as the main ingredients.
 New media changes speed, not the need for structure | Pamphlets, newspapers, television, and platforms each lower coordination costs in different ways.

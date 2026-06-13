@@ -1,3 +1,12 @@
+---
+accent: cyan
+difficulty: Starter
+eyebrow: Systems risk
+readingTime: 8 min
+summary: Pollution becomes a systems risk when it accumulates faster than the environment can absorb it. Delayed feedback hides the danger, resilience erodes quietly, and then change can become abrupt and harder to reverse.
+title: How pollution builds up until systems tip
+---
+
 :::cards Quick map
 Flows are not the whole story | The real danger often sits in the stock that keeps accumulating year after year.
 Delay hides danger | Systems can absorb harm for a while, which makes late-stage damage look sudden even when pressure was building for a long time.

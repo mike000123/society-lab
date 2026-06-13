@@ -9,10 +9,13 @@ import { LessonHero } from "@/components/learn/LessonHero";
 import { LessonInteractive } from "@/components/learn/LessonInteractive";
 import { LessonMechanism } from "@/components/learn/LessonMechanism";
 import { LessonNextActions } from "@/components/learn/LessonNextActions";
+import { LessonProposals } from "@/components/learn/LessonProposals";
+import { LessonSynthesis } from "@/components/learn/LessonSynthesis";
 import { LessonWhyItMatters } from "@/components/learn/LessonWhyItMatters";
 import { lessonAccentClasses } from "@/components/learn/lesson-theme";
 import type { LearningArticleDocument } from "@/lib/learn/content";
-import type { LearningModule } from "@/lib/learn/modules";
+import type { AccentTone, LearningModule , ResolvedLearningModule } from "@/lib/learn/modules";
+import type { LearningPathCard } from "@/lib/learn/discovery";
 import type { LearningTrack } from "@/lib/tracks/config";
 import { cn } from "@/lib/utils";
 
@@ -23,14 +26,16 @@ type LessonSectionLink = {
 
 function SidebarNav({
   currentIndex,
+  currentPath,
   currentTrack,
   module,
   sectionLinks,
   trackModules,
 }: {
   currentIndex: number;
+  currentPath?: LearningPathCard | null;
   currentTrack?: LearningTrack | null;
-  module: LearningModule;
+  module: ResolvedLearningModule;
   sectionLinks: LessonSectionLink[];
   trackModules: LearningModule[];
 }) {
@@ -45,10 +50,10 @@ function SidebarNav({
           Back to Learn
         </Link>
 
-        {currentTrack ? (
+        {(currentTrack ?? currentPath) ? (
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{currentTrack.title}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{currentPath?.title ?? currentTrack?.title}</p>
               <p className="mt-2 text-sm leading-7 text-slate-600">{module.eyebrow}</p>
               <p className="mt-3 text-sm font-medium text-slate-500">
                 Lesson {currentIndex + 1} of {trackModules.length}
@@ -149,7 +154,7 @@ function SidebarNav({
             </Link>
             <Link
               className="flex items-center justify-between rounded-[1rem] px-3 py-2 text-sm text-slate-600 transition hover:bg-[rgba(246,244,238,0.72)] hover:text-slate-900"
-              href="/learn?view=tracks"
+              href="/learn#browse-by-topic"
             >
               <span>Open track explorer</span>
               <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
@@ -164,10 +169,12 @@ function SidebarNav({
 function LessonSequenceNav({
   accent,
   nextModule,
+  pathId,
   previousModule,
 }: {
-  accent: LearningModule["accent"];
+  accent: AccentTone;
   nextModule?: LearningModule | null;
+  pathId?: string;
   previousModule?: LearningModule | null;
 }) {
   if (!previousModule && !nextModule) {
@@ -184,7 +191,7 @@ function LessonSequenceNav({
             "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900",
             accentStyles.line,
           )}
-          href={`/learn/${previousModule.slug}`}
+          href={`/learn/${previousModule.slug}${pathId ? `?path=${pathId}` : ""}`}
         >
           <ArrowLeft className="h-4 w-4" />
           Previous lesson
@@ -196,7 +203,7 @@ function LessonSequenceNav({
             "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900",
             accentStyles.line,
           )}
-          href={`/learn/${nextModule.slug}`}
+          href={`/learn/${nextModule.slug}${pathId ? `?path=${pathId}` : ""}`}
         >
           Next lesson
           <ArrowRight className="h-4 w-4" />
@@ -209,39 +216,50 @@ function LessonSequenceNav({
 export function AtlasLessonPage({
   article,
   currentIndex,
+  currentPath,
   currentTrack,
   heroImageSrc,
   module,
   nextModule,
+  pathId,
   previousModule,
   quizQuestionCount,
   trackModules,
 }: {
   article?: LearningArticleDocument | null;
   currentIndex: number;
+  currentPath?: LearningPathCard | null;
   currentTrack?: LearningTrack | null;
   heroImageSrc: string;
-  module: LearningModule;
+  module: ResolvedLearningModule;
   nextModule?: LearningModule | null;
+  pathId?: string;
   previousModule?: LearningModule | null;
   quizQuestionCount?: number;
   trackModules: LearningModule[];
 }) {
-  const sectionLinks: LessonSectionLink[] = [
-    { id: "why-this-matters", label: "Why this matters" },
-    { id: "core-mechanism", label: "Core mechanism" },
-    { id: "evidence", label: "Evidence" },
-    { id: "real-world-examples", label: "Real world examples" },
-    { id: "interactive-exploration", label: "Interactive exploration" },
-    { id: "counterarguments", label: "Counterarguments" },
-    { id: "next-actions", label: "Next actions" },
-  ];
+  const sectionLinks: LessonSectionLink[] = module.synthesisOf
+    ? [
+        { id: "reform-proposals", label: "Reform proposals" },
+        { id: "next-actions", label: "Next actions" },
+      ]
+    : [
+        { id: "why-this-matters", label: "Why this matters" },
+        { id: "core-mechanism", label: "Core mechanism" },
+        { id: "evidence", label: "Evidence" },
+        { id: "real-world-examples", label: "Real world examples" },
+        { id: "interactive-exploration", label: "Interactive exploration" },
+        { id: "counterarguments", label: "Counterarguments" },
+        { id: "what-could-change", label: "What could change this?" },
+        { id: "next-actions", label: "Next actions" },
+      ];
 
   return (
     <AtlasPage className="!max-w-[118rem] pb-20">
       <div className="mx-auto grid gap-8 xl:grid-cols-[16rem_minmax(0,1fr)] xl:gap-12">
         <SidebarNav
           currentIndex={currentIndex}
+          currentPath={currentPath}
           currentTrack={currentTrack}
           module={module}
           sectionLinks={sectionLinks}
@@ -250,13 +268,20 @@ export function AtlasLessonPage({
 
         <main className="min-w-0 space-y-10 xl:space-y-12">
           <LessonHero heroImageSrc={heroImageSrc} module={module} quizQuestionCount={quizQuestionCount} />
-          <LessonSequenceNav accent={module.accent} nextModule={nextModule} previousModule={previousModule} />
-          <LessonWhyItMatters module={module} />
-          <LessonMechanism module={module} />
-          <LessonEvidence article={article} module={module} />
-          <LessonCaseStudies module={module} />
-          <LessonInteractive module={module} />
-          <LessonCounterarguments module={module} />
+          <LessonSequenceNav accent={module.accent} nextModule={nextModule} pathId={pathId} previousModule={previousModule} />
+          {module.synthesisOf ? (
+            <LessonSynthesis module={module} />
+          ) : (
+            <>
+              <LessonWhyItMatters module={module} />
+              <LessonMechanism module={module} />
+              <LessonEvidence article={article} module={module} />
+              <LessonCaseStudies module={module} />
+              <LessonInteractive module={module} />
+              <LessonCounterarguments module={module} />
+              <LessonProposals module={module} />
+            </>
+          )}
           <LessonNextActions
             currentTrack={currentTrack}
             module={module}

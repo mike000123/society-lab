@@ -2,12 +2,12 @@ import { Check, House, ShieldAlert, Wallet } from "lucide-react";
 
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
 import { lessonAccentClasses } from "@/components/learn/lesson-theme";
-import type { LearningModule } from "@/lib/learn/modules";
+import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
 
 const everydayIcons = [House, Wallet, ShieldAlert];
 
-export function LessonWhyItMatters({ module }: { module: LearningModule }) {
+export function LessonWhyItMatters({ module }: { module: ResolvedLearningModule }) {
   const accent = lessonAccentClasses[module.accent];
   const ordinaryImpacts = module.realWorldExamples.slice(0, 3);
 

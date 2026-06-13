@@ -10,7 +10,7 @@ import {
 import { SharedLearnersPanel } from "@/components/social/SharedLearnersPanel";
 import { Button } from "@/components/ui/button";
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
-import type { LearningModule } from "@/lib/learn/modules";
+import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 import type { LearningTrack } from "@/lib/tracks/config";
 import { withQuery } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ export function LessonNextActions({
   quizQuestionCount,
 }: {
   currentTrack?: LearningTrack | null;
-  module: LearningModule;
+  module: ResolvedLearningModule;
   nextModule?: LearningModule | null;
   quizQuestionCount?: number;
 }) {

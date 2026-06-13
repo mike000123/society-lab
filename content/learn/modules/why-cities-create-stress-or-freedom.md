@@ -1,3 +1,12 @@
+---
+accent: emerald
+difficulty: Starter
+eyebrow: Urban systems
+readingTime: 6 min
+summary: Urban design can either tax people with distance and friction or create calm, flexibility, and local freedom.
+title: Why cities create stress or freedom
+---
+
 :::cards Quick map
 Urban life is designed, not fated | Density alone does not decide whether a city feels liberating or exhausting.
 Distance becomes a hidden tax | Long commutes, separated land uses, and mandatory driving quietly consume time, cash, and attention.

@@ -1,3 +1,12 @@
+---
+accent: amber
+difficulty: Intermediate
+eyebrow: Economic system
+readingTime: 7 min
+summary: When the return on capital consistently exceeds economic growth, existing wealth compounds faster than wages rise, structurally widening inequality over time.
+title: How wealth compounds faster than wages
+---
+
 :::cards Quick map
 Income and wealth are different | Income is what flows in; wealth is what keeps accumulating and can keep earning more.
 Compounding changes the game | When returns on assets exceed wage growth for long enough, the gap widens almost automatically.

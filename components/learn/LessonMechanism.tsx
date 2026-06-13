@@ -4,10 +4,10 @@ import { CausalLoopDiagram } from "@/components/learn/CausalLoopDiagram";
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
 import { LearningTimeline } from "@/components/learn/LearningTimeline";
 import { buildMechanismSteps, lessonAccentClasses } from "@/components/learn/lesson-theme";
-import type { LearningModule } from "@/lib/learn/modules";
+import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
 
-export function LessonMechanism({ module }: { module: LearningModule }) {
+export function LessonMechanism({ module }: { module: ResolvedLearningModule }) {
   const accent = lessonAccentClasses[module.accent];
   const steps = buildMechanismSteps(module.causalLoop.nodes);
 

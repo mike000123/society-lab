@@ -54,8 +54,18 @@ export type LearningArticleBlock =
       type: "sources";
     };
 
+export type LearningArticleMeta = {
+  accent?: string;
+  difficulty?: string;
+  eyebrow?: string;
+  readingTime?: string;
+  summary?: string;
+  title?: string;
+};
+
 export type LearningArticleDocument = {
   blocks: LearningArticleBlock[];
+  meta: LearningArticleMeta;
 };
 
 const articleExtensions = [".md", ".txt"];
@@ -139,8 +149,30 @@ function parseChartBlock(lines: string[], title?: string): LearningArticleBlock 
   };
 }
 
+function parseFrontmatter(raw: string): { meta: LearningArticleMeta; body: string } {
+  const normalised = raw.replace(/\r\n/g, "\n");
+  if (!normalised.startsWith("---\n")) {
+    return { meta: {}, body: normalised };
+  }
+  const close = normalised.indexOf("\n---\n", 4);
+  if (close === -1) {
+    return { meta: {}, body: normalised };
+  }
+  const fmLines = normalised.slice(4, close).split("\n");
+  const meta: LearningArticleMeta = {};
+  for (const line of fmLines) {
+    const colon = line.indexOf(": ");
+    if (colon === -1) continue;
+    const key = line.slice(0, colon).trim() as keyof LearningArticleMeta;
+    const value = line.slice(colon + 2).trim();
+    if (key && value) meta[key] = value;
+  }
+  return { meta, body: normalised.slice(close + 5) };
+}
+
 function parseLearningArticle(raw: string): LearningArticleDocument {
-  const lines = raw.replace(/\r\n/g, "\n").split("\n");
+  const { meta, body } = parseFrontmatter(raw);
+  const lines = body.replace(/\r\n/g, "\n").split("\n");
   const blocks: LearningArticleBlock[] = [];
 
   let index = 0;
@@ -280,6 +312,7 @@ function parseLearningArticle(raw: string): LearningArticleDocument {
 
   return {
     blocks,
+    meta,
   };
 }
 
@@ -293,7 +326,9 @@ export const getLearningArticleBySlug = cache((slug: string) => {
   const raw = readFileSync(articlePath, "utf-8");
   const article = parseLearningArticle(raw);
 
-  if (article.blocks.length === 0) {
+  // Return null only if there is neither body content nor frontmatter meta
+  const hasMeta = Object.keys(article.meta).length > 0;
+  if (article.blocks.length === 0 && !hasMeta) {
     return null;
   }
 

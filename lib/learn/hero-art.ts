@@ -9,15 +9,18 @@ const TRACK_FALLBACK_ART: Record<string, string> = {
 };
 
 function publicCandidateToWebPath(candidate: string) {
-  const atlasIndex = candidate.lastIndexOf(`${path.sep}public${path.sep}`);
-  if (atlasIndex < 0) return null;
-
-  const relative = candidate.slice(atlasIndex + `${path.sep}public`.length).split(path.sep).join("/");
+  const idx = candidate.lastIndexOf(`${path.sep}public${path.sep}`);
+  if (idx < 0) return null;
+  const relative = candidate.slice(idx + `${path.sep}public`.length).split(path.sep).join("/");
   return relative.startsWith("/") ? relative : `/${relative}`;
 }
 
 export function getLessonHeroImage(slug: string, trackId?: string | null) {
   const candidates = [
+    // ── New structured paths (preferred) ──────────────────────────────────
+    path.join(process.cwd(), "public", "images", "learn", slug, "hero.webp"),
+    path.join(process.cwd(), "public", "images", "learn", slug, "hero.png"),
+    // ── Legacy atlas paths (backward-compatible) ───────────────────────────
     path.join(process.cwd(), "public", "atlas", "modules", `${slug}-hero.png`),
     path.join(process.cwd(), "public", "atlas", "modules", `${slug}.png`),
     path.join(process.cwd(), "public", "atlas", `${slug}-hero.png`),

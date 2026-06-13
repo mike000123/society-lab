@@ -1,3 +1,12 @@
+---
+accent: cyan
+difficulty: Starter
+eyebrow: Economic measurement
+readingTime: 7 min
+summary: GDP can climb while people become more stressed, less healthy, less secure, and less able to afford a decent life.
+title: Why GDP is not the same as wellbeing
+---
+
 :::cards Quick map
 GDP counts transactions | GDP is good at measuring market activity, but it does not ask whether that activity makes life calmer, healthier, or more secure.
 Damage can raise the score | Cleanup spending, stress-related care, long commutes, and speculative housing booms can all lift GDP even when daily life is getting worse.

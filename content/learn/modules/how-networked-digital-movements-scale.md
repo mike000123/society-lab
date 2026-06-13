@@ -1,3 +1,12 @@
+---
+accent: cyan
+difficulty: Intermediate
+eyebrow: Movement families
+readingTime: 8 min
+summary: Networked movements scale through fast witness and low participation costs, but their historic impact depends on whether viral attention is converted into durable institutions and enforceable change.
+title: How networked movements scale through digital media
+---
+
 :::cards Quick map
 The first act is often witnessing | A phone camera, post, or hashtag can make a local event visible before gatekeepers regain control of the story.
 Entry is cheap, staying power is not | Digital movements can recruit fast, but durable influence still requires organization and institutional bridges.

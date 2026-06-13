@@ -29,7 +29,7 @@ const accentClasses: Record<AccentTone, { badge: string; glow: string; ring: str
 };
 
 export function LearnCard({ module }: { module: LearningModule }) {
-  const accent = accentClasses[module.accent];
+  const accent = accentClasses[module.accent ?? "emerald"];
 
   return (
     <article

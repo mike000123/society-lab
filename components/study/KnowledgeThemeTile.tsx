@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { ArrowRight, BookOpenText, Database, Globe2, Landmark, Leaf, MessageSquare, Monitor, type LucideIcon } from "lucide-react";
 
 import type { StudyAccent, StudyCategory } from "@/lib/study/catalog";
@@ -52,15 +51,15 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 
 export function KnowledgeThemeTile({
   category,
-  discussionHref,
   imageSrc,
   isSelected,
+  onDiscuss,
   onOpenTopic,
 }: {
   category: StudyCategory;
-  discussionHref: string;
   imageSrc: string;
   isSelected: boolean;
+  onDiscuss: () => void;
   onOpenTopic: () => void;
 }) {
   const Icon = CATEGORY_ICONS[category.id] ?? BookOpenText;
@@ -107,16 +106,17 @@ export function KnowledgeThemeTile({
             onClick={onOpenTopic}
             type="button"
           >
-            Open topic
+            Relevant material
             <ArrowRight className="h-4 w-4" />
           </button>
-          <Link
+          <button
             className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/94 px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
-            href={discussionHref}
+            onClick={onDiscuss}
+            type="button"
           >
             Discuss
             <MessageSquare className="h-4 w-4" />
-          </Link>
+          </button>
         </div>
       </div>
     </article>

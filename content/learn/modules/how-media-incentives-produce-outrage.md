@@ -1,3 +1,12 @@
+---
+accent: rose
+difficulty: Starter
+eyebrow: Media systems
+readingTime: 8 min
+summary: Attention markets often reward emotional escalation, which can increase engagement while degrading trust and nuance.
+title: How media incentives produce outrage
+---
+
 :::cards Quick map
 Outrage is efficient content | Anger, fear, disgust, and status conflict grab attention faster than context or ambiguity.
 The system trains producers and users | Platforms reward creators who escalate, and they also teach audiences what kind of expression gets noticed.

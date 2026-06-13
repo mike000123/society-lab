@@ -1,3 +1,12 @@
+---
+accent: rose
+difficulty: Intermediate
+eyebrow: Public opinion design
+readingTime: 10 min
+summary: Corporate marketing can do more than sell products: it can borrow movement language, shape norms, and reorganize public opinion by tying consumption to identity and freedom.
+title: How companies engineer public opinion through marketing
+---
+
 :::cards Quick map
 The deepest campaigns sell meanings | Strong marketing does not stop at features. It attaches products to freedom, romance, adulthood, rebellion, safety, or care.
 Real movements can be borrowed | Companies often take the language of genuine social change and redirect it toward sales.

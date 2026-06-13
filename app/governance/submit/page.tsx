@@ -6,11 +6,14 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, MessageSquareQuote, PlusCircle, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { BookOpen, CheckCircle2, CircleDashed, FlaskConical, Scale } from "lucide-react";
 import { SEEDED_PROPOSALS, CATEGORY_META, type ProposalCategory } from "@/lib/governance/proposals";
 import { SEEDED_PUBLIC_THREADS } from "@/lib/discussion/seeded-public-threads";
 import { useSubmissions } from "@/lib/governance/votes";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/public-env";
+import { learningModules } from "@/lib/learn/modules";
+import type { ModuleProposal, ProposalFeasibility } from "@/lib/learn/modules";
 
 const CATEGORIES: { key: ProposalCategory; label: string; description: string }[] = [
   { key: "economic",    label: "Economic",    description: "Money, taxation, markets, banking" },
@@ -19,12 +22,52 @@ const CATEGORIES: { key: ProposalCategory; label: string; description: string }[
   { key: "information", label: "Information", description: "Media, data, algorithms, privacy" },
 ];
 
-// Build a list of modules from seeded proposals (deduplicated)
-const MODULE_OPTIONS = Array.from(
-  new Map(
-    SEEDED_PROPOSALS.filter((p) => p.moduleSlug).map((p) => [p.moduleSlug, { slug: p.moduleSlug!, title: p.moduleTitle! }])
-  ).values()
-);
+// All modules as options (full list, not just seeded-proposals)
+const MODULE_OPTIONS = learningModules.map((m) => ({ slug: m.slug, title: m.title }));
+
+const FEASIBILITY_ICON: Record<ProposalFeasibility, React.ElementType> = {
+  proven:       CheckCircle2,
+  emerging:     FlaskConical,
+  contested:    Scale,
+  long_horizon: CircleDashed,
+};
+const FEASIBILITY_LABEL: Record<ProposalFeasibility, string> = {
+  proven: "Proven", emerging: "Emerging", contested: "Contested", long_horizon: "Long horizon",
+};
+const FEASIBILITY_CLASS: Record<ProposalFeasibility, string> = {
+  proven:       "border-emerald-300/40 bg-emerald-400/10 text-emerald-300",
+  emerging:     "border-cyan-300/40 bg-cyan-400/10 text-cyan-300",
+  contested:    "border-amber-300/40 bg-amber-400/10 text-amber-300",
+  long_horizon: "border-slate-600 bg-slate-800 text-slate-400",
+};
+
+function AtlasProposalCard({ proposal }: { proposal: ModuleProposal }) {
+  const Icon = FEASIBILITY_ICON[proposal.feasibility];
+  return (
+    <div className="rounded-2xl border border-slate-700 bg-slate-900/60 px-4 py-3.5 space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold", FEASIBILITY_CLASS[proposal.feasibility])}>
+          <Icon className="h-3 w-3" />
+          {FEASIBILITY_LABEL[proposal.feasibility]}
+        </span>
+        <span className="rounded-full border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
+          {proposal.actor.replace(/_/g, " ")}
+        </span>
+      </div>
+      <p className="text-sm font-semibold text-slate-100">{proposal.title}</p>
+      <p className="text-xs leading-5 text-slate-400">{proposal.summary}</p>
+      {proposal.precedents && proposal.precedents.length > 0 ? (
+        <div className="space-y-1 pt-1">
+          {proposal.precedents.slice(0, 2).map((p, i) => (
+            <p key={i} className="text-xs text-slate-500">
+              <span className="font-medium text-slate-400">{p.place} ({p.year})</span> — {p.outcome}
+            </p>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 type DiscussionOption = { id: string; title: string; prompt: string | null };
 
@@ -42,8 +85,19 @@ export default function SubmitProposalPage() {
   const [description, setDescription] = useState("");
   const [rationale, setRationale] = useState("");
   const [category, setCategory] = useState<ProposalCategory | "">("");
-  const [moduleSlug, setModuleSlug] = useState<string>("");
+  const requestedModuleSlug =
+    typeof searchParams.get("module") === "string" && searchParams.get("module")?.trim()
+      ? searchParams.get("module")!.trim()
+      : "";
+  const [moduleSlug, setModuleSlug] = useState<string>(requestedModuleSlug);
   const [discussionThreadId, setDiscussionThreadId] = useState<string>("");
+
+  // Atlas proposals for the currently selected module
+  const atlasProposals = useMemo<ModuleProposal[]>(() => {
+    if (!moduleSlug) return [];
+    const mod = learningModules.find((m) => m.slug === moduleSlug);
+    return mod?.proposals ?? [];
+  }, [moduleSlug]);
   const [authorName, setAuthorName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -252,6 +306,9 @@ export default function SubmitProposalPage() {
           <label htmlFor="module" className="block text-xs uppercase tracking-[0.22em] text-slate-500">
             Related module <span className="text-slate-600">(optional)</span>
           </label>
+          <p className="text-xs text-slate-600">
+            Link your proposal to a module — this surfaces the Atlas evidence base for that problem alongside your submission.
+          </p>
           <select
             id="module"
             value={moduleSlug}
@@ -264,6 +321,35 @@ export default function SubmitProposalPage() {
             ))}
           </select>
         </div>
+
+        {/* Atlas proposals context panel */}
+        {atlasProposals.length > 0 ? (
+          <div className="rounded-[1.75rem] border border-slate-700 bg-slate-950/70 p-5 sm:p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10">
+                <BookOpen className="h-4 w-4 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-100">Atlas proposals for this module</p>
+                <p className="mt-0.5 text-xs leading-5 text-slate-400">
+                  These are precedented, evidence-based reforms identified in the module. Use them as a starting
+                  point, build on them, or propose something different — it&apos;s your call.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {atlasProposals.map((proposal, i) => (
+                <AtlasProposalCard key={i} proposal={proposal} />
+              ))}
+            </div>
+            <Link
+              href={`/learn/${moduleSlug}#proposals`}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 transition hover:text-emerald-300"
+            >
+              Read the full module analysis <ArrowLeft className="h-3 w-3 rotate-180" />
+            </Link>
+          </div>
+        ) : null}
 
         <div className="rounded-[1.75rem] border border-slate-800 bg-panel/90 p-5 sm:p-6 space-y-2">
           <label htmlFor="discussion-thread" className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-500">

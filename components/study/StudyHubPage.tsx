@@ -15,6 +15,7 @@ import { StudyJourneyCard } from "@/components/study/StudyJourneyCard";
 import { StudyLibrary } from "@/components/study/StudyLibrary";
 import { StudyTabs } from "@/components/study/StudyTabs";
 import { STUDY_CATEGORIES, type StudyCategory, type StudyResource } from "@/lib/study/catalog";
+import { PublicDiscussionStarter } from "@/components/discussion/PublicDiscussionStarter";
 import {
   buildPathDiscussionHref,
   buildResourceDiscussionHref,
@@ -27,6 +28,7 @@ import { hasSupabaseEnv } from "@/lib/supabase/public-env";
 
 type StudyView = "paths" | "topics";
 type ContributionModalState = "closed" | "link" | "article";
+type DiscussionModalConfig = { title: string; prompt: string } | null;
 
 const LIBRARY_SECTION_ID = "study-full-library";
 
@@ -117,6 +119,7 @@ export function StudyHubPage({
   const [activeView, setActiveView] = useState<StudyView>("paths");
   const [communityResources, setCommunityResources] = useState<CommunityStudyResource[]>(initialCommunityResources);
   const [contributionModal, setContributionModal] = useState<ContributionModalState>("closed");
+  const [discussionModal, setDiscussionModal] = useState<DiscussionModalConfig>(null);
   const [selectedPathId, setSelectedPathId] = useState(STUDY_PATHS[0]?.id ?? "");
   const [selectedCategoryId, setSelectedCategoryId] = useState<StudyCategory["id"]>(STUDY_CATEGORIES[0]?.id ?? "systems-thinking");
 
@@ -315,10 +318,14 @@ export function StudyHubPage({
               {STUDY_PATHS.map((path) => (
                 <StudyJourneyCard
                   description={path.tagline}
-                  discussionHref={buildPathDiscussionHref(path)}
                   imageSrc={JOURNEY_IMAGES[path.id] ?? "/atlas/study-hero.png"}
                   key={path.id}
                   linkedTopics={path.relatedCategoryIds.map((categoryId) => categoryLookup[categoryId]?.title).filter(Boolean)}
+                  onDiscuss={() => {
+                    const cfg = buildPathDiscussionHref(path);
+                    const url = new URL(cfg, "https://x");
+                    setDiscussionModal({ title: url.searchParams.get("title") ?? path.title, prompt: url.searchParams.get("prompt") ?? "" });
+                  }}
                   onPreview={() => setSelectedPathId(path.id)}
                   path={path}
                   progress={JOURNEY_PROGRESS[path.id] ?? 0}
@@ -392,13 +399,18 @@ export function StudyHubPage({
                     Start journey
                     <ArrowRight className="h-4 w-4" />
                   </a>
-                  <Link
+                  <button
                     className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.2)] hover:text-slate-900"
-                    href={buildPathDiscussionHref(selectedPath)}
+                    onClick={() => {
+                      const cfg = buildPathDiscussionHref(selectedPath);
+                      const url = new URL(cfg, "https://x");
+                      setDiscussionModal({ title: url.searchParams.get("title") ?? selectedPath.title, prompt: url.searchParams.get("prompt") ?? "" });
+                    }}
+                    type="button"
                   >
-                    Start discussion
+                    Discuss
                     <MessageSquare className="h-4 w-4" />
-                  </Link>
+                  </button>
                 </div>
               </div>
             </SoftPanel>
@@ -477,10 +489,14 @@ export function StudyHubPage({
               {mergedCategories.map((category) => (
                 <KnowledgeThemeTile
                   category={category}
-                  discussionHref={buildTopicDiscussionHref(category.title, category.description)}
                   imageSrc={TOPIC_IMAGES[category.id] ?? "/atlas/study-hero.png"}
                   isSelected={selectedCategory.id === category.id}
                   key={category.id}
+                  onDiscuss={() => {
+                    const cfg = buildTopicDiscussionHref(category.title, category.description);
+                    const url = new URL(cfg, "https://x");
+                    setDiscussionModal({ title: url.searchParams.get("title") ?? category.title, prompt: url.searchParams.get("prompt") ?? "" });
+                  }}
                   onOpenTopic={() => setSelectedCategoryId(category.id)}
                 />
               ))}
@@ -495,13 +511,18 @@ export function StudyHubPage({
                   <h3 className="atlas-display mt-2 text-[2rem] leading-tight text-slate-900">{selectedCategory.title}</h3>
                   <p className="mt-3 text-sm leading-7 text-slate-600">{selectedCategory.description}</p>
                 </div>
-                <Link
+                <button
                   className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.2)] hover:text-slate-900"
-                  href={buildTopicDiscussionHref(selectedCategory.title, selectedCategory.description)}
+                  onClick={() => {
+                    const cfg = buildTopicDiscussionHref(selectedCategory.title, selectedCategory.description);
+                    const url = new URL(cfg, "https://x");
+                    setDiscussionModal({ title: url.searchParams.get("title") ?? selectedCategory.title, prompt: url.searchParams.get("prompt") ?? "" });
+                  }}
+                  type="button"
                 >
                   Discuss
                   <MessageSquare className="h-4 w-4" />
-                </Link>
+                </button>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -563,6 +584,49 @@ export function StudyHubPage({
             </SoftPanel>
           </section>
         </>
+      ) : null}
+
+      {discussionModal ? (
+        <div
+          aria-modal
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+          role="dialog"
+        >
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setDiscussionModal(null)}
+          />
+          <div
+            className="relative z-10 flex w-full max-w-2xl flex-col overflow-hidden rounded-[2rem] bg-white shadow-[0_40px_80px_rgba(28,36,48,0.22)]"
+            style={{ maxHeight: "90dvh" }}
+          >
+            <div className="flex flex-none items-start justify-between gap-4 border-b border-[rgba(28,36,48,0.08)] px-6 py-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Start a discussion</p>
+                <h2 className="mt-0.5 text-base font-semibold leading-6 text-slate-900">{discussionModal.title}</h2>
+              </div>
+              <button
+                aria-label="Close dialog"
+                className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.10)] bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                onClick={() => setDiscussionModal(null)}
+                type="button"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-6">
+                <PublicDiscussionStarter
+                  compact
+                  contextType="general"
+                  initialPrompt={discussionModal.prompt}
+                  initialTitle={discussionModal.title}
+                  onSuccess={() => setDiscussionModal(null)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       {contributionModal !== "closed" ? (

@@ -47,6 +47,7 @@ export const LEARNING_TRACKS: LearningTrack[] = [
       "how-lobbying-shapes-policy",
       "how-electoral-rules-shape-political-power",
       "how-corruption-behaves-like-a-hidden-tax",
+      "why-democracies-struggle-with-long-term-problems",
       "how-capitalism-socialism-and-communism-differ",
       "how-the-eu-makes-decisions",
       "how-the-us-government-makes-decisions",
@@ -68,6 +69,7 @@ export const LEARNING_TRACKS: LearningTrack[] = [
     accent: "cyan",
     icon: "Building2",
     moduleSlugs: [
+      "why-decoupling-growth-from-emissions-is-so-hard",
       "how-pollution-builds-up-until-systems-tip",
       "why-cities-create-stress-or-freedom",
       "why-housing-becomes-financialized",
@@ -87,5 +89,5 @@ export const LEARNING_TRACKS: LearningTrack[] = [
       "how-media-incentives-produce-outrage",
       "how-surveillance-capitalism-shapes-attention",
     ],
-  },
+  }
 ];

@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState, type ElementType } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Building2,
   ChevronDown,
-  ChevronUp,
   Cpu,
   Leaf,
   MessageSquare,
@@ -251,7 +251,7 @@ export default function GovernancePage() {
 
   const [activeTheme, setActiveTheme] = useState<GovernanceThemeKey>("all");
   const [sort, setSort] = useState<SortKey>("votes");
-  const [blueprintOpen, setBlueprintOpen] = useState(false);
+  const [showAllProposals, setShowAllProposals] = useState(false);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
 
   const allProposals = useMemo(() => getAllProposals(submissions), [submissions]);
@@ -267,6 +267,7 @@ export default function GovernancePage() {
   );
 
   const filtered = useMemo(() => {
+    setShowAllProposals(false);
     return proposalsWithScores
       .filter((proposal) => {
         if (activeTheme === "all") return true;
@@ -366,6 +367,47 @@ export default function GovernancePage() {
         </div>
       </IllustratedTabHero>
 
+      {/* Blueprint / vision banner */}
+      <div className="overflow-hidden rounded-[1.7rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_18px_40px_rgba(28,36,48,0.05)]">
+        <div className="grid xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="px-7 py-8 xl:px-10 xl:py-10">
+            <p className="atlas-kicker">Blueprint</p>
+            <h2 className="mt-3 text-[1.75rem] font-semibold leading-snug text-slate-900 xl:text-[2rem]">
+              More than a proposal feed
+            </h2>
+            <p className="mt-4 max-w-prose text-[0.95rem] leading-7 text-slate-600">
+              Governance Lab points toward a broader public-interest redesign: more accountable institutions, more
+              legible rules, and stronger civic capacity. Every proposal here is a step toward governance that
+              actually works for people — built openly, evaluated collectively, and refined through real debate.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {BLUEPRINT_PILLARS.map(({ icon: Icon, summary, title }) => (
+                <div
+                  className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.5)] px-4 py-4"
+                  key={title}
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(59,130,246,0.16)] bg-[rgba(59,130,246,0.08)] text-primary">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold text-slate-900">{title}</p>
+                  <p className="mt-1.5 text-xs leading-5 text-slate-600">{summary}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="relative hidden min-h-[26rem] overflow-hidden xl:block">
+            <Image
+              alt="Civic governance illustration"
+              className="object-cover object-center"
+              fill
+              sizes="22rem"
+              src="/atlas/governance-hero0.png"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-transparent" />
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18.5rem] xl:items-start">
         <div className="space-y-6">
           <SoftPanel className="bg-white/92">
@@ -438,7 +480,7 @@ export default function GovernancePage() {
             </div>
 
             <div className="mt-6 space-y-3">
-              {filtered.slice(0, 6).map((proposal) => {
+              {(showAllProposals ? filtered : filtered.slice(0, 6)).map((proposal) => {
                 const theme = getThemeForProposal(proposal);
 
                 return (
@@ -499,6 +541,16 @@ export default function GovernancePage() {
                 );
               })}
 
+              {filtered.length > 6 && !showAllProposals ? (
+                <button
+                  className="w-full rounded-[1.35rem] border border-dashed border-[rgba(28,36,48,0.12)] py-3 text-sm font-semibold text-slate-500 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-800"
+                  onClick={() => setShowAllProposals(true)}
+                  type="button"
+                >
+                  Show all {filtered.length} proposals <ChevronDown className="ml-1 inline h-4 w-4" />
+                </button>
+              ) : null}
+
               {filtered.length === 0 ? (
                 <div className="rounded-[1.4rem] border border-dashed border-[rgba(28,36,48,0.12)] px-4 py-8 text-sm text-slate-500">
                   No proposals match that theme yet.
@@ -507,40 +559,6 @@ export default function GovernancePage() {
             </div>
           </SoftPanel>
 
-          <SoftPanel className="bg-white/88" id="governance-blueprint">
-            <button
-              className="flex w-full items-center justify-between gap-3 text-left"
-              onClick={() => setBlueprintOpen((value) => !value)}
-              type="button"
-            >
-              <div>
-                <p className="atlas-kicker">Blueprint</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Five design pillars</h2>
-              </div>
-              {blueprintOpen ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
-            </button>
-
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              Governance Lab is not only a feed of proposals. It also points toward a broader public-interest redesign: more accountable institutions, more legible rules, and stronger civic capacity.
-            </p>
-
-            {blueprintOpen ? (
-              <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {BLUEPRINT_PILLARS.map(({ icon: Icon, summary, title }) => (
-                  <div
-                    className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4"
-                    key={title}
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(59,130,246,0.16)] bg-[rgba(59,130,246,0.08)] text-primary">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <p className="mt-3 text-sm font-semibold text-slate-900">{title}</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{summary}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </SoftPanel>
         </div>
 
         <SoftPanel className="bg-white/92" tone="gold">
@@ -552,7 +570,7 @@ export default function GovernancePage() {
                 className="flex gap-3 rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4"
                 key={step.title}
               >
-                <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.9)] text-sm font-semibold text-slate-700">
+                <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.82)] text-sm font-semibold text-slate-700">
                   {index + 1}
                 </div>
                 <div>
@@ -563,10 +581,19 @@ export default function GovernancePage() {
             ))}
           </div>
 
-          <Link className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:text-slate-900" href="/learn?view=journeys">
-            Learn more
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="mt-6 space-y-3">
+            <Link
+              className="flex w-full items-center justify-between rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 text-left transition hover:border-[rgba(28,36,48,0.16)]"
+              href="/governance/submit"
+            
+            >
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Submit a proposal</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">Share a policy idea with the community.</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-primary" />
+            </Link>
+          </div>
         </SoftPanel>
       </div>
     </AtlasPage>

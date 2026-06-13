@@ -1,3 +1,12 @@
+---
+accent: cyan
+difficulty: Beginner
+eyebrow: Political system
+readingTime: 6 min
+summary: Electoral system design determines how votes translate into representation — and the rules are maintained by those who benefit most from the current design.
+title: How electoral rules shape political power
+---
+
 :::cards Quick map
 Votes do not translate themselves | Electoral systems decide how preferences become seats, governing majorities, and practical influence.
 Rules create winners and losers | District maps, thresholds, chamber design, and ballot structure can reward some coalitions and mute others.
