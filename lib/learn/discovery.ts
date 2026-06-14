@@ -193,11 +193,12 @@ export const LEARNING_PATHS: LearningPathCard[] = [
   {
     description:
       "Trace the anatomy of three major financial crises to understand why the same structural faults — leverage, deposit insurance without oversight, regulatory capture — keep producing the same outcomes.",
-    duration: "3-5 hrs",
+    duration: "4-6 hrs",
     featured: false,
     id: "why-financial-crises-repeat",
     imageSrc: "/atlas/banking-crisis.png",
     moduleSlugs: [
+      "war-and-financial-innovation",
       "how-banking-crises-repeat",
       "the-savings-and-loan-crisis-of-the-1980s",
       "how-the-2008-financial-crisis-happened",
@@ -205,10 +206,10 @@ export const LEARNING_PATHS: LearningPathCard[] = [
     ],
     question: "Why do financial crises keep happening?",
     summary:
-      "Follow leverage, regulatory capture, and moral hazard across three crises to understand why the pattern repeats.",
-    tags: ["Banking", "Crises", "Regulation"],
+      "Follow the institutions born from war and crisis — central banks, deposit insurance, fiat money — through three modern crises to understand why the pattern keeps repeating.",
+    tags: ["Banking", "Crises", "Regulation", "Financial History"],
     title: "Why Financial Crises Repeat",
-    relatedSimulatorSlugs: ["bank-run", "svb-crisis", "financial-crisis"],
+    relatedSimulatorSlugs: ["war-finance", "bank-run", "svb-crisis", "financial-crisis"],
     topicIds: ["economy"],
   },
   {
@@ -297,7 +298,7 @@ export const POPULAR_QUESTIONS: PopularQuestionCard[] = [
     icon: "banking",
     id: "why-do-financial-crises-keep-happening",
     learnerCount: 38,
-    moduleCount: 4,
+    moduleCount: 5,
     pathId: "why-financial-crises-repeat",
     title: "Why do financial crises keep happening?",
   },
@@ -308,9 +309,8 @@ export const POPULAR_QUESTIONS: PopularQuestionCard[] = [
     learnerCount: 34,
     moduleCount: 7,
     pathId: "how-movements-change-systems",
-    title: "How do ordinary people actually change systems?",
+    title: "How do ordinary people change systems?",
   },
 ];
 
 export const FEATURED_PATH_IDS = LEARNING_PATHS.filter((path) => path.featured).map((path) => path.id);
-

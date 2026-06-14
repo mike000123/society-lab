@@ -54,6 +54,7 @@ import { lessonData as media_solutions } from "./media-solutions";
 import { lessonData as financial_crisis_solutions } from "./financial-crisis-solutions";
 import { lessonData as movements_solutions } from "./movements-solutions";
 import { lessonData as inequality_solutions } from "./inequality-solutions";
+import { lessonData as war_and_financial_innovation } from "./war-and-financial-innovation";
 
 const rawModules = [
   why_gdp_is_not_the_same_as_wellbeing,
@@ -96,6 +97,7 @@ const rawModules = [
   financial_crisis_solutions,
   movements_solutions,
   inequality_solutions,
+  war_and_financial_innovation,
 ];
 
 /** Modules with all 6 metadata fields guaranteed (merged from generated frontmatter). */

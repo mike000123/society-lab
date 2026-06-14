@@ -181,6 +181,17 @@ export const SIMULATORS: SimulatorEntry[] = [
     tags: ["US Congress", "Filibuster", "Veto"],
     complexity: "Intermediate",
   },
+  {
+    slug: "/simulator/war-finance",
+    cardImageSrc: "/atlas/simulators/war-finance.png",
+    title: "War & Financial Innovation",
+    tagline: "Six centuries of crisis-driven invention",
+    description: "Trace how wars and panics produced the institutions that govern money today — from the first government bond in 1171 Venice to the Bretton Woods dollar system of 1944.",
+    accent: "amber",
+    icon: Landmark,
+    tags: ["Financial history", "Institutions", "Debt", "Central banks"],
+    complexity: "Intermediate",
+  },
 ];
 
 export const FEATURED_SLUGS = [
@@ -196,7 +207,7 @@ export const SIMULATOR_GROUPS: SimulatorGroup[] = [
     description: "How bubbles inflate, why banks fail, and how panic spreads.",
     iconAlt: "Banking and crises category icon",
     iconSrc: "/atlas/banking-crisis.png",
-    slugs: ["/simulator/bank-run", "/simulator/svb-crisis", "/simulator/financial-crisis"],
+    slugs: ["/simulator/bank-run", "/simulator/svb-crisis", "/simulator/financial-crisis", "/simulator/war-finance"],
   },
   {
     label: "Economics",
