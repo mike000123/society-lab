@@ -1,3 +1,12 @@
+---
+accent: cyan
+difficulty: Starter
+eyebrow: Financial System Design
+readingTime: 7 min
+summary: Commercial banks do not lend out existing deposits — they create new money by issuing loans, making private credit decisions a form of economic policy.
+title: How banks create money
+---
+
 ## What banks do not control
 
 If banks create money, it may sound as if they can lend without limit.

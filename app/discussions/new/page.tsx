@@ -206,7 +206,7 @@ export default function NewDiscussionPage() {
             <div>
               <h1 className="text-xl font-bold text-slate-900">Start a deliberation</h1>
               <p className="mt-1.5 text-sm leading-6 text-slate-500">
-                Ask a question. We'll help the community explore it together.
+                Ask a question. We&apos;ll help the community explore it together.
               </p>
             </div>
 

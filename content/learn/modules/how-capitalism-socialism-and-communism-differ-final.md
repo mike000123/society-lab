@@ -1,3 +1,12 @@
+---
+accent: amber
+difficulty: Intermediate
+eyebrow: Political Economy
+readingTime: 8 min
+summary: These three terms describe different answers to the same questions about ownership, investment, and access — not a simple spectrum from bad to good or free to unfree.
+title: How capitalism, socialism, and communism differ
+---
+
 ## Comparing the three systems
 
 | Question | Capitalism | Socialism | Communism |

@@ -182,26 +182,45 @@ function getPathProgress(
 }
 
 // ─── Sub-components ─────────────────────────────────────────────────────────────
+function getModuleAccentBackground(accent: string) {
+  return accent === "amber" ? "bg-amber-400"
+    : accent === "cyan" ? "bg-cyan-500"
+    : accent === "emerald" ? "bg-emerald-500"
+    : accent === "rose" ? "bg-rose-400"
+    : "bg-slate-400";
+}
+
+function ModuleArtwork({
+  accent,
+  alt,
+  className,
+  slug,
+}: {
+  accent: string;
+  alt: string;
+  className?: string;
+  slug: string;
+}) {
+  return (
+    <div className={cn("relative w-full overflow-hidden", getModuleAccentBackground(accent), className)}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        alt={alt}
+        className="absolute inset-0 h-full w-full object-cover"
+        src={`/atlas/modules/${slug}.png`}
+        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+      />
+    </div>
+  );
+}
+
 function ModuleCard({ module }: { module: ModuleSummary }) {
-  const accentBg =
-    module.accent === "amber"   ? "bg-amber-400"   :
-    module.accent === "cyan"    ? "bg-cyan-500"    :
-    module.accent === "emerald" ? "bg-emerald-500" :
-    module.accent === "rose"    ? "bg-rose-400"    : "bg-slate-400";
   return (
     <Link
       className="group flex flex-col overflow-hidden rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white transition hover:border-[rgba(28,36,48,0.16)] hover:shadow-[0_12px_24px_rgba(28,36,48,0.06)]"
       href={`/learn/${module.slug}`}
     >
-      <div className={cn("relative h-24 w-full overflow-hidden", accentBg)}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-          src={`/atlas/modules/${module.slug}.png`}
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
-      </div>
+      <ModuleArtwork accent={module.accent} alt={module.title} className="h-24" slug={module.slug} />
       <div className="flex flex-1 flex-col px-3 py-3">
         <p className="text-[0.82rem] font-semibold leading-5 text-slate-900 transition-colors group-hover:text-primary">
           {module.title}
@@ -229,7 +248,6 @@ function ModuleGridCarousel({ modules }: { modules: ModuleSummary[] }) {
 
   return (
     <>
-      {/* eslint-disable-next-line react/no-danger */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes mgc-from-right { from { transform: translateX(52px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes mgc-from-left  { from { transform: translateX(-52px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -775,18 +793,21 @@ export function LearnPageClient({
           <CardCarousel perPage={3} className="px-6">
             {selectedQuestionModules.map((module, index) => (
               <Link
-                className="rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_12px_24px_rgba(28,36,48,0.04)] transition hover:border-[rgba(28,36,48,0.16)] hover:shadow-[0_18px_32px_rgba(28,36,48,0.06)]"
+                className="overflow-hidden rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_12px_24px_rgba(28,36,48,0.04)] transition hover:border-[rgba(28,36,48,0.16)] hover:shadow-[0_18px_32px_rgba(28,36,48,0.06)]"
                 href={`/learn/${module.slug}`}
                 key={module.slug}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.82)] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                    Module {index + 1}
-                  </span>
-                  <ArrowRight className="h-4 w-4 text-primary" />
+                <ModuleArtwork accent={module.accent} alt={module.title} className="h-28" slug={module.slug} />
+                <div className="px-4 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.82)] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                      Module {index + 1}
+                    </span>
+                    <ArrowRight className="h-4 w-4 text-primary" />
+                  </div>
+                  <h4 className="mt-3 text-[1rem] font-semibold leading-7 text-slate-900">{module.title}</h4>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{module.summary}</p>
                 </div>
-                <h4 className="mt-3 text-[1rem] font-semibold leading-7 text-slate-900">{module.title}</h4>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{module.summary}</p>
               </Link>
             ))}
           </CardCarousel>

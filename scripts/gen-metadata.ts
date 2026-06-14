@@ -39,9 +39,19 @@ function q(s: string): string {
   return JSON.stringify(s);
 }
 
-const files = readdirSync(CONTENT_DIR)
+const allFiles = readdirSync(CONTENT_DIR)
   .filter((f) => f.endsWith(".md"))
   .sort();
+
+const fileSet = new Set(allFiles);
+const files = allFiles.filter((file) => {
+  if (!file.endsWith("-final.md")) {
+    return true;
+  }
+
+  const canonical = file.replace(/-final\.md$/, ".md");
+  return !fileSet.has(canonical);
+});
 
 const entries: string[] = [];
 

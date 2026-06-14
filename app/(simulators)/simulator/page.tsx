@@ -1,26 +1,15 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import type { ElementType } from "react";
-import {
-  ArrowRight,
-  FlaskConical,
-  Globe,
-  PlayCircle,
-  TrendingUp,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, FlaskConical, Globe, PlayCircle, TrendingUp, Zap } from "lucide-react";
+
+import { FEATURE_STYLES, FEATURED_SLUGS, SIMULATORS, type SimulatorEntry } from "@/lib/simulator/data";
 
 import { AtlasPage } from "@/components/atlas/AtlasPage";
 import { IllustratedTabHero } from "@/components/atlas/IllustratedTabHero";
+import { SimulatorRegionPicker } from "@/components/simulator/SimulatorRegionPicker";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  FEATURE_STYLES,
-  FEATURED_SLUGS,
-  SIMULATORS,
-  type SimulatorEntry,
-} from "@/lib/simulator/data";
-import { SimulatorRegionPicker } from "@/components/simulator/SimulatorRegionPicker";
 
 function FeaturedSimulationCard({ simulator }: { simulator: SimulatorEntry }) {
   const Icon = simulator.icon;
@@ -127,7 +116,6 @@ export default function SimulatorHubPage() {
           ))}
         </div>
       </IllustratedTabHero>
-
       <section className="space-y-4" id="featured-simulations">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -142,7 +130,6 @@ export default function SimulatorHubPage() {
           ))}
         </div>
       </section>
-
       <SimulatorRegionPicker />
     </AtlasPage>
   );

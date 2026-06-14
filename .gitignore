@@ -1,19 +1,26 @@
 node_modules/
 .next/
-Uploaded_on_github/
+dist/
+build/
+out/
+.turbo/
+coverage/
+.vercel/
+
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-tsconfig.tsbuildinfo
-tmp_visual/
-tmp_visual_dev/
 
-# Generated at build time — do not commit
+*.log
+tsconfig.tsbuildinfo
+
+# Generated at build time - do not commit
 lib/learn/modules/_metadata.generated.ts
 
-# Temporary browser/tool artifacts — not part of the project
+# Temporary browser/tool artifacts - not part of the project
+tmp_visual/
 tmp_visual_dev/
 tmp_pptx/
 tmp_pptx_icons/
