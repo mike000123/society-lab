@@ -8,6 +8,14 @@ const TRACK_FALLBACK_ART: Record<string, string> = {
   "media-and-information": "/atlas/learn-track-information-attention.png",
 };
 
+const HERO_PRIMARY_OVERRIDES: Record<string, string> = {
+  "how-the-us-rewrites-the-rules-of-money": "/atlas/modules/how-the-us-rewrites-the-rules-of-money2.png",
+};
+
+const HERO_SUPPORT_OVERRIDES: Record<string, string> = {
+  "how-the-us-rewrites-the-rules-of-money": "/atlas/modules/how-the-us-rewrites-the-rules-of-money.png",
+};
+
 function publicCandidateToWebPath(candidate: string) {
   const idx = candidate.lastIndexOf(`${path.sep}public${path.sep}`);
   if (idx < 0) return null;
@@ -16,6 +24,10 @@ function publicCandidateToWebPath(candidate: string) {
 }
 
 export function getLessonHeroImage(slug: string, trackId?: string | null) {
+  if (HERO_PRIMARY_OVERRIDES[slug]) {
+    return HERO_PRIMARY_OVERRIDES[slug];
+  }
+
   const candidates = [
     // ── New structured paths (preferred) ──────────────────────────────────
     path.join(process.cwd(), "public", "images", "learn", slug, "hero.webp"),
@@ -38,4 +50,25 @@ export function getLessonHeroImage(slug: string, trackId?: string | null) {
   }
 
   return "/atlas/learn-hero.png";
+}
+
+export function getLessonSupportImage(slug: string, fallback: string) {
+  if (HERO_SUPPORT_OVERRIDES[slug]) {
+    return HERO_SUPPORT_OVERRIDES[slug];
+  }
+
+  const candidates = [
+    path.join(process.cwd(), "public", "images", "learn", slug, "support.webp"),
+    path.join(process.cwd(), "public", "images", "learn", slug, "support.png"),
+    path.join(process.cwd(), "public", "atlas", "modules", `${slug}2.png`),
+    path.join(process.cwd(), "public", "atlas", `${slug}2.png`),
+  ];
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return publicCandidateToWebPath(candidate) ?? fallback;
+    }
+  }
+
+  return fallback;
 }

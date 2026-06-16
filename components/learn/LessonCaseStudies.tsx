@@ -1,5 +1,5 @@
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
-import { lessonAccentClasses } from "@/components/learn/lesson-theme";
+import { extractFirstSentence, lessonAccentClasses } from "@/components/learn/lesson-theme";
 import type { AccentTone, LearningModule, RealWorldExample , ResolvedLearningModule } from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
 
@@ -55,7 +55,56 @@ function CaseStudyItem({
   );
 }
 
-export function LessonCaseStudies({ module }: { module: ResolvedLearningModule }) {
+export function LessonCaseStudies({
+  compact = false,
+  module,
+}: {
+  compact?: boolean;
+  module: ResolvedLearningModule;
+}) {
+  if (compact) {
+    return (
+      <section className="space-y-4" id="real-world-examples">
+        <LessonSectionHeader
+          accent={module.accent}
+          compact
+          id="real-world-examples-heading"
+          index={5}
+          subtitle="Case studies that show the same mechanism in the world."
+          title="Real world examples"
+        />
+
+        <div className="grid gap-3 lg:grid-cols-3">
+          {module.realWorldExamples.map((example, index) => (
+            <article
+              className="overflow-hidden rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white/86 shadow-[0_14px_26px_rgba(28,36,48,0.04)]"
+              key={example.title}
+            >
+              <div className={cn("h-24 px-4 py-4", lessonAccentClasses[module.accent].panel)}>
+                <span
+                  className={cn(
+                    "inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
+                    lessonAccentClasses[module.accent].chip,
+                  )}
+                >
+                  Case {index + 1}
+                </span>
+                <h3 className="mt-3 text-lg font-semibold leading-tight text-slate-900">{example.title}</h3>
+              </div>
+              <div className="space-y-3 px-4 py-4">
+                <p className="text-sm leading-6 text-slate-600">{extractFirstSentence(example.outcome) || example.outcome}</p>
+                <div className="rounded-[1rem] bg-[rgba(246,244,238,0.82)] px-3 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">What it teaches</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{extractFirstSentence(example.insight) || example.insight}</p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-6" id="real-world-examples">
       <LessonSectionHeader

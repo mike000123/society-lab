@@ -3,16 +3,23 @@ import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
 import { lessonAccentClasses } from "@/components/learn/lesson-theme";
 import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 
-export function LessonInteractive({ module }: { module: ResolvedLearningModule }) {
+export function LessonInteractive({
+  compact = false,
+  module,
+}: {
+  compact?: boolean;
+  module: ResolvedLearningModule;
+}) {
   const accent = lessonAccentClasses[module.accent];
   const keyLesson = module.heroHighlights[1] ?? module.systemBug.summary;
 
   return (
-    <section className="space-y-6" id="interactive-exploration">
+    <section className={compact ? "space-y-4" : "space-y-6"} id="interactive-exploration">
       <LessonSectionHeader
         accent={module.accent}
+        compact={compact}
         id="interactive-exploration-heading"
-        index={5}
+        index={compact ? 6 : 5}
         subtitle="Try it yourself: adjust the variables, observe the outcomes, and test whether the mechanism still holds when conditions change."
         title="Interactive exploration"
       />

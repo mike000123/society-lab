@@ -13,6 +13,7 @@ import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
 import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 import type { LearningTrack } from "@/lib/tracks/config";
 import { withQuery } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const TRACK_RELATED_LABS: Record<string, { href: string; label: string }> = {
   economy: { href: "/simulator/macro-economy", label: "Run a simulation" },
@@ -22,11 +23,13 @@ const TRACK_RELATED_LABS: Record<string, { href: string; label: string }> = {
 };
 
 export function LessonNextActions({
+  compact = false,
   currentTrack,
   module,
   nextModule,
   quizQuestionCount,
 }: {
+  compact?: boolean;
   currentTrack?: LearningTrack | null;
   module: ResolvedLearningModule;
   nextModule?: LearningModule | null;
@@ -46,6 +49,7 @@ export function LessonNextActions({
   });
   const quizHref = `/quiz/${module.slug}`;
   const continueHref = nextModule ? `/learn/${nextModule.slug}` : "/learn?view=tracks";
+  const reformsHref = module.proposals?.length ? "#what-could-change" : "/governance";
 
   const actions = [
     {
@@ -61,12 +65,12 @@ export function LessonNextActions({
       label: module.simulatorSlug ? "Run a simulation" : "Explore a related lab",
     },
     {
-      description: nextModule
-        ? `Continue with ${nextModule.title}.`
-        : "Open the broader track path and explore where this lesson sits.",
-      href: continueHref,
+      description: module.proposals?.length
+        ? "See proposals and reforms that respond to the mechanism you just explored."
+        : "Open the governance lab and connect this lesson to live proposals.",
+      href: reformsHref,
       icon: ArrowRight,
-      label: nextModule ? "Continue the track" : "Open track explorer",
+      label: "Explore reforms",
     },
     {
       description: "Read books, papers, tools, and curated references connected to this lesson.",
@@ -77,17 +81,18 @@ export function LessonNextActions({
   ];
 
   return (
-    <section className="space-y-6" id="next-actions">
+    <section className={compact ? "space-y-4" : "space-y-6"} id="next-actions">
       <LessonSectionHeader
         accent={module.accent}
+        compact={compact}
         id="next-actions-heading"
-        index={7}
+        index={compact ? 8 : 7}
         subtitle="Choose your next step: test the idea, discuss it, run the model, or go deeper into the supporting material."
-        title="Next actions"
+        title={compact ? "Choose your next step" : "Next actions"}
       />
 
       <div className="space-y-6">
-        {quizQuestionCount ? (
+        {quizQuestionCount && !compact ? (
           <div className="flex flex-col gap-4 rounded-[1.5rem] bg-[rgba(246,244,238,0.74)] px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-900">Close the loop with a checkpoint</p>
@@ -104,7 +109,22 @@ export function LessonNextActions({
           </div>
         ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {quizQuestionCount && compact ? (
+          <div className="flex items-center justify-between rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.68)] px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Checkpoint quiz</p>
+              <p className="text-xs leading-6 text-slate-500">{quizQuestionCount} quick questions to lock in the lesson.</p>
+            </div>
+            <Button asChild className="h-auto rounded-full px-4 py-2.5">
+              <Link href={quizHref}>
+                Take quiz
+                <ClipboardCheck className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        ) : null}
+
+        <div className={cn("grid gap-4 sm:grid-cols-2", compact ? "xl:grid-cols-2" : "xl:grid-cols-4")}>
           {actions.map((action) => {
             const Icon = action.icon;
             return (
@@ -131,7 +151,19 @@ export function LessonNextActions({
           })}
         </div>
 
-        <SharedLearnersPanel contextSlug={module.slug} contextTitle={module.title} contextType="module" />
+        {compact ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.1rem] border border-[rgba(28,36,48,0.08)] bg-white/82 px-4 py-3">
+            <p className="text-sm text-slate-600">
+              {nextModule ? `Continue with ${nextModule.title}.` : "Open the broader track and keep exploring from here."}
+            </p>
+            <Link className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-blue-700" href={continueHref}>
+              {nextModule ? "Continue the track" : "Open track explorer"}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        ) : (
+          <SharedLearnersPanel contextSlug={module.slug} contextTitle={module.title} contextType="module" />
+        )}
       </div>
     </section>
   );

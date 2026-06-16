@@ -8,12 +8,13 @@ import { cn } from "@/lib/utils";
 interface CardCarouselProps {
   children: React.ReactNode;
   /** How many cards visible on the widest breakpoint (default 5) */
-  perPage?: 3 | 5;
+  perPage?: 3 | 4 | 5;
   className?: string;
 }
 
-const WIDTH_CLASSES: Record<3 | 5, string> = {
+const WIDTH_CLASSES: Record<3 | 4 | 5, string> = {
   5: "w-[calc(100%-1rem)] min-[520px]:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.667rem)] xl:w-[calc(20%-0.8rem)]",
+  4: "w-[calc(100%-1rem)] min-[520px]:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.667rem)] xl:w-[calc(25%-0.75rem)]",
   3: "w-[calc(100%-1rem)] min-[520px]:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]",
 };
 

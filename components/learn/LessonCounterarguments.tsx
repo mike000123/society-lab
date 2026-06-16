@@ -3,15 +3,22 @@ import { lessonAccentClasses } from "@/components/learn/lesson-theme";
 import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
 
-export function LessonCounterarguments({ module }: { module: ResolvedLearningModule }) {
+export function LessonCounterarguments({
+  compact = false,
+  module,
+}: {
+  compact?: boolean;
+  module: ResolvedLearningModule;
+}) {
   const accent = lessonAccentClasses[module.accent];
 
   return (
-    <section className="space-y-6" id="counterarguments">
+    <section className={compact ? "space-y-4" : "space-y-6"} id="counterarguments">
       <LessonSectionHeader
         accent={module.accent}
+        compact={compact}
         id="counterarguments-heading"
-        index={6}
+        index={compact ? 7 : 6}
         subtitle="A useful lesson should face its strongest objections directly, answer them clearly, and stay anchored in the evidence you just saw."
         title="Counterarguments"
       />

@@ -1,13 +1,18 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { ExternalLink } from "lucide-react";
 
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
-import { getExpectedObservations, lessonAccentClasses } from "@/components/learn/lesson-theme";
+import { extractFirstSentence, getExpectedObservations, lessonAccentClasses } from "@/components/learn/lesson-theme";
 import type {
+  LearningArticleBlock,
   LearningArticleChart,
   LearningArticleDocument,
   LearningArticleSource,
 } from "@/lib/learn/content";
 import type { AccentTone, LearningEvidenceLink, LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
+import { cn } from "@/lib/utils";
 
 function renderSourceLink(link: LearningArticleSource | LearningEvidenceLink) {
   return (
@@ -218,13 +223,130 @@ function ArticleFlow({
 
 export function LessonEvidence({
   article,
+  compact = false,
   module,
 }: {
   article?: LearningArticleDocument | null;
+  compact?: boolean;
   module: ResolvedLearningModule;
 }) {
   const accent = lessonAccentClasses[module.accent];
   const expectedObservations = getExpectedObservations(module);
+  const chartBlock = useMemo(
+    () => article?.blocks.find((block): block is Extract<LearningArticleBlock, { type: "charts" }> => block.type === "charts"),
+    [article],
+  );
+  const sourceBlock = useMemo(
+    () => article?.blocks.find((block): block is Extract<LearningArticleBlock, { type: "sources" }> => block.type === "sources"),
+    [article],
+  );
+  const evidenceNotes = useMemo(
+    () => [
+      {
+        body:
+          "If the explanation is right, reserve dominance should decline over time while systemic stress rises and confidence in the order erodes.",
+        title: "What would we expect to observe?",
+      },
+      {
+        body:
+          extractFirstSentence(module.systemBug.summary) ||
+          "The claim is that monetary systems redistribute wealth and power whenever the rules are rewritten.",
+        title: "What is the core claim?",
+      },
+      {
+        body:
+          extractFirstSentence(module.betterMetrics[0]?.description) ||
+          "The key is to watch the structure beneath inflation headlines: who sets the rules, who absorbs stress, and who gets the gains.",
+        title: "Why this matters",
+      },
+    ],
+    [module],
+  );
+  const [activeNoteIndex, setActiveNoteIndex] = useState(0);
+  const activeNote = evidenceNotes[activeNoteIndex];
+
+  if (compact) {
+    return (
+      <section className="space-y-4" id="evidence">
+        <LessonSectionHeader
+          accent={module.accent}
+          compact
+          id="evidence-heading"
+          index={4}
+          subtitle="What the data shows across monetary regimes."
+          title="Evidence"
+        />
+
+        <div className="relative overflow-visible rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/84 px-4 py-4 shadow-[0_16px_30px_rgba(28,36,48,0.04)] sm:px-5 sm:py-5">
+          <div className="grid gap-4 xl:grid-cols-[15.5rem_minmax(0,1fr)]">
+            <div className="space-y-3">
+              <article className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/92 px-4 py-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Claim</p>
+                <p className="mt-3 text-sm leading-6 text-slate-700">{module.systemBug.summary}</p>
+              </article>
+
+              <div className="space-y-2">
+                {evidenceNotes.map((note, index) => (
+                  <button
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-[1rem] border px-3 py-3 text-left text-sm font-medium transition",
+                      index === activeNoteIndex
+                        ? cn("text-slate-900 shadow-[0_10px_20px_rgba(28,36,48,0.05)]", accent.chip, accent.line)
+                        : "border-[rgba(28,36,48,0.08)] bg-white/88 text-slate-600 hover:border-[rgba(28,36,48,0.16)] hover:text-slate-900",
+                    )}
+                    key={note.title}
+                    onClick={() => setActiveNoteIndex(index)}
+                    type="button"
+                  >
+                    <span>{note.title}</span>
+                    <span className="text-slate-400">↗</span>
+                  </button>
+                ))}
+              </div>
+
+              <article className={cn("rounded-[1.25rem] border px-4 py-4", accent.panel, accent.line)}>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Why it matters</p>
+                <p className="mt-3 text-sm leading-6 text-slate-700">{module.betterMetricsTitle}</p>
+              </article>
+            </div>
+
+            <div className="min-w-0 space-y-4">
+              {chartBlock?.items?.[0] ? <ArticleChart chart={chartBlock.items[0]} /> : null}
+
+              {sourceBlock?.items?.length ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {sourceBlock.items.slice(0, 4).map((item) => renderSourceLink(item))}
+                </div>
+              ) : module.evidenceLinks?.length ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {module.evidenceLinks.slice(0, 4).map((link) => renderSourceLink(link))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <aside className="mt-4 rounded-[1.4rem] border border-[rgba(28,36,48,0.1)] bg-white px-4 py-4 shadow-[0_18px_30px_rgba(28,36,48,0.06)] xl:absolute xl:bottom-[-1.25rem] xl:left-[-2.6rem] xl:mt-0 xl:w-[16rem]">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-slate-900">{activeNote.title}</p>
+              <span className="text-xs text-slate-400">
+                {activeNoteIndex + 1} of {evidenceNotes.length}
+              </span>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-600">{activeNote.body}</p>
+            {activeNoteIndex === 0 ? (
+              <ul className="mt-3 space-y-1.5">
+                {expectedObservations.map((observation) => (
+                  <li className="text-sm leading-6 text-slate-600" key={observation}>
+                    • {observation}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </aside>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-6" id="evidence">

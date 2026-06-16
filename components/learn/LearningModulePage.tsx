@@ -1,7 +1,7 @@
 import { AtlasLessonPage } from "@/components/learn/AtlasLessonPage";
 import { LessonVisitTracker } from "@/components/learn/LessonVisitTracker";
 import type { LearningArticleDocument } from "@/lib/learn/content";
-import { getLessonHeroImage } from "@/lib/learn/hero-art";
+import { getLessonHeroImage, getLessonSupportImage } from "@/lib/learn/hero-art";
 import { getLearningModuleBySlug, type LearningModule, type ResolvedLearningModule } from "@/lib/learn/modules";
 import { LEARNING_PATHS } from "@/lib/learn/discovery";
 import { getQuizBySlug } from "@/lib/quiz/questions";
@@ -39,6 +39,8 @@ export function LearningModulePage({
 
   const previousModule = previousSlug ? getLearningModuleBySlug(previousSlug) : null;
   const nextModule = nextSlug ? getLearningModuleBySlug(nextSlug) : null;
+  const heroImageSrc = getLessonHeroImage(module.slug, currentTrack?.id ?? currentPath?.topicIds[0]);
+  const supportImageSrc = getLessonSupportImage(module.slug, heroImageSrc);
 
   const contextModules = contextSlugs
     .map((slug) => getLearningModuleBySlug(slug))
@@ -52,12 +54,13 @@ export function LearningModulePage({
         currentIndex={currentIndex}
         currentPath={currentPath}
         currentTrack={currentTrack}
-        heroImageSrc={getLessonHeroImage(module.slug, currentTrack?.id ?? currentPath?.topicIds[0])}
+        heroImageSrc={heroImageSrc}
         module={module}
         nextModule={nextModule}
         pathId={pathId}
         previousModule={previousModule}
         quizQuestionCount={quiz?.questions.length}
+        supportImageSrc={supportImageSrc}
         trackModules={contextModules}
       />
     </>

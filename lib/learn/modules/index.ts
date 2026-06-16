@@ -55,6 +55,7 @@ import { lessonData as financial_crisis_solutions } from "./financial-crisis-sol
 import { lessonData as movements_solutions } from "./movements-solutions";
 import { lessonData as inequality_solutions } from "./inequality-solutions";
 import { lessonData as war_and_financial_innovation } from "./war-and-financial-innovation";
+import { lessonData as how_capitalism_evolved_through_stages } from "./how-capitalism-evolved-through-stages";
 
 const rawModules = [
   why_gdp_is_not_the_same_as_wellbeing,
@@ -98,6 +99,7 @@ const rawModules = [
   movements_solutions,
   inequality_solutions,
   war_and_financial_innovation,
+  how_capitalism_evolved_through_stages,
 ];
 
 /** Modules with all 6 metadata fields guaranteed (merged from generated frontmatter). */
@@ -109,6 +111,5 @@ export const learningModules: ResolvedLearningModule[] = rawModules.map((m) => (
 export function getLearningModuleBySlug(slug: string): ResolvedLearningModule | undefined {
   return learningModules.find((m) => m.slug === slug);
 }
-
 /** Union of every valid module slug — catches broken references at compile time. */
 export type ModuleSlug = typeof learningModules[number]["slug"];

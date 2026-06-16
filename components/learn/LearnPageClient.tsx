@@ -790,23 +790,23 @@ export function LearnPageClient({
             </div>
           </div>
 
-          <CardCarousel perPage={3} className="px-6">
+          <CardCarousel perPage={4} className="px-6">
             {selectedQuestionModules.map((module, index) => (
               <Link
                 className="overflow-hidden rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_12px_24px_rgba(28,36,48,0.04)] transition hover:border-[rgba(28,36,48,0.16)] hover:shadow-[0_18px_32px_rgba(28,36,48,0.06)]"
                 href={`/learn/${module.slug}`}
                 key={module.slug}
               >
-                <ModuleArtwork accent={module.accent} alt={module.title} className="h-28" slug={module.slug} />
-                <div className="px-4 py-4">
+                <ModuleArtwork accent={module.accent} alt={module.title} className="h-24" slug={module.slug} />
+                <div className="flex flex-col px-4 py-4 gap-2">
                   <div className="flex items-center justify-between gap-3">
                     <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.82)] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
                       Module {index + 1}
                     </span>
                     <ArrowRight className="h-4 w-4 text-primary" />
                   </div>
-                  <h4 className="mt-3 text-[1rem] font-semibold leading-7 text-slate-900">{module.title}</h4>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{module.summary}</p>
+                  <h4 className="text-[1rem] font-semibold leading-6 text-slate-900">{module.title}</h4>
+                  <p className="text-sm leading-6 text-slate-600">{module.summary}</p>
                 </div>
               </Link>
             ))}
@@ -924,28 +924,31 @@ export function LearnPageClient({
               </div>
             </div>
 
-            <CardCarousel perPage={3} className="px-6">
+            <CardCarousel perPage={4} className="px-6">
               {selectedTrackModuleList.map((module, index) => (
                 <Link
-                  className="flex h-full flex-col rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_12px_24px_rgba(28,36,48,0.04)] transition hover:border-[rgba(28,36,48,0.16)] hover:shadow-[0_18px_32px_rgba(28,36,48,0.06)]"
+                  className="group flex flex-col overflow-hidden rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_12px_24px_rgba(28,36,48,0.04)] transition hover:border-[rgba(28,36,48,0.16)] hover:shadow-[0_18px_32px_rgba(28,36,48,0.06)]"
                   href={`/learn/${module.slug}`}
                   key={module.slug}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.82)] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                      Module {index + 1}
-                    </span>
-                    <ArrowRight className="h-4 w-4 text-primary" />
-                  </div>
-                  <h4 className="mt-3 text-[1rem] font-semibold leading-7 text-slate-900">{module.title}</h4>
-                  <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{module.summary}</p>
-                  {pathByModuleSlug.get(module.slug) ? (
-                    <div className="mt-4 flex justify-end">
-                      <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.70)] px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-slate-400">
-                        {pathByModuleSlug.get(module.slug)!.title}
+                  <ModuleArtwork accent={module.accent} alt={module.title} className="h-24" slug={module.slug} />
+                  <div className="flex flex-col px-4 py-4 gap-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.82)] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                        Module {index + 1}
                       </span>
+                      <ArrowRight className="h-4 w-4 text-primary" />
                     </div>
-                  ) : null}
+                    <h4 className="text-[1rem] font-semibold leading-6 text-slate-900 transition-colors group-hover:text-primary">{module.title}</h4>
+                    <p className="text-sm leading-6 text-slate-600">{module.summary}</p>
+                    {pathByModuleSlug.get(module.slug) ? (
+                      <div className="flex justify-end pt-1">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.70)] px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                          {pathByModuleSlug.get(module.slug)!.title}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
                 </Link>
               ))}
             </CardCarousel>
@@ -1015,11 +1018,9 @@ export function LearnPageClient({
               <div key={track.id}>
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <h3 className="text-base font-semibold text-slate-900">{track.title}</h3>
-                  <span className="text-xs font-medium text-slate-400">{modules.length} module{modules.length !== 1 ? "s" : ""}</span>
+                  <span className="text-xs font-medium text-slate-400">{modules.length} modules</span>
                 </div>
-                <div className="px-5">
-                  <ModuleGridCarousel modules={modules} />
-                </div>
+                <ModuleGridCarousel modules={modules} />
               </div>
             ))}
           </div>

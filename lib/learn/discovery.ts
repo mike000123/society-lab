@@ -59,6 +59,7 @@ export const LEARNING_PATHS: LearningPathCard[] = [
     id: "inequality-and-power",
     imageSrc: "/atlas/learn-track-power-politics.png",
     moduleSlugs: [
+      "how-capitalism-evolved-through-stages",
       "how-wealth-compounds-faster-than-wages",
       "how-tax-havens-drain-public-revenue",
       "how-lobbying-shapes-policy",
@@ -106,6 +107,7 @@ export const LEARNING_PATHS: LearningPathCard[] = [
     id: "democracy-and-better-governance",
     imageSrc: "/atlas/home-domain-politics-democracy.png",
     moduleSlugs: [
+      "how-capitalism-evolved-through-stages",
       "how-capitalism-socialism-and-communism-differ",
       "why-capable-people-dont-enter-politics",
       "how-lobbying-shapes-policy",

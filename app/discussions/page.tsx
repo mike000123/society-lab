@@ -128,9 +128,9 @@ function deriveStatus(thread: PublicThreadSummary): DiscussionStatus {
 }
 
 function buildDiscussionHref(filter: DiscussionFilter, threadId?: string) {
+  if (threadId) return `/discussions/${threadId}`;
   const p = new URLSearchParams();
   p.set("filter", filter);
-  if (threadId) p.set("thread", threadId);
   return `/discussions?${p.toString()}`;
 }
 

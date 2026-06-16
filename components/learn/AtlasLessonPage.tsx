@@ -11,8 +11,10 @@ import { LessonMechanism } from "@/components/learn/LessonMechanism";
 import { LessonNextActions } from "@/components/learn/LessonNextActions";
 import { LessonProposals } from "@/components/learn/LessonProposals";
 import { LessonSynthesis } from "@/components/learn/LessonSynthesis";
+import { TimelineLessonCanvas } from "@/components/learn/TimelineLessonCanvas";
 import { LessonWhyItMatters } from "@/components/learn/LessonWhyItMatters";
 import { lessonAccentClasses } from "@/components/learn/lesson-theme";
+import { getLessonVariant } from "@/lib/learn/lesson-variants";
 import type { LearningArticleDocument } from "@/lib/learn/content";
 import type { AccentTone, LearningModule , ResolvedLearningModule } from "@/lib/learn/modules";
 import type { LearningPathCard } from "@/lib/learn/discovery";
@@ -224,6 +226,7 @@ export function AtlasLessonPage({
   pathId,
   previousModule,
   quizQuestionCount,
+  supportImageSrc,
   trackModules,
 }: {
   article?: LearningArticleDocument | null;
@@ -236,13 +239,27 @@ export function AtlasLessonPage({
   pathId?: string;
   previousModule?: LearningModule | null;
   quizQuestionCount?: number;
+  supportImageSrc: string;
   trackModules: LearningModule[];
 }) {
+  const variant = getLessonVariant(module.slug);
+  const isTimelineLesson = variant === "timeline" && !module.synthesisOf;
   const sectionLinks: LessonSectionLink[] = module.synthesisOf
     ? [
         { id: "reform-proposals", label: "Reform proposals" },
         { id: "next-actions", label: "Next actions" },
       ]
+    : isTimelineLesson
+      ? [
+          { id: "why-this-matters", label: "Why this matters" },
+          { id: "timeline", label: "Timeline" },
+          { id: "core-mechanism", label: "Core mechanism" },
+          { id: "evidence", label: "Evidence" },
+          { id: "real-world-examples", label: "Real world examples" },
+          { id: "interactive-exploration", label: "Interactive exploration" },
+          { id: "counterarguments", label: "Counterarguments" },
+          { id: "next-actions", label: "Next actions" },
+        ]
     : [
         { id: "why-this-matters", label: "Why this matters" },
         { id: "core-mechanism", label: "Core mechanism" },
@@ -254,9 +271,35 @@ export function AtlasLessonPage({
         { id: "next-actions", label: "Next actions" },
       ];
 
+  const standardFlow = module.synthesisOf ? (
+    <LessonSynthesis module={module} />
+  ) : (
+    <>
+      <LessonWhyItMatters module={module} />
+      <LessonMechanism module={module} />
+      <LessonEvidence article={article} module={module} />
+      <LessonCaseStudies module={module} />
+      <LessonInteractive module={module} />
+      <LessonCounterarguments module={module} />
+      <LessonProposals module={module} />
+    </>
+  );
+
+  const timelineFlow = (
+    <TimelineLessonCanvas
+      article={article}
+      currentTrack={currentTrack}
+      heroImageSrc={heroImageSrc}
+      module={module}
+      nextModule={nextModule}
+      quizQuestionCount={quizQuestionCount}
+      supportImageSrc={supportImageSrc}
+    />
+  );
+
   return (
-    <AtlasPage className="!max-w-[118rem] pb-20">
-      <div className="mx-auto grid gap-8 xl:grid-cols-[16rem_minmax(0,1fr)] xl:gap-12">
+    <AtlasPage className={cn("pb-20", isTimelineLesson ? "!max-w-[132rem]" : "!max-w-[118rem]")}>
+      <div className={cn("mx-auto grid gap-8 xl:gap-10", isTimelineLesson ? "xl:grid-cols-[16.5rem_minmax(0,1fr)]" : "xl:grid-cols-[16rem_minmax(0,1fr)] xl:gap-12")}>
         <SidebarNav
           currentIndex={currentIndex}
           currentPath={currentPath}
@@ -266,28 +309,28 @@ export function AtlasLessonPage({
           trackModules={trackModules}
         />
 
-        <main className="min-w-0 space-y-10 xl:space-y-12">
-          <LessonHero heroImageSrc={heroImageSrc} module={module} quizQuestionCount={quizQuestionCount} />
-          <LessonSequenceNav accent={module.accent} nextModule={nextModule} pathId={pathId} previousModule={previousModule} />
-          {module.synthesisOf ? (
-            <LessonSynthesis module={module} />
-          ) : (
-            <>
-              <LessonWhyItMatters module={module} />
-              <LessonMechanism module={module} />
-              <LessonEvidence article={article} module={module} />
-              <LessonCaseStudies module={module} />
-              <LessonInteractive module={module} />
-              <LessonCounterarguments module={module} />
-              <LessonProposals module={module} />
-            </>
-          )}
-          <LessonNextActions
-            currentTrack={currentTrack}
+        <main className={cn("min-w-0", isTimelineLesson ? "space-y-6 xl:space-y-7" : "space-y-10 xl:space-y-12")}>
+          <LessonHero
+            heroImageSrc={heroImageSrc}
             module={module}
-            nextModule={nextModule}
             quizQuestionCount={quizQuestionCount}
+            timelineMode={isTimelineLesson}
           />
+          {!isTimelineLesson ? (
+            <LessonSequenceNav accent={module.accent} nextModule={nextModule} pathId={pathId} previousModule={previousModule} />
+          ) : null}
+          {isTimelineLesson ? timelineFlow : standardFlow}
+          {!isTimelineLesson ? (
+            <LessonNextActions
+              currentTrack={currentTrack}
+              module={module}
+              nextModule={nextModule}
+              quizQuestionCount={quizQuestionCount}
+            />
+          ) : null}
+          {isTimelineLesson ? (
+            <LessonSequenceNav accent={module.accent} nextModule={nextModule} pathId={pathId} previousModule={previousModule} />
+          ) : null}
         </main>
       </div>
     </AtlasPage>

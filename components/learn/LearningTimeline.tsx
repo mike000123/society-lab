@@ -1,5 +1,6 @@
 import type { AccentTone, LearningTimeline as LearningTimelineData } from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
+import { extractFirstSentence } from "@/components/learn/lesson-theme";
 
 const accentClasses: Record<
   AccentTone,
@@ -44,31 +45,37 @@ const accentClasses: Record<
 const eventCycle = [
   {
     chip: "border-blue-200 bg-blue-50 text-blue-700",
+    date: "text-blue-600",
     dot: "bg-blue-500 shadow-[0_0_0_7px_rgba(59,130,246,0.12)]",
     frame: "border-blue-100 bg-blue-50/30",
   },
   {
     chip: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    date: "text-emerald-600",
     dot: "bg-emerald-500 shadow-[0_0_0_7px_rgba(76,175,80,0.12)]",
     frame: "border-emerald-100 bg-emerald-50/30",
   },
   {
     chip: "border-amber-200 bg-amber-50 text-amber-700",
+    date: "text-amber-600",
     dot: "bg-amber-500 shadow-[0_0_0_7px_rgba(212,168,79,0.12)]",
     frame: "border-amber-100 bg-amber-50/30",
   },
   {
     chip: "border-violet-200 bg-violet-50 text-violet-700",
+    date: "text-violet-600",
     dot: "bg-violet-500 shadow-[0_0_0_7px_rgba(139,92,246,0.12)]",
     frame: "border-violet-100 bg-violet-50/30",
   },
   {
     chip: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    date: "text-cyan-600",
     dot: "bg-cyan-500 shadow-[0_0_0_7px_rgba(6,182,212,0.12)]",
     frame: "border-cyan-100 bg-cyan-50/30",
   },
   {
     chip: "border-orange-200 bg-orange-50 text-orange-700",
+    date: "text-orange-600",
     dot: "bg-orange-500 shadow-[0_0_0_7px_rgba(249,115,22,0.12)]",
     frame: "border-orange-100 bg-orange-50/30",
   },
@@ -77,13 +84,58 @@ const eventCycle = [
 export function LearningTimeline({
   accent,
   compact = false,
+  dense = false,
   timeline,
 }: {
   accent: AccentTone;
   compact?: boolean;
+  dense?: boolean;
   timeline: LearningTimelineData;
 }) {
   const styles = accentClasses[accent];
+
+  if (dense) {
+    return (
+      <div className="relative overflow-x-auto pb-2">
+        <div className="relative min-w-[78rem] pt-6">
+          <div className="absolute left-5 right-5 top-5 h-px bg-[rgba(28,36,48,0.14)]" />
+          <div
+            className="grid items-stretch gap-3"
+            style={{ gridTemplateColumns: `repeat(${timeline.events.length}, minmax(12.25rem, 1fr))` }}
+          >
+            {timeline.events.map((event, index) => {
+              const palette = eventCycle[index % eventCycle.length];
+              return (
+                <article className="relative flex h-full pt-1" id={index === 0 ? "timeline" : undefined} key={`${event.timeLabel}-${event.title}`}>
+                  <div className="flex h-full w-full flex-col items-start">
+                    <div className="flex items-center gap-2.5">
+                      <div className={cn("h-3 w-3 rounded-full border-4 border-white", palette.dot)} />
+                      <p className={cn("text-[1.02rem] font-semibold leading-none", palette.date)}>
+                        {event.timeLabel}
+                      </p>
+                    </div>
+                    <div className={cn("mt-3 flex min-h-[14.2rem] h-full w-full flex-col rounded-[1.35rem] border px-3.5 py-3.5 shadow-[0_12px_24px_rgba(28,36,48,0.04)]", palette.frame)}>
+                      <h3 className="text-[1rem] font-semibold leading-tight text-slate-900">{event.title}</h3>
+                      <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                        {event.family}
+                      </p>
+                      <p className="mt-2 text-[12.5px] leading-5 text-slate-600">{extractFirstSentence(event.whyItStarted)}</p>
+                      <div className="mt-auto rounded-[0.95rem] border border-white/70 bg-white/72 px-3 py-2.5">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">Result</p>
+                        <p className="mt-1 text-[11.5px] leading-5 text-slate-600">
+                          {extractFirstSentence(event.outcome)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="relative overflow-hidden rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/76 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6">
