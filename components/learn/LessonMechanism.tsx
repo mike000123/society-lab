@@ -78,7 +78,7 @@ export function LessonMechanism({
             </div>
 
             <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2 rounded-[1.4rem] bg-[rgba(246,244,238,0.86)] px-3 py-3">
+              <div className="flex flex-wrap items-center gap-2 rounded-[1.4rem] bg-[rgba(241,245,249,0.84)] px-3 py-3">
                 {steps.map((step, index) => (
                   <div className="flex items-center gap-2" key={step.id}>
                     <span
@@ -158,7 +158,7 @@ export function LessonMechanism({
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-sm font-semibold text-slate-900">{activePanel.title}</h3>
               <button
-                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition hover:bg-[rgba(246,244,238,0.95)] hover:text-slate-700"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition hover:bg-[rgba(241,245,249,0.92)] hover:text-slate-700"
                 onClick={() => setActivePanelIndex(0)}
                 type="button"
               >
@@ -224,7 +224,7 @@ export function LessonMechanism({
 
       <div className="grid gap-8 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center gap-2 rounded-[1.6rem] bg-[rgba(246,244,238,0.72)] px-4 py-4">
+          <div className="flex flex-wrap items-center gap-2 rounded-[1.6rem] bg-[rgba(241,245,249,0.78)] px-4 py-4">
             {steps.map((step, index) => (
               <div className="flex items-center gap-2" key={step.id}>
                 <span

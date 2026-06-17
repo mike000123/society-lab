@@ -37,7 +37,7 @@ export function LessonWhyItMatters({
               const Icon = compactIcons[index % compactIcons.length];
               return (
                 <article
-                  className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(250,249,246,0.95)] px-4 py-4"
+                  className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(244,248,252,0.96)] px-4 py-4"
                   key={metric.label}
                 >
                   <div className="flex items-start gap-3">
@@ -93,14 +93,14 @@ export function LessonWhyItMatters({
           </div>
         </div>
 
-        <div className="space-y-4 rounded-[1.8rem] bg-[rgba(246,244,238,0.72)] px-5 py-5">
+        <div className="space-y-4 rounded-[1.8rem] bg-[rgba(241,245,249,0.78)] px-5 py-5">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">How people feel it</p>
           <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
             {ordinaryImpacts.map((example, index) => {
               const Icon = everydayIcons[index % everydayIcons.length];
               return (
                 <article
-                  className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-white/86 px-4 py-4"
+                  className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] px-4 py-4"
                   key={example.title}
                 >
                   <div className="flex items-start gap-3">

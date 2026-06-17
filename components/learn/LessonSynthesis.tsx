@@ -98,11 +98,11 @@ function ProposalRow({ proposal }: { proposal: SourcedProposal }) {
     <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-4 shadow-[0_1px_4px_rgba(28,36,48,0.05)]">
       <div className="flex flex-wrap items-center gap-2">
         <FeasibilityBadge feasibility={proposal.feasibility} />
-        <span className="rounded-full border border-[rgba(28,36,48,0.10)] bg-[rgba(246,244,238,0.8)] px-2 py-0.5 text-[11px] font-medium text-slate-600">
+        <span className="rounded-full border border-[rgba(28,36,48,0.10)] bg-[rgba(241,245,249,0.84)] px-2 py-0.5 text-[11px] font-medium text-slate-600">
           {ACTOR_LABEL[proposal.actor]}
         </span>
         <Link
-          className="inline-flex items-center gap-1 rounded-full border border-[rgba(28,36,48,0.10)] bg-[rgba(246,244,238,0.8)] px-2 py-0.5 text-[11px] font-medium text-slate-500 transition hover:text-slate-800"
+          className="inline-flex items-center gap-1 rounded-full border border-[rgba(28,36,48,0.10)] bg-[rgba(241,245,249,0.84)] px-2 py-0.5 text-[11px] font-medium text-slate-500 transition hover:text-slate-800"
           href={`/learn/${proposal.sourceSlug}`}
         >
           <BookOpen className="h-3 w-3" />
@@ -212,14 +212,14 @@ export function LessonSynthesis({ module }: { module: ResolvedLearningModule }) 
       </div>
 
       {/* Source modules */}
-      <div className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.55)] px-5 py-4">
+      <div className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.68)] px-5 py-4">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
           Proposals drawn from
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {sourceModules.map((src) => (
             <Link
-              className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(28,36,48,0.10)] bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-[rgba(28,36,48,0.20)] hover:text-slate-900"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(28,36,48,0.10)] bg-[rgba(247,250,252,0.94)] px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-[rgba(28,36,48,0.20)] hover:text-slate-900"
               href={`/learn/${src.slug}`}
               key={src.slug}
             >
@@ -239,7 +239,7 @@ export function LessonSynthesis({ module }: { module: ResolvedLearningModule }) 
             <div key={domain} className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="h-px flex-1 bg-[rgba(28,36,48,0.08)]" />
-                <span className="rounded-full border border-[rgba(28,36,48,0.10)] bg-[rgba(246,244,238,0.8)] px-3 py-0.5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <span className="rounded-full border border-[rgba(28,36,48,0.10)] bg-[rgba(241,245,249,0.84)] px-3 py-0.5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                   {DOMAIN_LABEL[domain]}
                 </span>
                 <span className="h-px flex-1 bg-[rgba(28,36,48,0.08)]" />
@@ -255,7 +255,7 @@ export function LessonSynthesis({ module }: { module: ResolvedLearningModule }) 
       </div>
 
       {/* CTA to systems-change track */}
-      <div className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-gradient-to-br from-[rgba(246,244,238,0.72)] to-white px-5 py-5">
+      <div className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-gradient-to-br from-[rgba(241,245,249,0.78)] to-[rgba(251,253,255,0.96)] px-5 py-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
           Next step
         </p>

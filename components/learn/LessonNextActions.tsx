@@ -25,12 +25,14 @@ const TRACK_RELATED_LABS: Record<string, { href: string; label: string }> = {
 export function LessonNextActions({
   compact = false,
   currentTrack,
+  indexOverride,
   module,
   nextModule,
   quizQuestionCount,
 }: {
   compact?: boolean;
   currentTrack?: LearningTrack | null;
+  indexOverride?: number;
   module: ResolvedLearningModule;
   nextModule?: LearningModule | null;
   quizQuestionCount?: number;
@@ -86,14 +88,14 @@ export function LessonNextActions({
         accent={module.accent}
         compact={compact}
         id="next-actions-heading"
-        index={compact ? 8 : 7}
+        index={indexOverride ?? (compact ? 8 : 7)}
         subtitle="Choose your next step: test the idea, discuss it, run the model, or go deeper into the supporting material."
         title={compact ? "Choose your next step" : "Next actions"}
       />
 
       <div className="space-y-6">
         {quizQuestionCount && !compact ? (
-          <div className="flex flex-col gap-4 rounded-[1.5rem] bg-[rgba(246,244,238,0.74)] px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 rounded-[1.5rem] bg-[rgba(241,245,249,0.8)] px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-900">Close the loop with a checkpoint</p>
               <p className="mt-1 text-sm leading-7 text-slate-600">
@@ -110,7 +112,7 @@ export function LessonNextActions({
         ) : null}
 
         {quizQuestionCount && compact ? (
-          <div className="flex items-center justify-between rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.68)] px-4 py-3">
+          <div className="flex items-center justify-between rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.76)] px-4 py-3">
             <div>
               <p className="text-sm font-semibold text-slate-900">Checkpoint quiz</p>
               <p className="text-xs leading-6 text-slate-500">{quizQuestionCount} quick questions to lock in the lesson.</p>
@@ -134,7 +136,7 @@ export function LessonNextActions({
                 key={action.label}
               >
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.78)] text-slate-700">
+                  <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(244,248,252,0.92)] text-slate-700">
                     <Icon className="h-4 w-4" />
                   </div>
                   <div>

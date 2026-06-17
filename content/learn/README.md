@@ -6,7 +6,9 @@ Why this exists:
 - It is free, easy to version in Git, and a good bridge toward MDX or a CMS later.
 
 Current support:
-- `.md` and `.txt` files in `content/learn/modules/`
+- one folder per learn item in `content/learn/modules/<slug>/`
+- the main article file can live at `content/learn/modules/<slug>/<slug>.md`
+- legacy flat `.md` and `.txt` files are still supported during migration
 - `##` and `###` headings
 - normal paragraphs
 - bullet lists that start with `- `
@@ -38,7 +40,9 @@ Our World in Data | Economic Inequality | https://ourworldindata.org/economic-in
 ```
 
 Authoring rule of thumb:
-- Put the module slug in the filename, for example `how-pollution-builds-up-until-systems-tip.md`
+- Put each lesson in its own folder, for example `content/learn/modules/how-pollution-builds-up-until-systems-tip/`
+- Keep the main article filename aligned with the slug, for example `how-pollution-builds-up-until-systems-tip.md`
+- Place future graph images or other lesson-specific assets in the same folder as the article
 - Keep the text concrete and connected.
 - Use the cards for infographic-style summaries, not for whole essays.
 - Keep citations at the bottom so the lesson stays readable.

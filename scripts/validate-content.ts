@@ -4,7 +4,8 @@
  *
  * Checks that every slug referenced in tracks/config.ts has:
  *   1. A matching lib/learn/modules/<slug>.ts file
- *   2. A matching content/learn/modules/<slug>.md file
+ *   2. A matching content/learn/modules/<slug>/<slug>.md file
+ *      (or the legacy flat content/learn/modules/<slug>.md fallback)
  *   3. All 6 required frontmatter fields in the .md file
  *
  * Run:  npx tsx scripts/validate-content.ts
@@ -17,6 +18,25 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MODULES_DIR = path.join(ROOT, "lib/learn/modules");
 const CONTENT_DIR = path.join(ROOT, "content/learn/modules");
 const REQUIRED_FM = ["accent", "difficulty", "eyebrow", "readingTime", "summary", "title"] as const;
+
+function getContentPath(slug: string) {
+  const nested = path.join(CONTENT_DIR, slug, `${slug}.md`);
+  if (existsSync(nested)) {
+    return nested;
+  }
+
+  const nestedIndex = path.join(CONTENT_DIR, slug, "index.md");
+  if (existsSync(nestedIndex)) {
+    return nestedIndex;
+  }
+
+  const flat = path.join(CONTENT_DIR, `${slug}.md`);
+  if (existsSync(flat)) {
+    return flat;
+  }
+
+  return null;
+}
 
 function extractSlugsFromConfig(): string[] {
   const source = readFileSync(path.join(ROOT, "lib/tracks/config.ts"), "utf-8");
@@ -51,16 +71,16 @@ for (const slug of slugs) {
     console.error(`  ✗ MISSING .ts  → lib/learn/modules/${slug}.ts`);
     errors++;
   }
-  const mdPath = path.join(CONTENT_DIR, `${slug}.md`);
-  if (!existsSync(mdPath)) {
-    console.error(`  ✗ MISSING .md  → content/learn/modules/${slug}.md`);
+  const mdPath = getContentPath(slug);
+  if (!mdPath) {
+    console.error(`  ✗ MISSING .md  → content/learn/modules/${slug}/${slug}.md`);
     errors++;
     continue;
   }
   const meta = parseFrontmatter(mdPath);
   const missing = REQUIRED_FM.filter((f) => !meta[f]);
   if (missing.length > 0) {
-    console.warn(`  ⚠ ${slug}.md missing frontmatter: ${missing.join(", ")}`);
+    console.warn(`  ⚠ ${path.relative(ROOT, mdPath)} missing frontmatter: ${missing.join(", ")}`);
     warnings++;
   }
 }

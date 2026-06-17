@@ -5,9 +5,11 @@ import { cn } from "@/lib/utils";
 
 export function LessonCounterarguments({
   compact = false,
+  indexOverride,
   module,
 }: {
   compact?: boolean;
+  indexOverride?: number;
   module: ResolvedLearningModule;
 }) {
   const accent = lessonAccentClasses[module.accent];
@@ -18,7 +20,7 @@ export function LessonCounterarguments({
         accent={module.accent}
         compact={compact}
         id="counterarguments-heading"
-        index={compact ? 7 : 6}
+        index={indexOverride ?? (compact ? 7 : 6)}
         subtitle="A useful lesson should face its strongest objections directly, answer them clearly, and stay anchored in the evidence you just saw."
         title="Counterarguments"
       />
@@ -46,11 +48,11 @@ export function LessonCounterarguments({
               </span>
             </summary>
             <div className="grid gap-3 px-5 pb-5 pl-[4.4rem]">
-              <div className="rounded-[1.15rem] bg-[rgba(246,244,238,0.72)] px-4 py-4">
+              <div className="rounded-[1.15rem] bg-[rgba(241,245,249,0.78)] px-4 py-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Claim</p>
                 <p className="mt-2 text-sm leading-7 text-slate-700">{argument.point}</p>
               </div>
-              <div className="rounded-[1.15rem] bg-[rgba(246,244,238,0.72)] px-4 py-4">
+              <div className="rounded-[1.15rem] bg-[rgba(241,245,249,0.78)] px-4 py-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Response</p>
                 <p className="mt-2 text-sm leading-7 text-slate-700">{argument.response}</p>
               </div>

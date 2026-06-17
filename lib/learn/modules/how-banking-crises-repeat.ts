@@ -140,6 +140,109 @@ export const lessonData: LearningModule = {
         insight: "2008 was 1907 repeated at a scale orders of magnitude larger, enabled by financial innovation that outpaced regulatory imagination. The Glass-Steagall Act — designed precisely to prevent this — had been gutted by 1999.",
       },
     ],
+    timeline: {
+      title: "How the crisis pattern keeps returning",
+      intro:
+        "The labels change, but the sequence repeats: a new kind of bank grows outside the old rules, leverage rises during calm years, and the public rebuilds the guardrails only after the system breaks.",
+      events: [
+        {
+          timeLabel: "1907",
+          title: "Trust companies trigger a panic",
+          family: "Shadow-bank prototype",
+          whyItStarted:
+            "Trust companies borrowed short, speculated aggressively, and escaped the reserve rules that constrained national banks.",
+          turningPoint:
+            "The Knickerbocker collapse revealed that the U.S. already had bank-like fragility outside the official banking system.",
+          characteristics: [
+            "Bank-like institutions outside the main rulebook",
+            "No lender of last resort",
+            "Private rescue coordinated by J.P. Morgan",
+          ],
+          outcome:
+            "The panic created the political case for the Federal Reserve, but not a lasting solution to risk migration.",
+        },
+        {
+          timeLabel: "1933",
+          title: "Glass-Steagall and the FDIC contain classic bank runs",
+          family: "Safety-net construction",
+          whyItStarted:
+            "The Depression proved that ordinary depositors would run first if they feared others would get out ahead of them.",
+          turningPoint:
+            "Deposit insurance removed the first-mover advantage, while separating commercial and investment banking narrowed what insured deposits could fund.",
+          characteristics: [
+            "Deposits guaranteed by the state",
+            "Commercial banking split from securities speculation",
+            "Public backstop traded for tighter supervision",
+          ],
+          outcome:
+            "Retail bank runs became rarer, but the incentive to rebuild leverage elsewhere in finance remained alive.",
+        },
+        {
+          timeLabel: "1980s",
+          title: "Savings & loans reopen the moral hazard loop",
+          family: "Deregulated insured finance",
+          whyItStarted:
+            "Thrifts hit by rising rates were allowed to keep public insurance while taking on broader investment powers.",
+          turningPoint:
+            "The state protected deposits but failed to constrain the risky bets of insolvent institutions.",
+          characteristics: [
+            "Public insurance with private upside",
+            "Regulatory forbearance delays loss recognition",
+            "Zombie institutions gamble to recover",
+          ],
+          outcome:
+            "Taxpayers absorbed the losses, proving that safety nets without discipline become subsidies for recklessness.",
+        },
+        {
+          timeLabel: "1999–2007",
+          title: "Shadow banking scales beyond the perimeter",
+          family: "Memory fades",
+          whyItStarted:
+            "Long stability and deregulation encouraged the belief that sophisticated markets could self-police through diversification and collateral.",
+          turningPoint:
+            "Repo, money funds, securitisation vehicles, and broker-dealers grew into a parallel banking system with bank-like fragility but no bank-like backstop.",
+          characteristics: [
+            "High leverage funded overnight",
+            "Securitised assets treated as near-cash",
+            "Complexity used as a substitute for resilience",
+          ],
+          outcome:
+            "The system looked safer precisely because the riskiest activity had migrated where the old rules no longer reached.",
+        },
+        {
+          timeLabel: "2008",
+          title: "Lehman turns fragility into global contagion",
+          family: "Contagion event",
+          whyItStarted:
+            "Once housing prices fell and repo lenders doubted collateral quality, the short-term funding architecture that powered the boom reversed instantly.",
+          turningPoint:
+            "Lehman showed that an institution without insured deposits could still trigger a system-wide run if enough of finance relied on its paper and funding markets.",
+          characteristics: [
+            "30-to-1 leverage at key institutions",
+            "No credible resolution regime for shadow banks",
+            "Credit freeze transmitted to the real economy within days",
+          ],
+          outcome:
+            "Governments rescued the system after the fact, confirming that private upside had been built on an implicit public guarantee.",
+        },
+        {
+          timeLabel: "2023+",
+          title: "The form changes again, the structure does not",
+          family: "Perimeter drift",
+          whyItStarted:
+            "Years of low rates, concentrated uninsured deposits, and the growth of private credit and money funds created new forms of quiet fragility.",
+          turningPoint:
+            "Silicon Valley Bank and regional bank stress showed that duration risk and runnable funding can still outrun supervision even after 2008.",
+          characteristics: [
+            "Uninsured deposits behave like wholesale funding",
+            "Losses build quietly during calm years",
+            "Risk migrates toward private credit and non-bank finance",
+          ],
+          outcome:
+            "The lesson is not that one reform failed. It is that regulation keeps arriving after the structure has already moved.",
+        },
+      ],
+    },
     relatedFrameworks: [
       "Hyman Minsky — financial instability hypothesis",
       "Walter Bagehot — lender of last resort",

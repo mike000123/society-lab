@@ -139,7 +139,7 @@ export function CausalLoopDiagram({
         </div>
       )}
 
-      <div className="relative mt-6 overflow-hidden rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(246,244,238,0.92))] p-4 sm:p-5">
+      <div className="relative mt-6 overflow-hidden rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(251,253,255,0.96),rgba(241,245,249,0.92))] p-4 sm:p-5">
         <div className="atlas-grid absolute inset-0 opacity-50" />
         <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b", styles.glow)} />
 
@@ -149,11 +149,11 @@ export function CausalLoopDiagram({
             contain or reverse it.
           </p>
           <div className="flex flex-wrap gap-2 text-xs font-medium">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-white/86 px-3 py-1 text-slate-600">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] px-3 py-1 text-slate-600">
               <span className="h-2.5 w-2.5 rounded-full bg-[#3B82F6]" />
               Reinforcing
             </span>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-white/86 px-3 py-1 text-slate-600">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] px-3 py-1 text-slate-600">
               <span className="h-2.5 w-2.5 rounded-full bg-[#C46A6A]" />
               Balancing
             </span>

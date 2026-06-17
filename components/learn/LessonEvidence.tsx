@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { AlertTriangle, ExternalLink } from "lucide-react";
 
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
 import { extractFirstSentence, getExpectedObservations, lessonAccentClasses } from "@/components/learn/lesson-theme";
@@ -11,6 +11,7 @@ import type {
   LearningArticleDocument,
   LearningArticleSource,
 } from "@/lib/learn/content";
+import { isKnownBrokenLearningChartUrl } from "@/lib/learn/chart-health";
 import type { AccentTone, LearningEvidenceLink, LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
 
@@ -34,24 +35,67 @@ function renderSourceLink(link: LearningArticleSource | LearningEvidenceLink) {
   );
 }
 
-function ArticleChart({ chart }: { chart: LearningArticleChart }) {
+function ArticleChart({
+  chart,
+  sources,
+}: {
+  chart: LearningArticleChart;
+  sources?: Array<LearningArticleSource | LearningEvidenceLink>;
+}) {
+  const chartIsBroken = isKnownBrokenLearningChartUrl(chart.url);
+
   return (
     <article className="space-y-4" key={chart.url}>
       <div className="space-y-2">
         <h4 className="text-xl font-semibold leading-tight text-slate-900">{chart.title}</h4>
         {chart.note ? <p className="atlas-copy text-sm leading-7">{chart.note}</p> : null}
       </div>
-      <div className="overflow-hidden rounded-[1.4rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_14px_32px_rgba(28,36,48,0.04)]">
-        <iframe
-          allow="web-share; clipboard-write"
-          className="w-full"
-          loading="eager"
-          referrerPolicy="strict-origin-when-cross-origin"
-          src={chart.url}
-          style={{ border: 0, height: chart.height }}
-          title={chart.title}
-        />
-      </div>
+      {chartIsBroken ? (
+        <div className="rounded-[1.4rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.84)] px-5 py-5 shadow-[0_14px_32px_rgba(28,36,48,0.04)]">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] text-slate-600">
+              <AlertTriangle className="h-4 w-4" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-900">This external chart link has gone stale</p>
+              <p className="text-sm leading-7 text-slate-600">
+                I checked this lesson chart and the current Our World in Data grapher link no longer resolves correctly.
+                The evidence trail below still works, and we can remap this module to a live replacement dataset next.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <a
+              className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.08)] bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-[rgba(28,36,48,0.16)] hover:text-slate-900"
+              href={chart.url}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Open original chart link
+              <ExternalLink className="h-3.5 w-3.5 flex-none" />
+            </a>
+          </div>
+
+          {sources?.length ? (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {sources.slice(0, 4).map((item) => renderSourceLink(item))}
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-[1.4rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_14px_32px_rgba(28,36,48,0.04)]">
+          <iframe
+            allow="web-share; clipboard-write"
+            className="w-full"
+            loading="eager"
+            referrerPolicy="strict-origin-when-cross-origin"
+            src={chart.url}
+            style={{ border: 0, height: chart.height }}
+            title={chart.title}
+          />
+        </div>
+      )}
     </article>
   );
 }
@@ -71,6 +115,11 @@ function ArticleFlow({
   fallbackSummary: string;
   fallbackSignals: string[];
 }) {
+  const articleSourceItems = article?.blocks.find(
+    (block): block is Extract<LearningArticleBlock, { type: "sources" }> => block.type === "sources",
+  )?.items;
+  const chartSources = articleSourceItems?.length ? articleSourceItems : evidenceLinks;
+
   if (!article) {
     return (
       <div className="space-y-8">
@@ -89,7 +138,7 @@ function ArticleFlow({
           <h3 className="atlas-display text-[1.8rem] leading-tight text-slate-900">What to watch instead</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             {fallbackMetrics.map((metric) => (
-              <article className="rounded-[1.35rem] bg-[rgba(246,244,238,0.7)] px-4 py-4" key={metric.label}>
+              <article className="rounded-[1.35rem] bg-[rgba(241,245,249,0.78)] px-4 py-4" key={metric.label}>
                 <h4 className="text-base font-semibold text-slate-900">{metric.label}</h4>
                 <p className="mt-2 text-sm leading-7 text-slate-700">{metric.description}</p>
               </article>
@@ -174,7 +223,7 @@ function ArticleFlow({
               <div className="grid gap-4 sm:grid-cols-2">
                 {block.items.map((item) => (
                   <article
-                    className="rounded-[1.35rem] bg-[rgba(246,244,238,0.72)] px-4 py-4"
+                    className="rounded-[1.35rem] bg-[rgba(241,245,249,0.78)] px-4 py-4"
                     key={`${item.title}-${item.body}`}
                   >
                     <h4 className="text-base font-semibold text-slate-900">{item.title}</h4>
@@ -193,7 +242,7 @@ function ArticleFlow({
                 <h3 className="atlas-display text-[1.8rem] leading-tight text-slate-900">{block.title}</h3>
               ) : null}
               {block.items.map((chart) => (
-                <ArticleChart chart={chart} key={`${chart.title}-${chart.url}`} />
+                <ArticleChart chart={chart} key={`${chart.title}-${chart.url}`} sources={chartSources} />
               ))}
             </div>
           );
@@ -311,7 +360,9 @@ export function LessonEvidence({
             </div>
 
             <div className="min-w-0 space-y-4">
-              {chartBlock?.items?.[0] ? <ArticleChart chart={chartBlock.items[0]} /> : null}
+              {chartBlock?.items?.[0] ? (
+                <ArticleChart chart={chartBlock.items[0]} sources={sourceBlock?.items?.length ? sourceBlock.items : module.evidenceLinks} />
+              ) : null}
 
               {sourceBlock?.items?.length ? (
                 <div className="grid gap-3 md:grid-cols-2">

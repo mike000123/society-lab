@@ -187,6 +187,109 @@ export const lessonData: LearningModule = {
         title: "Lehman Brothers and the repo freeze",
       },
     ],
+    timeline: {
+      title: "How the 2008 machine was built, cracked, and blew up",
+      intro:
+        "2008 was not one bad weekend. It was a decade-long construction project in which incentives, leverage, and shadow funding lined up to turn falling house prices into a global financial seizure.",
+      events: [
+        {
+          timeLabel: "1999–2000",
+          title: "The perimeter is opened",
+          family: "Rule changes",
+          whyItStarted:
+            "Financial firms argued that old separations and derivatives oversight were blocking innovation and efficiency in modern capital markets.",
+          turningPoint:
+            "The Gramm-Leach-Bliley Act and Commodity Futures Modernization Act helped dissolve key firebreaks between commercial banking, securities, and opaque derivatives markets.",
+          characteristics: [
+            "Glass-Steagall era boundaries weakened",
+            "OTC derivatives escape full transparency",
+            "Shadow intermediation becomes easier to scale",
+          ],
+          outcome:
+            "A larger, more interconnected financial system could grow outside the part regulators directly understood or controlled.",
+        },
+        {
+          timeLabel: "2001–2004",
+          title: "Cheap credit accelerates mortgage volume",
+          family: "Credit expansion",
+          whyItStarted:
+            "Low interest rates after the dot-com crash made mortgages cheap, while investors searched for higher-yielding assets than government bonds.",
+          turningPoint:
+            "Mortgage origination increasingly focused on volume and fees because loans could be sold onward rather than kept on lenders’ balance sheets.",
+          characteristics: [
+            "Subprime and no-doc lending expands",
+            "Originators paid on throughput, not repayment quality",
+            "House prices rise fast enough to hide weak underwriting",
+          ],
+          outcome:
+            "The system learned to treat rising house prices as evidence that the whole model was safe.",
+        },
+        {
+          timeLabel: "2004–2006",
+          title: "Securitisation and leverage peak together",
+          family: "Fragility build-up",
+          whyItStarted:
+            "Banks, rating agencies, insurers, and investors all earned fees or carry by packaging risk rather than examining it.",
+          turningPoint:
+            "Pools of weak mortgages were tranched into AAA securities, while investment banks and shadow vehicles layered leverage on top of them.",
+          characteristics: [
+            "CDOs built from mortgage-backed securities",
+            "AIG sells credit protection without equivalent reserves",
+            "Repo funding treats risky collateral like near-cash",
+          ],
+          outcome:
+            "The system became highly profitable precisely because it was converting fragile debt into instruments treated as safe.",
+        },
+        {
+          timeLabel: "2007",
+          title: "The first cracks appear",
+          family: "Confidence break",
+          whyItStarted:
+            "House prices stopped rising nationally and mortgage defaults began to exceed the assumptions built into securitisation models.",
+          turningPoint:
+            "Bear Stearns hedge fund failures and BNP Paribas fund suspensions signaled that markets could no longer confidently price structured products.",
+          characteristics: [
+            "Correlation assumptions fail",
+            "Funding stress rises in wholesale markets",
+            "Confidence falls before the public crisis headline arrives",
+          ],
+          outcome:
+            "The problem shifted from credit quality alone to uncertainty about who was exposed, by how much, and through which instruments.",
+        },
+        {
+          timeLabel: "2008",
+          title: "Lehman, AIG, and the global freeze",
+          family: "Systemic rupture",
+          whyItStarted:
+            "Once repo lenders and counterparties doubted collateral quality, the short-term funding that sustained shadow banking evaporated.",
+          turningPoint:
+            "Lehman’s failure and AIG’s collapse threat turned a housing downturn into a generalized credit seizure.",
+          characteristics: [
+            "Wholesale funding runs replace retail deposit runs",
+            "Interbank trust collapses",
+            "Payments, pensions, and global trade all depend on rescue",
+          ],
+          outcome:
+            "Governments had to backstop private balance sheets to stop the freeze from turning into depression-scale collapse.",
+        },
+        {
+          timeLabel: "2010+",
+          title: "Reform arrives, but the migration resumes",
+          family: "Post-crisis response",
+          whyItStarted:
+            "Dodd-Frank, Basel III, and stress tests were created to stop a replay inside the same institutional channels.",
+          turningPoint:
+            "Capital rules tightened and living wills appeared, but risk gradually migrated toward private credit, money funds, and new non-bank structures.",
+          characteristics: [
+            "Higher capital inside regulated banking",
+            "Living wills and periodic stress tests",
+            "Shadow finance adapts faster than memory lasts",
+          ],
+          outcome:
+            "The immediate architecture changed, but the underlying lesson remains: if leverage plus runnable funding can move outside the perimeter, fragility returns.",
+        },
+      ],
+    },
     relatedFrameworks: ["Shadow Banking", "Securitisation", "Leverage Cycles", "Systemic Risk", "Moral Hazard"],
     simulationPrompt:
       "Adjust housing bubble size, leverage ratio, and bailout speed to see how 2008 could have been worse — or cut short with early intervention.",

@@ -68,7 +68,7 @@ function ProposalCard({ proposal }: { proposal: ModuleProposal }) {
         <div className="mt-4 space-y-1.5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Where it has worked</p>
           {proposal.precedents.map((p, i) => (
-            <div key={i} className="rounded-xl border border-[rgba(28,36,48,0.07)] bg-[rgba(246,244,238,0.55)] px-3 py-2.5">
+            <div key={i} className="rounded-xl border border-[rgba(28,36,48,0.07)] bg-[rgba(241,245,249,0.68)] px-3 py-2.5">
               <p className="text-xs font-semibold text-slate-700">
                 {p.place}
                 <span className="ml-1.5 font-normal text-slate-400">{p.year}</span>
@@ -84,7 +84,13 @@ function ProposalCard({ proposal }: { proposal: ModuleProposal }) {
 
 // ── Main export ────────────────────────────────────────────────────────────────
 
-export function LessonProposals({ module }: { module: ResolvedLearningModule }) {
+export function LessonProposals({
+  indexOverride,
+  module,
+}: {
+  indexOverride?: number;
+  module: ResolvedLearningModule;
+}) {
   if (!module.proposals || module.proposals.length === 0) return null;
 
   const governanceHref = `/governance/submit?module=${module.slug}`;
@@ -94,10 +100,17 @@ export function LessonProposals({ module }: { module: ResolvedLearningModule }) 
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="atlas-kicker">What could change this?</p>
-          <h3 className="mt-1 text-xl font-bold text-slate-900">
-            Proven and emerging reforms
-          </h3>
+          {indexOverride ? (
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(241,245,249,0.92)] text-xs font-semibold text-slate-700">
+                {indexOverride}
+              </span>
+              <h3 className="atlas-display text-[1.75rem] leading-tight text-slate-900">What could change this?</h3>
+            </div>
+          ) : (
+            <p className="atlas-kicker">What could change this?</p>
+          )}
+          <h3 className="mt-1 text-xl font-bold text-slate-900">Proven and emerging reforms</h3>
           <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">
             Each proposal below addresses a root cause identified in this module and has at least one documented precedent.
           </p>
@@ -135,4 +148,3 @@ export function LessonProposals({ module }: { module: ResolvedLearningModule }) 
       ) : null}    </section>
   );
 }
-

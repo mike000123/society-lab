@@ -207,7 +207,7 @@ export function LearningTimeline({
                         <div className="flex flex-wrap gap-2 pt-1">
                           {event.characteristics.map((characteristic) => (
                             <span
-                              className="inline-flex rounded-full border border-[rgba(28,36,48,0.08)] bg-white/86 px-2.5 py-1 text-[11px] font-medium text-slate-600"
+                              className="inline-flex rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] px-2.5 py-1 text-[11px] font-medium text-slate-600"
                               key={characteristic}
                             >
                               {characteristic}
@@ -245,7 +245,7 @@ export function LearningTimeline({
                 <div className="relative pl-10 sm:pl-0">
                   <div
                     className={cn(
-                      "absolute left-[0.68rem] top-3 h-4 w-4 rounded-full border-4 border-[rgba(246,244,238,1)] sm:left-[-2.35rem]",
+                      "absolute left-[0.68rem] top-3 h-4 w-4 rounded-full border-4 border-[rgba(241,245,249,1)] sm:left-[-2.35rem]",
                       palette.dot,
                     )}
                   />
@@ -269,7 +269,7 @@ export function LearningTimeline({
                     <div className="mt-4 flex flex-wrap gap-2">
                       {event.characteristics.map((characteristic) => (
                         <span
-                          className="inline-flex rounded-full border border-[rgba(28,36,48,0.08)] bg-white/86 px-3 py-1 text-xs font-medium text-slate-600"
+                          className="inline-flex rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] px-3 py-1 text-xs font-medium text-slate-600"
                           key={characteristic}
                         >
                           {characteristic}
@@ -278,11 +278,11 @@ export function LearningTimeline({
                     </div>
 
                     <div className="mt-5 grid gap-3 lg:grid-cols-2">
-                      <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/86 p-4">
+                      <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] p-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Turning point</p>
                         <p className="mt-2 text-sm leading-7 text-slate-700">{event.turningPoint}</p>
                       </div>
-                      <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/86 p-4">
+                      <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] p-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Outcome</p>
                         <p className="mt-2 text-sm leading-7 text-slate-700">{event.outcome}</p>
                       </div>

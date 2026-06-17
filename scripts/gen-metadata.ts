@@ -2,10 +2,11 @@
 /**
  * scripts/gen-metadata.ts
  *
- * Reads YAML frontmatter from every content/learn/modules/<slug>.md and
+ * Reads YAML frontmatter from every content/learn/modules/<slug>/<slug>.md and
+ * legacy flat content/learn/modules/<slug>.md files, then
  * writes lib/learn/modules/_metadata.generated.ts.
  */
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { Dirent, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -39,31 +40,61 @@ function q(s: string): string {
   return JSON.stringify(s);
 }
 
-const allFiles = readdirSync(CONTENT_DIR)
-  .filter((f) => f.endsWith(".md"))
-  .sort();
+function getArticleFiles() {
+  const entries = readdirSync(CONTENT_DIR, { withFileTypes: true });
+  const files: Array<{ fileName: string; filePath: string; slug: string }> = [];
 
-const fileSet = new Set(allFiles);
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const folderPath = path.join(CONTENT_DIR, entry.name);
+      const nestedEntries = readdirSync(folderPath, { withFileTypes: true })
+        .filter((nestedEntry: Dirent) => nestedEntry.isFile() && nestedEntry.name.endsWith(".md"))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      for (const nestedEntry of nestedEntries) {
+        files.push({
+          fileName: nestedEntry.name,
+          filePath: path.join(folderPath, nestedEntry.name),
+          slug: nestedEntry.name.replace(/\.md$/, ""),
+        });
+      }
+      continue;
+    }
+
+    if (entry.isFile() && entry.name.endsWith(".md")) {
+      files.push({
+        fileName: entry.name,
+        filePath: path.join(CONTENT_DIR, entry.name),
+        slug: entry.name.replace(/\.md$/, ""),
+      });
+    }
+  }
+
+  return files.sort((a, b) => a.fileName.localeCompare(b.fileName));
+}
+
+const allFiles = getArticleFiles();
+const fileSet = new Set(allFiles.map((file) => file.fileName));
 const files = allFiles.filter((file) => {
-  if (!file.endsWith("-final.md")) {
+  if (!file.fileName.endsWith("-final.md")) {
     return true;
   }
 
-  const canonical = file.replace(/-final\.md$/, ".md");
+  const canonical = file.fileName.replace(/-final\.md$/, ".md");
   return !fileSet.has(canonical);
 });
 
 const entries: string[] = [];
 
 for (const file of files) {
-  const slug = file.replace(/\.md$/, "");
-  const meta = parseFrontmatter(path.join(CONTENT_DIR, file));
+  const slug = file.slug;
+  const meta = parseFrontmatter(file.filePath);
 
   const missing = (["accent", "difficulty", "eyebrow", "readingTime", "summary", "title"] as const).filter(
     (k) => !meta[k],
   );
   if (missing.length > 0) {
-    console.warn(`  ${slug}.md missing frontmatter: ${missing.join(", ")}`);
+    console.warn(`  ${path.relative(ROOT, file.filePath)} missing frontmatter: ${missing.join(", ")}`);
   }
 
   entries.push(
@@ -79,7 +110,7 @@ for (const file of files) {
 }
 
 const output = `// AUTO-GENERATED — do not edit by hand.
-// Source of truth: content/learn/modules/*.md frontmatter
+// Source of truth: content/learn/modules/** frontmatter
 // Regenerate: npm run gen:metadata
 import type { AccentTone } from "./_types";
 

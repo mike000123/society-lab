@@ -1,6 +1,6 @@
 import type { ModuleSlug, ResolvedLearningModule } from "@/lib/learn/modules";
 
-export type LessonVariant = "systems" | "comparison" | "timeline" | "historical" | "solution";
+export type LessonVariant = "systems" | "comparison" | "timeline" | "historical" | "process" | "solution";
 
 export const LESSON_VARIANT_META: Record<
   LessonVariant,
@@ -35,6 +35,12 @@ export const LESSON_VARIANT_META: Record<
     summary: "Best when a movement, regime, or long arc of change needs narrative momentum.",
     visualFocus: "Phases, actors, context shifts, and magazine-style case progression.",
   },
+  process: {
+    label: "Process Lesson",
+    shortLabel: "Process",
+    summary: "Best when understanding the sequence of institutional steps matters more than chronology alone.",
+    visualFocus: "Decision pathways, veto points, actor roles, and the practical flow from proposal to outcome.",
+  },
   solution: {
     label: "Solution Lesson",
     shortLabel: "Solution",
@@ -61,17 +67,18 @@ export const LESSON_VARIANTS_BY_SLUG = {
   "how-banking-crises-repeat": "timeline",
   "how-the-2008-financial-crisis-happened": "timeline",
   "the-savings-and-loan-crisis-of-the-1980s": "timeline",
+  "how-capitalism-evolved-through-stages": "timeline",
   "how-capitalism-socialism-and-communism-differ": "comparison",
-  "how-the-eu-makes-decisions": "timeline",
-  "how-the-us-government-makes-decisions": "timeline",
+  "how-the-eu-makes-decisions": "process",
+  "how-the-us-government-makes-decisions": "process",
   "how-print-era-movements-turned-ideas-into-power": "historical",
   "how-industrial-mass-movements-won-rights": "historical",
   "how-anti-colonial-movements-dismantled-empires": "historical",
   "how-rights-based-movements-expand-citizenship": "historical",
   "how-networked-digital-movements-scale": "historical",
-  "how-social-movements-reshape-history": "historical",
+  "how-social-movements-reshape-history": "timeline",
   "how-the-us-rewrites-the-rules-of-money": "timeline",
-  "why-capable-people-dont-enter-politics": "systems",
+  "why-capable-people-dont-enter-politics": "timeline",
   "why-decoupling-growth-from-emissions-is-so-hard": "comparison",
   "why-democracies-struggle-with-long-term-problems": "systems",
   "pathways-to-change": "solution",

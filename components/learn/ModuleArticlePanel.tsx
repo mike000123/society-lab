@@ -1,5 +1,6 @@
-import { BookOpenText, ExternalLink } from "lucide-react";
+import { AlertTriangle, BookOpenText, ExternalLink } from "lucide-react";
 
+import { isKnownBrokenLearningChartUrl } from "@/lib/learn/chart-health";
 import type { LearningArticleDocument } from "@/lib/learn/content";
 import type { AccentTone } from "@/lib/learn/modules";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,7 @@ export function ModuleArticlePanel({
   article: LearningArticleDocument;
 }) {
   const styles = accentStyles[accent];
+  const sourceItems = article.blocks.find((block) => block.type === "sources")?.items ?? [];
 
   return (
     <section className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/74 p-5 shadow-[0_18px_40px_rgba(28,36,48,0.05)] sm:p-6">
@@ -170,17 +172,52 @@ export function ModuleArticlePanel({
                           <ExternalLink className={cn("h-3.5 w-3.5 flex-none", styles.source)} />
                         </a>
                       </div>
-                      <div className="mt-4 overflow-hidden rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white">
-                        <iframe
-                          allow="web-share; clipboard-write"
-                          className="w-full"
-                          loading="eager"
-                          referrerPolicy="strict-origin-when-cross-origin"
-                          src={item.url}
-                          style={{ border: 0, height: item.height }}
-                          title={item.title}
-                        />
-                      </div>
+                      {isKnownBrokenLearningChartUrl(item.url) ? (
+                        <div className="mt-4 rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.84)] px-4 py-4">
+                          <div className="flex items-start gap-3">
+                            <div className={cn("flex h-9 w-9 flex-none items-center justify-center rounded-full border", styles.icon)}>
+                              <AlertTriangle className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900">This external chart link is currently stale</p>
+                              <p className="mt-2 text-sm leading-7 text-slate-600">
+                                The evidence source is still relevant, but the old grapher embed no longer resolves correctly.
+                              </p>
+                            </div>
+                          </div>
+                          {sourceItems.length ? (
+                            <div className="mt-4 grid gap-3 md:grid-cols-2">
+                              {sourceItems.slice(0, 4).map((source) => (
+                                <a
+                                  className="flex items-start justify-between gap-3 rounded-[1.1rem] border border-[rgba(28,36,48,0.08)] bg-white/92 px-4 py-3 transition hover:border-[rgba(28,36,48,0.16)]"
+                                  href={source.url}
+                                  key={`${source.label}-${source.title}`}
+                                  rel="noreferrer"
+                                  target="_blank"
+                                >
+                                  <div>
+                                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{source.label}</p>
+                                    <p className="mt-2 text-sm font-medium text-slate-900">{source.title}</p>
+                                  </div>
+                                  <ExternalLink className={cn("mt-0.5 h-4 w-4 flex-none", styles.source)} />
+                                </a>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="mt-4 overflow-hidden rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white">
+                          <iframe
+                            allow="web-share; clipboard-write"
+                            className="w-full"
+                            loading="eager"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            src={item.url}
+                            style={{ border: 0, height: item.height }}
+                            title={item.title}
+                          />
+                        </div>
+                      )}
                     </article>
                   ))}
                 </div>

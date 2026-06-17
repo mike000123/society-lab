@@ -41,7 +41,7 @@ function CaseStudyItem({
         </div>
       </div>
 
-      <div className="space-y-3 rounded-[1.3rem] bg-[rgba(246,244,238,0.72)] px-4 py-4">
+      <div className="space-y-3 rounded-[1.3rem] bg-[rgba(241,245,249,0.78)] px-4 py-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Why it matters</p>
           <p className="mt-2 text-sm leading-7 text-slate-700">{example.insight}</p>
@@ -77,7 +77,7 @@ export function LessonCaseStudies({
         <div className="grid gap-3 lg:grid-cols-3">
           {module.realWorldExamples.map((example, index) => (
             <article
-              className="overflow-hidden rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white/86 shadow-[0_14px_26px_rgba(28,36,48,0.04)]"
+              className="overflow-hidden rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] shadow-[0_14px_26px_rgba(28,36,48,0.04)]"
               key={example.title}
             >
               <div className={cn("h-24 px-4 py-4", lessonAccentClasses[module.accent].panel)}>
@@ -93,7 +93,7 @@ export function LessonCaseStudies({
               </div>
               <div className="space-y-3 px-4 py-4">
                 <p className="text-sm leading-6 text-slate-600">{extractFirstSentence(example.outcome) || example.outcome}</p>
-                <div className="rounded-[1rem] bg-[rgba(246,244,238,0.82)] px-3 py-3">
+                <div className="rounded-[1rem] bg-[rgba(241,245,249,0.82)] px-3 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">What it teaches</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{extractFirstSentence(example.insight) || example.insight}</p>
                 </div>

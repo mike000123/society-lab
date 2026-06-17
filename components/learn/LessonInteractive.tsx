@@ -5,9 +5,11 @@ import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules
 
 export function LessonInteractive({
   compact = false,
+  indexOverride,
   module,
 }: {
   compact?: boolean;
+  indexOverride?: number;
   module: ResolvedLearningModule;
 }) {
   const accent = lessonAccentClasses[module.accent];
@@ -19,7 +21,7 @@ export function LessonInteractive({
         accent={module.accent}
         compact={compact}
         id="interactive-exploration-heading"
-        index={compact ? 6 : 5}
+        index={indexOverride ?? (compact ? 6 : 5)}
         subtitle="Try it yourself: adjust the variables, observe the outcomes, and test whether the mechanism still holds when conditions change."
         title="Interactive exploration"
       />

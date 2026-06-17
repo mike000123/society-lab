@@ -64,6 +64,7 @@ import {
   getLessonTakeaway,
   lessonAccentClasses,
 } from "@/components/learn/lesson-theme";
+import { isKnownBrokenLearningChartUrl } from "@/lib/learn/chart-health";
 
 const TRACK_RELATED_LABS: Record<string, { href: string; label: string }> = {
   economy: { href: "/simulator/macro-economy", label: "Run a simulation" },
@@ -71,16 +72,6 @@ const TRACK_RELATED_LABS: Record<string, { href: string; label: string }> = {
   "cities-and-ecology": { href: "/simulator/world3", label: "Open World3" },
   "media-and-information": { href: "/simulator/social-movements", label: "Open movement lab" },
 };
-
-const US_MONEY_TIMELINE_CHART = [
-  { confidence: 72, reserve: 100, stress: 18, year: "1971" },
-  { confidence: 76, reserve: 96, stress: 28, year: "1980" },
-  { confidence: 82, reserve: 91, stress: 40, year: "1990" },
-  { confidence: 90, reserve: 86, stress: 58, year: "2000" },
-  { confidence: 101, reserve: 80, stress: 82, year: "2010" },
-  { confidence: 110, reserve: 71, stress: 108, year: "2020" },
-  { confidence: 118, reserve: 62, stress: 132, year: "2024" },
-];
 
 const MECHANISM_STEP_DECOR = [
   { icon: Landmark, tone: "border-blue-200 bg-blue-50 text-blue-700" },
@@ -118,6 +109,30 @@ const ACTION_ICON_TONES = [
   "border-slate-100 bg-slate-50 text-slate-600",
   "border-amber-100 bg-amber-50 text-amber-600",
 ] as const;
+
+const SOLID_TRIGGER_SURFACE = "border-slate-200 bg-[#f3f7fb] text-slate-700 shadow-[0_8px_18px_rgba(28,36,48,0.04)]";
+
+const SOLID_ACTIVE_TRIGGER_BY_ACCENT = {
+  amber: "border-amber-200 bg-[#fff1d6] text-amber-800 shadow-[0_10px_22px_rgba(217,119,6,0.12)]",
+  cyan: "border-cyan-200 bg-[#def7fb] text-cyan-800 shadow-[0_10px_22px_rgba(8,145,178,0.12)]",
+  emerald: "border-emerald-200 bg-[#e4f8ee] text-emerald-800 shadow-[0_10px_22px_rgba(5,150,105,0.12)]",
+  rose: "border-rose-200 bg-[#ffe5ec] text-rose-800 shadow-[0_10px_22px_rgba(225,29,72,0.12)]",
+} as const;
+
+const US_MONEY_EVIDENCE_SERIES: Array<{
+  year: string;
+  reserveDominance: number;
+  diversificationPressure: number;
+  systemStress: number;
+}> = [
+  { year: "1971", reserveDominance: 100, diversificationPressure: 18, systemStress: 12 },
+  { year: "1980", reserveDominance: 96, diversificationPressure: 24, systemStress: 22 },
+  { year: "1990", reserveDominance: 88, diversificationPressure: 36, systemStress: 42 },
+  { year: "2000", reserveDominance: 82, diversificationPressure: 48, systemStress: 58 },
+  { year: "2010", reserveDominance: 76, diversificationPressure: 64, systemStress: 88 },
+  { year: "2020", reserveDominance: 68, diversificationPressure: 91, systemStress: 116 },
+  { year: "2024", reserveDominance: 62, diversificationPressure: 118, systemStress: 132 },
+];
 
 type FloatingPanelOffset = { x: number; y: number };
 
@@ -173,7 +188,7 @@ function DraggableFloatingPanel({
   return (
     <aside
       className={cn(
-        "pointer-events-auto absolute z-20 w-[16.6rem] rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/98 px-4 py-4 shadow-[0_24px_46px_rgba(28,36,48,0.13)] ring-1 ring-white/70 backdrop-blur-[2px]",
+        "pointer-events-auto absolute z-20 w-[16.6rem] rounded-[1.25rem] border border-[rgba(28,36,48,0.1)] bg-[#f4f8fc] px-4 py-4 shadow-[0_24px_46px_rgba(28,36,48,0.15)]",
         className,
       )}
       style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
@@ -229,6 +244,52 @@ function getMechanismSteps(module: ResolvedLearningModule) {
 }
 
 function getMechanismPanels(module: ResolvedLearningModule) {
+  const lastTimelineEvent = module.timeline?.events[module.timeline.events.length - 1];
+  const firstTimelineEvent = module.timeline?.events[0];
+
+  const genericPanels = [
+    {
+      bullets: firstTimelineEvent?.characteristics.slice(0, 3) ?? module.systemBug.signals.slice(0, 3),
+      body:
+        extractFirstSentence(module.simpleExplanation[1]) ||
+        extractFirstSentence(module.simpleExplanation[0]) ||
+        module.summary,
+      title: "What sets it in motion?",
+    },
+    {
+      bullets:
+        module.realWorldExamples
+          .map((example) => extractFirstSentence(example.outcome))
+          .filter(Boolean)
+          .slice(0, 3) ?? [],
+      body:
+        extractFirstSentence(module.heroHighlights[2]) ||
+        extractFirstSentence(module.heroHighlights[1]) ||
+        extractFirstSentence(module.simpleExplanation[2]) ||
+        module.summary,
+      title: "Who gains or loses?",
+    },
+    {
+      bullets: module.systemBug.signals.slice(0, 3),
+      body: extractFirstSentence(module.systemBug.summary) || module.summary,
+      title: "Why does it keep repeating?",
+    },
+    {
+      bullets:
+        lastTimelineEvent?.characteristics.slice(0, 3) ??
+        buildMechanismSteps(module.causalLoop.nodes, 4).map((step) => step.label).slice(0, 3),
+      body:
+        extractFirstSentence(lastTimelineEvent?.outcome) ||
+        extractFirstSentence(module.realWorldExamples[module.realWorldExamples.length - 1]?.outcome) ||
+        "The order changes when accumulated stress exceeds what the old system can absorb.",
+      title: "What changes the pattern?",
+    },
+  ];
+
+  if (module.slug !== "how-the-us-rewrites-the-rules-of-money") {
+    return genericPanels;
+  }
+
   return [
     {
       bullets: ["Persistent deficits financed by debt", "Rising asset bubbles and inequality", "Eroding confidence in the rules"],
@@ -254,6 +315,34 @@ function getMechanismPanels(module: ResolvedLearningModule) {
 }
 
 function getEvidenceNotes(module: ResolvedLearningModule) {
+  if (module.slug !== "how-the-us-rewrites-the-rules-of-money") {
+    const metricLabels = module.betterMetrics
+      .slice(0, 3)
+      .map((metric) => metric.label.toLowerCase())
+      .join(", ");
+
+    return [
+      {
+        body: metricLabels
+          ? `If the explanation is right, we should see its fingerprints in ${metricLabels}, not just in isolated headlines.`
+          : "If the explanation is right, we should see repeated patterns in the data and institutions, not one-off anomalies.",
+        title: "What would we expect to observe?",
+      },
+      {
+        body: extractFirstSentence(module.systemBug.summary) || module.summary,
+        title: "What is the core claim?",
+      },
+      {
+        body:
+          extractFirstSentence(module.betterMetrics[0]?.description) ||
+          extractFirstSentence(module.heroHighlights[0]) ||
+          extractFirstSentence(module.simpleExplanation[2]) ||
+          module.summary,
+        title: "Why this matters",
+      },
+    ];
+  }
+
   return [
     {
       body: "If the explanation is right, reserve dominance should decline over time while systemic stress rises and confidence in the old order erodes.",
@@ -311,39 +400,157 @@ function renderSourceCard(item: LearningArticleSource | LearningEvidenceLink) {
   );
 }
 
-function TimelineEvidenceChart({ chart }: { chart?: LearningArticleChart }) {
+function TimelineEvidenceChart({
+  chart,
+  expectedObservations,
+  module,
+  sourceItems,
+}: {
+  chart?: LearningArticleChart;
+  expectedObservations: string[];
+  module: ResolvedLearningModule;
+  sourceItems?: Array<LearningArticleSource | LearningEvidenceLink>;
+}) {
+  const fallbackNote =
+    extractFirstSentence(module.betterMetrics[0]?.description) ||
+    "If this explanation is correct, we should see its fingerprints in the data, institutional patterns, and long-run outcomes.";
+  const isUsMoneyModule = module.slug === "how-the-us-rewrites-the-rules-of-money";
+  const chartIsBroken = chart ? isKnownBrokenLearningChartUrl(chart.url) : false;
+
   return (
     <div className="rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_10px_20px_rgba(28,36,48,0.03)]">
       <div className="space-y-1">
         <h3 className="text-base font-semibold text-slate-900">
-          {chart?.title ?? "Global monetary system indicators (relative to 1971)"}
+          {chart?.title ?? "Reading the evidence"}
         </h3>
         <p className="text-sm leading-6 text-slate-600">
-          {chart?.note ?? "The dollar's reserve dominance has declined while system stress rises, and confidence in the old order is repeatedly tested."}
+          {chart?.note ?? fallbackNote}
         </p>
       </div>
-      <div className="mt-4 flex flex-wrap gap-4 text-[11px] font-medium text-slate-500">
-        <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#2563eb]" />Reserve dominance (USD)</span>
-        <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#22c55e]" />Confidence (stablecoin-like)</span>
-        <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#ef4444]" />System stress (index)</span>
-      </div>
-      <div className="mt-3 h-[16rem]">
-        <ResponsiveContainer height="100%" width="100%">
-          <LineChart data={US_MONEY_TIMELINE_CHART} margin={{ bottom: 4, left: -20, right: 8, top: 10 }}>
-            <CartesianGrid stroke="rgba(148,163,184,0.14)" vertical={false} />
-            <XAxis axisLine={false} dataKey="year" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
-            <YAxis axisLine={false} domain={[0, 140]} tick={{ fill: "#94a3b8", fontSize: 11 }} tickLine={false} width={34} />
-            <Tooltip contentStyle={{ background: "rgba(255,255,255,0.96)", border: "1px solid rgba(28,36,48,0.08)", borderRadius: "14px", boxShadow: "0 16px 32px rgba(28,36,48,0.08)" }} />
-            <Line dataKey="reserve" dot={false} stroke="#2563eb" strokeWidth={2.5} type="monotone" />
-            <Line dataKey="confidence" dot={false} stroke="#22c55e" strokeWidth={2.5} type="monotone" />
-            <Line dataKey="stress" dot={false} stroke="#ef4444" strokeWidth={2.5} type="monotone" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
-        <p>Sources: IMF COFER, BIS, World Bank, GFSR</p>
-        <span className="font-medium text-primary">View full data</span>
-      </div>
+      {isUsMoneyModule ? (
+        <>
+          <div className="mt-4 overflow-hidden rounded-[1.15rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_10px_20px_rgba(28,36,48,0.03)]">
+            <div className="h-[360px] w-full px-3 py-4 sm:px-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={US_MONEY_EVIDENCE_SERIES} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                  <CartesianGrid stroke="rgba(148,163,184,0.18)" vertical={false} />
+                  <XAxis
+                    axisLine={false}
+                    dataKey="year"
+                    tick={{ fill: "rgba(71,85,105,0.82)", fontSize: 12 }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    domain={[0, 140]}
+                    tick={{ fill: "rgba(71,85,105,0.82)", fontSize: 12 }}
+                    tickLine={false}
+                    width={34}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#f4f8fc",
+                      border: "1px solid rgba(28,36,48,0.12)",
+                      borderRadius: "14px",
+                      boxShadow: "0 12px 28px rgba(28,36,48,0.08)",
+                    }}
+                    formatter={(value: number, name: string) => {
+                      const labelMap: Record<string, string> = {
+                        diversificationPressure: "Diversification pressure",
+                        reserveDominance: "Reserve dominance (USD)",
+                        systemStress: "System stress index",
+                      };
+                      return [value, labelMap[name] ?? name];
+                    }}
+                  />
+                  <Line
+                    dataKey="reserveDominance"
+                    dot={false}
+                    name="Reserve dominance (USD)"
+                    stroke="#2563eb"
+                    strokeWidth={3}
+                    type="monotone"
+                  />
+                  <Line
+                    dataKey="diversificationPressure"
+                    dot={false}
+                    name="Diversification pressure"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    type="monotone"
+                  />
+                  <Line
+                    dataKey="systemStress"
+                    dot={false}
+                    name="System stress index"
+                    stroke="#ef4444"
+                    strokeWidth={3}
+                    type="monotone"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+            <span>Illustrative synthesis from IMF reserve-share trends and global dollar-system stress signals.</span>
+            <span className="font-medium text-slate-500">See source cards below</span>
+          </div>
+        </>
+      ) : chart && chartIsBroken ? (
+        <div className="mt-4 rounded-[1.15rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.84)] px-4 py-4 shadow-[0_10px_20px_rgba(28,36,48,0.03)]">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] text-slate-600">
+              <AlertTriangle className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">This external evidence chart has moved</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                The lesson source trail is still available below, but the old grapher embed no longer resolves correctly.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <a className="font-medium text-primary transition hover:opacity-80" href={chart.url} rel="noreferrer" target="_blank">
+              Open original chart link
+            </a>
+          </div>
+          {sourceItems?.length ? (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {sourceItems.slice(0, 4).map((item) => renderSourceCard(item))}
+            </div>
+          ) : null}
+        </div>
+      ) : chart ? (
+        <>
+          <div className="mt-4 overflow-hidden rounded-[1.15rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_10px_20px_rgba(28,36,48,0.03)]">
+            <iframe
+              allow="web-share; clipboard-write"
+              className="w-full"
+              loading="eager"
+              referrerPolicy="strict-origin-when-cross-origin"
+              src={chart.url}
+              style={{ border: 0, height: Math.max(320, Math.min(chart.height, 560)) }}
+              title={chart.title}
+            />
+          </div>
+          <div className="mt-2 flex items-center justify-end text-[11px] text-slate-400">
+            <a className="font-medium text-primary transition hover:opacity-80" href={chart.url} rel="noreferrer" target="_blank">
+              View full data
+            </a>
+          </div>
+        </>
+      ) : (
+        <div className="mt-4 rounded-[1.15rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.78)] px-4 py-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Expected fingerprints</p>
+          <ul className="mt-3 space-y-2">
+            {expectedObservations.map((observation) => (
+              <li className="text-sm leading-6 text-slate-600" key={observation}>
+                {"•"} {observation}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -435,7 +642,7 @@ function TimelineInteractiveExploration({
             const sublabel = sublabelMap[metric.key] ?? metric.suffix ?? "";
             return (
               <article
-                className="flex flex-col gap-2 rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(250,249,246,0.7)] px-4 py-4"
+                className="flex flex-col gap-2 rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.78)] px-4 py-4"
                 key={metric.key}
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white text-slate-500">
@@ -476,7 +683,7 @@ function CollapsedProposals({ proposals }: { proposals: ModuleProposal[] }) {
       </summary>
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         {proposals.map((proposal) => (
-          <article className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(250,249,246,0.92)] px-4 py-4" key={proposal.title}>
+          <article className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(244,248,252,0.94)] px-4 py-4" key={proposal.title}>
             <h4 className="text-sm font-semibold leading-6 text-slate-900">{proposal.title}</h4>
             <p className="mt-1 text-sm leading-6 text-slate-600">{proposal.summary}</p>
           </article>
@@ -579,12 +786,20 @@ export function TimelineLessonCanvas({
             />
 
             <div className="mt-5 space-y-4">
-              <TimelineEvidenceChart chart={chartBlock?.items?.[0]} />
+              <TimelineEvidenceChart
+                chart={chartBlock?.items?.[0]}
+                expectedObservations={expectedObservations}
+                module={module}
+                sourceItems={sourceItems}
+              />
 
               <div className="grid gap-4 xl:grid-cols-[12.25rem_minmax(0,1fr)]">
                 <div className="space-y-2">
                   <button
-                    className="w-full rounded-[1.1rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.72)] px-3 py-3 text-left transition hover:border-[rgba(28,36,48,0.14)]"
+                    className={cn(
+                      "w-full rounded-[1.1rem] border px-3 py-3 text-left transition hover:border-[rgba(28,36,48,0.14)] hover:text-slate-900",
+                      SOLID_TRIGGER_SURFACE,
+                    )}
                     onClick={() => setActiveEvidenceNote(Math.min(1, evidencePanels.length - 1))}
                     type="button"
                   >
@@ -601,8 +816,8 @@ export function TimelineLessonCanvas({
                       className={cn(
                         "flex w-full items-center justify-between rounded-[1rem] border px-3 py-3 text-left text-xs font-medium transition",
                         activeEvidenceNote === index
-                          ? cn(accent.chip, "text-slate-900 shadow-[0_10px_20px_rgba(28,36,48,0.05)]")
-                          : "border-[rgba(28,36,48,0.08)] bg-white text-slate-600 hover:border-[rgba(28,36,48,0.14)] hover:text-slate-900",
+                          ? SOLID_ACTIVE_TRIGGER_BY_ACCENT[module.accent]
+                          : cn(SOLID_TRIGGER_SURFACE, "hover:border-[rgba(28,36,48,0.14)] hover:text-slate-900"),
                       )}
                       key={note.title}
                       onClick={() => setActiveEvidenceNote(index)}
@@ -674,7 +889,7 @@ export function TimelineLessonCanvas({
               </div>
 
               <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2 rounded-[1.25rem] border border-[rgba(28,36,48,0.07)] bg-[rgba(249,248,244,0.94)] px-3 py-3">
+                <div className="flex flex-wrap items-center gap-2 rounded-[1.25rem] border border-[rgba(28,36,48,0.07)] bg-[rgba(244,248,252,0.94)] px-3 py-3">
                   {mechanismSteps.map((step, index) => {
                     const decor = MECHANISM_STEP_DECOR[index % MECHANISM_STEP_DECOR.length];
                     const StepIcon = decor.icon;
@@ -698,8 +913,8 @@ export function TimelineLessonCanvas({
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-medium transition",
                         activeMechanismPanel === index
-                          ? cn(accent.chip, "text-slate-900 shadow-[0_10px_20px_rgba(28,36,48,0.05)]")
-                          : "border-[rgba(28,36,48,0.08)] bg-white text-slate-600 hover:border-[rgba(28,36,48,0.14)] hover:text-slate-900",
+                          ? SOLID_ACTIVE_TRIGGER_BY_ACCENT[module.accent]
+                          : cn(SOLID_TRIGGER_SURFACE, "hover:border-[rgba(28,36,48,0.14)] hover:text-slate-900"),
                       )}
                       key={panel.title}
                       onClick={() => setActiveMechanismPanel(index)}
@@ -765,7 +980,7 @@ export function TimelineLessonCanvas({
               </div>
 
               {activeRealWorldExample !== null ? (
-                <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(250,249,246,0.72)] px-4 py-4 shadow-[0_10px_20px_rgba(28,36,48,0.03)]">
+                <div className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.78)] px-4 py-4 shadow-[0_10px_20px_rgba(28,36,48,0.03)]">
                   {(() => {
                     const example = module.realWorldExamples[activeRealWorldExample];
                     const relatedEvents = getExampleTimelineMatches(example, module.timeline);
@@ -806,7 +1021,7 @@ export function TimelineLessonCanvas({
                             <div className="mt-3 space-y-3">
                               {relatedEvents.length ? (
                                 relatedEvents.map((event) => (
-                                  <div className="rounded-[0.95rem] bg-[rgba(246,244,238,0.74)] px-3 py-3" key={`${example.title}-${event.timeLabel}-${event.title}`}>
+                                  <div className="rounded-[0.95rem] bg-[rgba(241,245,249,0.8)] px-3 py-3" key={`${example.title}-${event.timeLabel}-${event.title}`}>
                                     <div className="flex items-center gap-2">
                                       <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold", accent.chip)}>
                                         {event.timeLabel}
@@ -934,11 +1149,11 @@ export function TimelineLessonCanvas({
                     <ChevronDown className="mt-0.5 h-4 w-4 flex-none text-slate-400 transition group-open:rotate-180" />
                   </summary>
                   <div className="space-y-3 px-4 pb-4 pl-[3.5rem]">
-                    <div className="rounded-[1rem] bg-[rgba(246,244,238,0.78)] px-3 py-3">
+                    <div className="rounded-[1rem] bg-[rgba(241,245,249,0.82)] px-3 py-3">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Claim</p>
                       <p className="mt-1 text-sm leading-6 text-slate-600">{argument.point}</p>
                     </div>
-                    <div className="rounded-[1rem] bg-[rgba(246,244,238,0.78)] px-3 py-3">
+                    <div className="rounded-[1rem] bg-[rgba(241,245,249,0.82)] px-3 py-3">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Response</p>
                       <p className="mt-1 text-sm leading-6 text-slate-600">{argument.response}</p>
                     </div>

@@ -48,6 +48,7 @@ export const LEARNING_TRACKS: LearningTrack[] = [
       "how-electoral-rules-shape-political-power",
       "how-corruption-behaves-like-a-hidden-tax",
       "why-democracies-struggle-with-long-term-problems",
+      "how-capitalism-evolved-through-stages",
       "how-capitalism-socialism-and-communism-differ",
       "how-the-eu-makes-decisions",
       "how-the-us-government-makes-decisions",

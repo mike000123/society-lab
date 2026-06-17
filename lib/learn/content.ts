@@ -72,10 +72,16 @@ const articleExtensions = [".md", ".txt"];
 
 function getArticlePath(slug: string) {
   for (const extension of articleExtensions) {
-    const candidate = path.join(process.cwd(), "content", "learn", "modules", `${slug}${extension}`);
+    const candidates = [
+      path.join(process.cwd(), "content", "learn", "modules", slug, `${slug}${extension}`),
+      path.join(process.cwd(), "content", "learn", "modules", slug, `index${extension}`),
+      path.join(process.cwd(), "content", "learn", "modules", `${slug}${extension}`),
+    ];
 
-    if (existsSync(candidate)) {
-      return candidate;
+    for (const candidate of candidates) {
+      if (existsSync(candidate)) {
+        return candidate;
+      }
     }
   }
 

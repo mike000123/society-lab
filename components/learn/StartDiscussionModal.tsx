@@ -126,7 +126,7 @@ export function StartDiscussionModal({ module }: { module: ResolvedLearningModul
                   />
                 ) : (
                   <div className="space-y-4">
-                    <div className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.55)] px-4 py-4">
+                    <div className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.68)] px-4 py-4">
                       <p className="text-sm font-semibold text-slate-900">How study circles work</p>
                       <p className="mt-1.5 text-sm leading-6 text-slate-600">
                         A study circle is a small private thread tied to this module. Select one or more

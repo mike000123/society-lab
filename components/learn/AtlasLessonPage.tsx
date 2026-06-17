@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Compass, Download } from "lucide-react";
 
 import { AtlasPage } from "@/components/atlas/AtlasPage";
+import { ComparisonLessonCanvas } from "@/components/learn/ComparisonLessonCanvas";
 import { LessonCaseStudies } from "@/components/learn/LessonCaseStudies";
 import { LessonCounterarguments } from "@/components/learn/LessonCounterarguments";
 import { LessonEvidence } from "@/components/learn/LessonEvidence";
@@ -10,6 +11,7 @@ import { LessonInteractive } from "@/components/learn/LessonInteractive";
 import { LessonMechanism } from "@/components/learn/LessonMechanism";
 import { LessonNextActions } from "@/components/learn/LessonNextActions";
 import { LessonProposals } from "@/components/learn/LessonProposals";
+import { ProcessLessonCanvas } from "@/components/learn/ProcessLessonCanvas";
 import { LessonSynthesis } from "@/components/learn/LessonSynthesis";
 import { TimelineLessonCanvas } from "@/components/learn/TimelineLessonCanvas";
 import { LessonWhyItMatters } from "@/components/learn/LessonWhyItMatters";
@@ -87,7 +89,7 @@ function SidebarNav({
                       "flex items-start gap-3 rounded-[1.15rem] px-3 py-3 transition",
                       isCurrent
                         ? "bg-[rgba(59,130,246,0.08)] text-slate-900"
-                        : "text-slate-600 hover:bg-[rgba(246,244,238,0.72)]",
+                        : "text-slate-600 hover:bg-[rgba(241,245,249,0.78)]",
                     )}
                     href={`/learn/${trackModule.slug}`}
                     key={trackModule.slug}
@@ -97,7 +99,7 @@ function SidebarNav({
                         "mt-0.5 inline-flex h-6 w-6 flex-none items-center justify-center rounded-full text-[11px] font-semibold",
                         isCurrent
                           ? "bg-[rgb(var(--atlas-primary))] text-white"
-                          : "bg-[rgba(246,244,238,0.95)] text-slate-500",
+                          : "bg-[rgba(244,248,252,0.96)] text-slate-500",
                       )}
                     >
                       {index + 1}
@@ -110,9 +112,9 @@ function SidebarNav({
           </div>
         ) : null}
 
-        <div className="rounded-[1.45rem] bg-[rgba(246,244,238,0.72)] px-4 py-4">
+        <div className="rounded-[1.45rem] bg-[rgba(241,245,249,0.78)] px-4 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white/90 text-slate-700">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.94)] text-slate-700">
               <Compass className="h-4 w-4" />
             </div>
             <div>
@@ -137,7 +139,7 @@ function SidebarNav({
 
         <div className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white/82 px-4 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.9)] text-slate-700">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-[rgba(244,248,252,0.94)] text-slate-700">
               <Download className="h-4 w-4" />
             </div>
             <div>
@@ -148,14 +150,14 @@ function SidebarNav({
 
           <div className="mt-4 space-y-2">
             <Link
-              className="flex items-center justify-between rounded-[1rem] px-3 py-2 text-sm text-slate-600 transition hover:bg-[rgba(246,244,238,0.72)] hover:text-slate-900"
+              className="flex items-center justify-between rounded-[1rem] px-3 py-2 text-sm text-slate-600 transition hover:bg-[rgba(241,245,249,0.78)] hover:text-slate-900"
               href="/study"
             >
               <span>Open study library</span>
               <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
             </Link>
             <Link
-              className="flex items-center justify-between rounded-[1rem] px-3 py-2 text-sm text-slate-600 transition hover:bg-[rgba(246,244,238,0.72)] hover:text-slate-900"
+              className="flex items-center justify-between rounded-[1rem] px-3 py-2 text-sm text-slate-600 transition hover:bg-[rgba(241,245,249,0.78)] hover:text-slate-900"
               href="/learn#browse-by-topic"
             >
               <span>Open track explorer</span>
@@ -244,6 +246,10 @@ export function AtlasLessonPage({
 }) {
   const variant = getLessonVariant(module.slug);
   const isTimelineLesson = variant === "timeline" && !module.synthesisOf;
+  const isComparisonLesson = variant === "comparison" && !module.synthesisOf;
+  const isProcessLesson = variant === "process" && !module.synthesisOf;
+  const isWideLesson = isTimelineLesson || isProcessLesson || isComparisonLesson;
+  const hasTimelineSection = isTimelineLesson && Boolean(module.timeline?.events?.length);
   const sectionLinks: LessonSectionLink[] = module.synthesisOf
     ? [
         { id: "reform-proposals", label: "Reform proposals" },
@@ -252,7 +258,7 @@ export function AtlasLessonPage({
     : isTimelineLesson
       ? [
           { id: "why-this-matters", label: "Why this matters" },
-          { id: "timeline", label: "Timeline" },
+          ...(hasTimelineSection ? [{ id: "timeline", label: "Timeline" }] : []),
           { id: "core-mechanism", label: "Core mechanism" },
           { id: "evidence", label: "Evidence" },
           { id: "real-world-examples", label: "Real world examples" },
@@ -260,6 +266,19 @@ export function AtlasLessonPage({
           { id: "counterarguments", label: "Counterarguments" },
           { id: "next-actions", label: "Next actions" },
         ]
+      : isComparisonLesson
+        ? [
+            { id: "why-this-matters", label: "Why this matters" },
+            { id: "quick-map", label: "Quick map" },
+            { id: "big-picture", label: "Big picture" },
+            { id: "core-mechanism", label: "Core mechanism" },
+            { id: "evidence", label: "Evidence" },
+            { id: "interactive-exploration", label: "Interactive exploration" },
+            { id: "counterarguments", label: "Counterarguments" },
+            { id: "real-world-examples", label: "Real world examples" },
+            { id: "next-actions", label: "Choose your next step" },
+            { id: "what-could-change", label: "What could change this?" },
+          ]
     : [
         { id: "why-this-matters", label: "Why this matters" },
         { id: "core-mechanism", label: "Core mechanism" },
@@ -297,9 +316,31 @@ export function AtlasLessonPage({
     />
   );
 
+  const processFlow = (
+    <ProcessLessonCanvas
+      article={article}
+      currentTrack={currentTrack}
+      module={module}
+      nextModule={nextModule}
+      quizQuestionCount={quizQuestionCount}
+    />
+  );
+
+  const comparisonFlow = (
+    <ComparisonLessonCanvas
+      article={article}
+      currentTrack={currentTrack}
+      heroImageSrc={heroImageSrc}
+      module={module}
+      nextModule={nextModule}
+      quizQuestionCount={quizQuestionCount}
+      supportImageSrc={supportImageSrc}
+    />
+  );
+
   return (
-    <AtlasPage className={cn("pb-20", isTimelineLesson ? "!max-w-[132rem]" : "!max-w-[118rem]")}>
-      <div className={cn("mx-auto grid gap-8 xl:gap-10", isTimelineLesson ? "xl:grid-cols-[16.5rem_minmax(0,1fr)]" : "xl:grid-cols-[16rem_minmax(0,1fr)] xl:gap-12")}>
+    <AtlasPage className={cn("pb-20", isTimelineLesson || isComparisonLesson ? "!max-w-[132rem]" : isProcessLesson ? "!max-w-[126rem]" : "!max-w-[118rem]")}>
+      <div className={cn("mx-auto grid gap-8 xl:gap-10", isWideLesson ? "xl:grid-cols-[16.5rem_minmax(0,1fr)]" : "xl:grid-cols-[16rem_minmax(0,1fr)] xl:gap-12")}>
         <SidebarNav
           currentIndex={currentIndex}
           currentPath={currentPath}
@@ -309,18 +350,19 @@ export function AtlasLessonPage({
           trackModules={trackModules}
         />
 
-        <main className={cn("min-w-0", isTimelineLesson ? "space-y-6 xl:space-y-7" : "space-y-10 xl:space-y-12")}>
+        <main className={cn("min-w-0", isWideLesson ? "space-y-6 xl:space-y-7" : "space-y-10 xl:space-y-12")}>
           <LessonHero
+            comparisonMode={isComparisonLesson}
             heroImageSrc={heroImageSrc}
             module={module}
             quizQuestionCount={quizQuestionCount}
             timelineMode={isTimelineLesson}
           />
-          {!isTimelineLesson ? (
+          {!isWideLesson ? (
             <LessonSequenceNav accent={module.accent} nextModule={nextModule} pathId={pathId} previousModule={previousModule} />
           ) : null}
-          {isTimelineLesson ? timelineFlow : standardFlow}
-          {!isTimelineLesson ? (
+          {isTimelineLesson ? timelineFlow : isProcessLesson ? processFlow : isComparisonLesson ? comparisonFlow : standardFlow}
+          {!isWideLesson ? (
             <LessonNextActions
               currentTrack={currentTrack}
               module={module}
@@ -328,7 +370,7 @@ export function AtlasLessonPage({
               quizQuestionCount={quizQuestionCount}
             />
           ) : null}
-          {isTimelineLesson ? (
+          {isWideLesson ? (
             <LessonSequenceNav accent={module.accent} nextModule={nextModule} pathId={pathId} previousModule={previousModule} />
           ) : null}
         </main>

@@ -183,6 +183,109 @@ export const lessonData: LearningModule = {
         title: "FIRREA and the Resolution Trust Corporation",
       },
     ],
+    timeline: {
+      title: "How a mortgage model became a taxpayer crisis",
+      intro:
+        "The S&L crisis was a slow-motion sequence: a fragile funding model, a rate shock, political delay, and then a final public clean-up after years of gambling for resurrection.",
+      events: [
+        {
+          timeLabel: "1940s–1970s",
+          title: "Thrifts are built for a stable-rate world",
+          family: "Institutional design",
+          whyItStarted:
+            "Savings and loans were created to fund home ownership by taking short-term deposits and issuing long-term fixed-rate mortgages.",
+          turningPoint:
+            "The business model assumed funding costs would stay low and reasonably stable across decades.",
+          characteristics: [
+            "30-year fixed-rate mortgage books",
+            "Short-term deposit funding",
+            "Low competition and narrow asset menus",
+          ],
+          outcome:
+            "The model appeared safe for decades, but only because the interest-rate environment protected it from its own duration mismatch.",
+        },
+        {
+          timeLabel: "1979–1981",
+          title: "The Volcker shock reveals insolvency",
+          family: "Macro shock",
+          whyItStarted:
+            "The Federal Reserve raised short-term rates aggressively to break entrenched inflation.",
+          turningPoint:
+            "Thrifts suddenly had to pay far more on deposits than they were earning on mortgages written years earlier.",
+          characteristics: [
+            "Fed funds rate pushed near 20%",
+            "Deposit costs jump while mortgage income stays fixed",
+            "Industry becomes economically insolvent before many closures occur",
+          ],
+          outcome:
+            "What had looked like a safe housing-finance model was exposed as a giant maturity mismatch waiting for a rate shock.",
+        },
+        {
+          timeLabel: "1980",
+          title: "Policymakers choose deregulation over fast resolution",
+          family: "Political response",
+          whyItStarted:
+            "Closing the insolvent sector quickly would have imposed visible losses and forced a public recapitalisation the political system wanted to avoid.",
+          turningPoint:
+            "Depository deregulation raised deposit-rate competition and gave troubled institutions more room to keep operating instead of shutting them down.",
+          characteristics: [
+            "Delay replaces recognition of losses",
+            "Funding competition intensifies",
+            "The immediate bill is hidden rather than paid",
+          ],
+          outcome:
+            "The crisis stops being a contained write-down and becomes a drawn-out political decision to keep zombie institutions alive.",
+        },
+        {
+          timeLabel: "1982",
+          title: "Garn-St Germain turns zombies into speculators",
+          family: "Moral hazard escalation",
+          whyItStarted:
+            "Insolvent thrifts were given broader investment powers in the hope that higher returns could rescue them.",
+          turningPoint:
+            "Deposit-insured institutions could now chase yield in junk bonds, speculative real estate, and development lending without matching capital discipline.",
+          characteristics: [
+            "Heads-I-win, tails-taxpayers-lose incentives",
+            "Commercial real estate and junk-bond exposure rises",
+            "Flat insurance premiums subsidise the riskiest firms",
+          ],
+          outcome:
+            "The expected losses multiplied because weak institutions were encouraged to take even bigger bets with public backing.",
+        },
+        {
+          timeLabel: "1986–1988",
+          title: "Failures spread and capture becomes visible",
+          family: "Crisis recognition",
+          whyItStarted:
+            "The speculative rescue strategy failed, while regulators and politicians continued delaying full recognition of the hole in the system.",
+          turningPoint:
+            "Lincoln Savings, the Keating Five scandal, and a widening failure wave made it impossible to pretend the problem was temporary.",
+          characteristics: [
+            "Hundreds of thrifts fail",
+            "Political intervention shields connected operators",
+            "FSLIC reserves prove far too small",
+          ],
+          outcome:
+            "The public finally sees that forbearance was not neutral delay — it was the mechanism through which losses were enlarged.",
+        },
+        {
+          timeLabel: "1989–1995",
+          title: "FIRREA and the RTC close the chapter",
+          family: "Forced cleanup",
+          whyItStarted:
+            "The system could no longer carry the fiction that insolvent thrifts would grow their way back to health.",
+          turningPoint:
+            "FIRREA abolished the old thrift regulator, recapitalised deposit insurance, and created the Resolution Trust Corporation to unwind failures at scale.",
+          characteristics: [
+            "747 failed thrifts wound down",
+            "New oversight architecture replaces the old one",
+            "Public absorbs roughly $130bn in final costs",
+          ],
+          outcome:
+            "The clean-up worked, but only after years of delay had transformed a manageable problem into one of the largest taxpayer-financed financial rescues of the era.",
+        },
+      ],
+    },
     relatedFrameworks: [
       "Duration Mismatch",
       "Regulatory Forbearance",

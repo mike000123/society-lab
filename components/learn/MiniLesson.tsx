@@ -128,7 +128,7 @@ function InteractiveMiniLesson({
       )}
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <div className="rounded-[1.7rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(246,244,238,0.88))] p-5">
+        <div className="rounded-[1.7rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(251,253,255,0.96),rgba(241,245,249,0.9))] p-5">
           <p className="text-sm leading-7 text-slate-600">{lesson.prompt}</p>
 
           <div className="mt-6 flex items-end justify-between gap-4">
@@ -255,11 +255,11 @@ function StaticMiniLessonCard({
                 <p className="text-sm font-semibold text-slate-900">{metric.label}</p>
                 <p className="mt-2 text-sm leading-7 text-slate-600">{metric.description}</p>
               </div>
-              <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.85)] px-4 py-3">
+              <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.84)] px-4 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Low</p>
                 <p className="mt-2 text-sm font-semibold text-slate-800">{metric.low}</p>
               </div>
-              <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.85)] px-4 py-3">
+              <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.84)] px-4 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">High</p>
                 <p className="mt-2 text-sm font-semibold text-slate-800">{metric.high}</p>
                 <p className={cn("mt-3 text-xs font-semibold uppercase tracking-[0.14em]", signalColor(metric.signal))}>

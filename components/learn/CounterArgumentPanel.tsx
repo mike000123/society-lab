@@ -34,7 +34,7 @@ export function CounterArgumentPanel({
             <p className="text-lg font-semibold text-slate-900">{argument.title}</p>
             <p className="mt-3 text-sm leading-7 text-slate-600">{argument.point}</p>
 
-            <div className="mt-5 rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(246,244,238,0.88)] p-4">
+            <div className="mt-5 rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.84)] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Response</p>
               <p className="mt-2 text-sm leading-7 text-slate-700">{argument.response}</p>
             </div>
