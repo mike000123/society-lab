@@ -273,10 +273,12 @@ function ArticleFlow({
 export function LessonEvidence({
   article,
   compact = false,
+  indexOverride,
   module,
 }: {
   article?: LearningArticleDocument | null;
   compact?: boolean;
+  indexOverride?: number;
   module: ResolvedLearningModule;
 }) {
   const accent = lessonAccentClasses[module.accent];
@@ -321,7 +323,7 @@ export function LessonEvidence({
           accent={module.accent}
           compact
           id="evidence-heading"
-          index={4}
+          index={indexOverride ?? 4}
           subtitle="What the data shows across monetary regimes."
           title="Evidence"
         />
@@ -330,7 +332,7 @@ export function LessonEvidence({
           <div className="grid gap-4 xl:grid-cols-[15.5rem_minmax(0,1fr)]">
             <div className="space-y-3">
               <article className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white/92 px-4 py-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Claim</p>
+                <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Claim</p>
                 <p className="mt-3 text-sm leading-6 text-slate-700">{module.systemBug.summary}</p>
               </article>
 
@@ -338,7 +340,7 @@ export function LessonEvidence({
                 {evidenceNotes.map((note, index) => (
                   <button
                     className={cn(
-                      "flex w-full items-center justify-between rounded-[1rem] border px-3 py-3 text-left text-sm font-medium transition",
+                      "flex w-full items-center justify-between rounded-[1rem] border px-3 py-3 text-left text-[1rem] font-semibold transition",
                       index === activeNoteIndex
                         ? cn("text-slate-900 shadow-[0_10px_20px_rgba(28,36,48,0.05)]", accent.chip, accent.line)
                         : "border-[rgba(28,36,48,0.08)] bg-white/88 text-slate-600 hover:border-[rgba(28,36,48,0.16)] hover:text-slate-900",
@@ -354,7 +356,7 @@ export function LessonEvidence({
               </div>
 
               <article className={cn("rounded-[1.25rem] border px-4 py-4", accent.panel, accent.line)}>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Why it matters</p>
+                <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Why it matters</p>
                 <p className="mt-3 text-sm leading-6 text-slate-700">{module.betterMetricsTitle}</p>
               </article>
             </div>
@@ -378,7 +380,7 @@ export function LessonEvidence({
 
           <aside className="mt-4 rounded-[1.4rem] border border-[rgba(28,36,48,0.1)] bg-white px-4 py-4 shadow-[0_18px_30px_rgba(28,36,48,0.06)] xl:absolute xl:bottom-[-1.25rem] xl:left-[-2.6rem] xl:mt-0 xl:w-[16rem]">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-slate-900">{activeNote.title}</p>
+              <p className="text-[1.02rem] font-semibold text-slate-900">{activeNote.title}</p>
               <span className="text-xs text-slate-400">
                 {activeNoteIndex + 1} of {evidenceNotes.length}
               </span>

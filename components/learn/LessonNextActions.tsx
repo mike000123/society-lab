@@ -11,16 +11,9 @@ import { SharedLearnersPanel } from "@/components/social/SharedLearnersPanel";
 import { Button } from "@/components/ui/button";
 import { LessonSectionHeader } from "@/components/learn/LessonSectionHeader";
 import type { LearningModule , ResolvedLearningModule} from "@/lib/learn/modules";
+import { getLessonSimulationHref, hasLessonSimulator } from "@/lib/learn/simulator-routing";
 import type { LearningTrack } from "@/lib/tracks/config";
-import { withQuery } from "@/lib/utils";
-import { cn } from "@/lib/utils";
-
-const TRACK_RELATED_LABS: Record<string, { href: string; label: string }> = {
-  economy: { href: "/simulator/macro-economy", label: "Run a simulation" },
-  "politics-and-democracy": { href: "/simulator/political-talent", label: "Open governance lab" },
-  "cities-and-ecology": { href: "/simulator/world3", label: "Open World3" },
-  "media-and-information": { href: "/simulator/social-movements", label: "Open movement lab" },
-};
+import { cn, withQuery } from "@/lib/utils";
 
 export function LessonNextActions({
   compact = false,
@@ -37,14 +30,8 @@ export function LessonNextActions({
   nextModule?: LearningModule | null;
   quizQuestionCount?: number;
 }) {
-  const simulatorBase =
-    module.simulatorSlug
-      ? `/simulator/${module.simulatorSlug}`
-      : TRACK_RELATED_LABS[currentTrack?.id ?? ""]?.href ?? "/simulator";
-  const simulationHref = withQuery(simulatorBase, {
-    focus: module.simulationPrompt,
-    module: module.slug,
-  });
+  const simulationHref = getLessonSimulationHref(module, currentTrack);
+  const hasSimulator = hasLessonSimulator(module);
   const discussionHref = withQuery("/discussions", {
     module: module.slug,
     prompt: module.discussionPrompt,
@@ -64,7 +51,7 @@ export function LessonNextActions({
       description: module.simulationPrompt,
       href: simulationHref,
       icon: Play,
-      label: module.simulatorSlug ? "Run a simulation" : "Explore a related lab",
+      label: hasSimulator ? "Run a simulation" : "Explore a related lab",
     },
     {
       description: module.proposals?.length

@@ -57,9 +57,11 @@ function CaseStudyItem({
 
 export function LessonCaseStudies({
   compact = false,
+  indexOverride,
   module,
 }: {
   compact?: boolean;
+  indexOverride?: number;
   module: ResolvedLearningModule;
 }) {
   if (compact) {
@@ -69,7 +71,7 @@ export function LessonCaseStudies({
           accent={module.accent}
           compact
           id="real-world-examples-heading"
-          index={5}
+          index={indexOverride ?? 5}
           subtitle="Case studies that show the same mechanism in the world."
           title="Real world examples"
         />

@@ -3,6 +3,7 @@ import { ArrowRight, MessageSquare, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { AccentTone } from "@/lib/learn/modules";
+import { getLessonSimulationHref } from "@/lib/learn/simulator-routing";
 import { cn, withQuery } from "@/lib/utils";
 
 const accentGlow: Record<AccentTone, string> = {
@@ -33,9 +34,10 @@ export function RelatedActions({
   simulatorSlug?: string;
 }) {
   const simulatorBase = simulatorSlug ? `/simulator/${simulatorSlug}` : "/simulator";
-  const simulationHref = withQuery(simulatorBase, {
-    focus: simulationPrompt,
-    module: moduleSlug,
+  const simulationHref = getLessonSimulationHref({
+    simulationPrompt,
+    simulatorSlug,
+    slug: moduleSlug,
   });
   const discussionHref = withQuery("/discussions", {
     module: moduleSlug,

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AccentTone, LearningModule } from "@/lib/learn/modules";
+import { hasLessonSimulator } from "@/lib/learn/simulator-routing";
 import type { LearningTrack } from "@/lib/tracks/config";
 import { useProgress } from "@/lib/progress/store";
 import { getQuizBySlug } from "@/lib/quiz/questions";
@@ -105,7 +106,7 @@ function ModuleCard({
   editorial?: boolean;
 }) {
   const hasQuiz = Boolean(getQuizBySlug(module.slug));
-  const hasSimulator = Boolean(module.simulatorSlug);
+  const hasSimulator = hasLessonSimulator(module);
 
   // ── Editorial card ──────────────────────────────────────────────────────────
   if (editorial) {

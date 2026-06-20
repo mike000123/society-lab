@@ -10,7 +10,13 @@ import { cn } from "@/lib/utils";
 
 type Tab = "public" | "circle";
 
-export function StartDiscussionModal({ module }: { module: ResolvedLearningModule }) {
+export function StartDiscussionModal({
+  className,
+  module,
+}: {
+  className?: string;
+  module: ResolvedLearningModule;
+}) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("public");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -43,7 +49,10 @@ export function StartDiscussionModal({ module }: { module: ResolvedLearningModul
     <>
       {/* ── Trigger ── */}
       <button
-        className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
+        className={cn(
+          "inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900",
+          className,
+        )}
         onClick={() => setOpen(true)}
         type="button"
       >

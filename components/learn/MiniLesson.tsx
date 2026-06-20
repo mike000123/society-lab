@@ -122,24 +122,24 @@ function InteractiveMiniLesson({
         </div>
       ) : (
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-slate-900">{lesson.title}</h3>
-          <p className="text-sm leading-7 text-slate-600">{lesson.description}</p>
+          <h3 className="text-[1.2rem] font-semibold text-slate-900">{lesson.title}</h3>
+          <p className="text-[1.02rem] leading-8 text-slate-600">{lesson.description}</p>
         </div>
       )}
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
         <div className="rounded-[1.7rem] border border-[rgba(28,36,48,0.08)] bg-[linear-gradient(180deg,rgba(251,253,255,0.96),rgba(241,245,249,0.9))] p-5">
-          <p className="text-sm leading-7 text-slate-600">{lesson.prompt}</p>
+          <p className="text-[1.02rem] leading-8 text-slate-600">{lesson.prompt}</p>
 
           <div className="mt-6 flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{lesson.sliderLabel}</p>
+              <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">{lesson.sliderLabel}</p>
               <p className="mt-2 atlas-display text-5xl leading-none text-slate-900">
                 {sliderValue}
                 <span className="text-3xl">{lesson.unit ?? ""}</span>
               </p>
             </div>
-            <div className="text-right text-xs text-slate-400">
+            <div className="text-right text-[0.94rem] text-slate-500">
               <div>{lesson.lowLabel}</div>
               <div className="mt-1">{lesson.highLabel}</div>
             </div>
@@ -156,7 +156,7 @@ function InteractiveMiniLesson({
             value={sliderValue}
           />
 
-          <div className="mt-2 flex justify-between text-xs text-slate-400">
+          <div className="mt-2 flex justify-between text-[0.94rem] text-slate-500">
             <span>
               {lesson.valueMin}
               {lesson.unit ?? ""}
@@ -168,8 +168,8 @@ function InteractiveMiniLesson({
           </div>
 
           <div className={cn("mt-6 rounded-[1.35rem] border px-4 py-4", styles.insight)}>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">What changes here</p>
-            <p className="mt-2 text-sm leading-7 text-slate-700">{activeInsight}</p>
+            <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">What changes here</p>
+            <p className="mt-2 text-[1.02rem] leading-8 text-slate-700">{activeInsight}</p>
           </div>
         </div>
 
@@ -180,10 +180,10 @@ function InteractiveMiniLesson({
               <article className={cn("rounded-[1.45rem] border p-4", tone.metric)} key={metric.key}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{metric.label}</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">{metric.description}</p>
+                    <p className="text-[1.02rem] font-semibold text-slate-900">{metric.label}</p>
+                    <p className="mt-1 text-[0.98rem] leading-7 text-slate-600">{metric.description}</p>
                   </div>
-                  <span className={cn("text-lg font-semibold", tone.value)}>{formatMetricValue(metric)}</span>
+                  <span className={cn("text-[1.35rem] font-semibold", tone.value)}>{formatMetricValue(metric)}</span>
                 </div>
 
                 <div className="mt-4 h-2 overflow-hidden rounded-full bg-[rgba(28,36,48,0.12)]">
@@ -242,8 +242,8 @@ function StaticMiniLessonCard({
         </div>
       ) : (
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-slate-900">{lesson.title}</h3>
-          <p className="text-sm leading-7 text-slate-600">{lesson.subtitle}</p>
+          <h3 className="text-[1.2rem] font-semibold text-slate-900">{lesson.title}</h3>
+          <p className="text-[1.02rem] leading-8 text-slate-600">{lesson.subtitle}</p>
         </div>
       )}
 
@@ -252,17 +252,17 @@ function StaticMiniLessonCard({
           <article className="rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white/88 p-4" key={metric.label}>
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_14rem_14rem] lg:items-start">
               <div>
-                <p className="text-sm font-semibold text-slate-900">{metric.label}</p>
-                <p className="mt-2 text-sm leading-7 text-slate-600">{metric.description}</p>
+                <p className="text-[1.02rem] font-semibold text-slate-900">{metric.label}</p>
+                <p className="mt-2 text-[0.98rem] leading-8 text-slate-600">{metric.description}</p>
               </div>
               <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.84)] px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Low</p>
-                <p className="mt-2 text-sm font-semibold text-slate-800">{metric.low}</p>
+                <p className="text-[0.94rem] font-semibold tracking-[0.02em] text-slate-700">Low</p>
+                <p className="mt-2 text-[1rem] font-semibold text-slate-800">{metric.low}</p>
               </div>
               <div className="rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.84)] px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">High</p>
-                <p className="mt-2 text-sm font-semibold text-slate-800">{metric.high}</p>
-                <p className={cn("mt-3 text-xs font-semibold uppercase tracking-[0.14em]", signalColor(metric.signal))}>
+                <p className="text-[0.94rem] font-semibold tracking-[0.02em] text-slate-700">High</p>
+                <p className="mt-2 text-[1rem] font-semibold text-slate-800">{metric.high}</p>
+                <p className={cn("mt-3 text-[0.9rem] font-semibold uppercase tracking-[0.12em]", signalColor(metric.signal))}>
                   {metric.signal}
                 </p>
               </div>
@@ -272,8 +272,8 @@ function StaticMiniLessonCard({
       </div>
 
       <div className={cn("mt-5 rounded-[1.4rem] border px-4 py-4", styles.insight)}>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Takeaway</p>
-        <p className="mt-2 text-sm leading-7 text-slate-700">{lesson.conclusion}</p>
+        <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Takeaway</p>
+        <p className="mt-2 text-[1.02rem] leading-8 text-slate-700">{lesson.conclusion}</p>
       </div>
     </section>
   );

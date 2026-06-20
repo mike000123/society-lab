@@ -54,6 +54,7 @@ import type {
   ModuleProposal,
   ResolvedLearningModule,
 } from "@/lib/learn/modules";
+import { getLessonSimulationHref } from "@/lib/learn/simulator-routing";
 import type { LearningTrack } from "@/lib/tracks/config";
 import { cn, withQuery } from "@/lib/utils";
 
@@ -65,13 +66,6 @@ import {
   lessonAccentClasses,
 } from "@/components/learn/lesson-theme";
 import { isKnownBrokenLearningChartUrl } from "@/lib/learn/chart-health";
-
-const TRACK_RELATED_LABS: Record<string, { href: string; label: string }> = {
-  economy: { href: "/simulator/macro-economy", label: "Run a simulation" },
-  "politics-and-democracy": { href: "/simulator/political-talent", label: "Open governance lab" },
-  "cities-and-ecology": { href: "/simulator/world3", label: "Open World3" },
-  "media-and-information": { href: "/simulator/social-movements", label: "Open movement lab" },
-};
 
 const MECHANISM_STEP_DECOR = [
   { icon: Landmark, tone: "border-blue-200 bg-blue-50 text-blue-700" },
@@ -200,7 +194,7 @@ function DraggableFloatingPanel({
         onPointerUp={handlePointerUp}
       >
         <div>
-          <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
+          <h4 className="text-[1.05rem] font-semibold text-slate-900">{title}</h4>
           <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400">Drag panel</p>
         </div>
         <div className="flex items-center gap-1.5 pt-0.5">
@@ -357,6 +351,27 @@ function getEvidenceNotes(module: ResolvedLearningModule) {
       title: "Why this matters",
     },
   ];
+}
+
+function getTimelineBigPictureContent(module: ResolvedLearningModule) {
+  const paragraphs = module.simpleExplanation.filter(Boolean).slice(0, 2);
+  const lens =
+    module.simpleExplanation[2] ||
+    extractFirstSentence(module.heroHighlights[2]) ||
+    module.timeline?.intro ||
+    module.systemBug.summary;
+
+  return {
+    lens,
+    paragraphs:
+      paragraphs.length > 0
+        ? paragraphs
+        : [
+            module.summary,
+            extractFirstSentence(module.systemBug.summary) ||
+              "The system only looks stable until the pressure underneath it becomes impossible to ignore.",
+          ],
+  };
 }
 
 function getExampleTimelineMatches(
@@ -611,7 +626,7 @@ function TimelineInteractiveExploration({
         {/* Left: big number + slider */}
         <div className="space-y-3">
           <div className="flex items-center gap-1.5">
-            <p className="text-sm font-medium text-slate-700">{lesson.sliderLabel}</p>
+            <p className="text-[1.02rem] font-semibold text-slate-700">{lesson.sliderLabel}</p>
             <CircleHelp className="h-3.5 w-3.5 flex-none text-slate-400" />
           </div>
           <p className="font-display text-[3.6rem] font-bold leading-none tracking-tight text-slate-900">
@@ -627,7 +642,7 @@ function TimelineInteractiveExploration({
             type="range"
             value={sliderValue}
           />
-          <div className="flex justify-between text-xs text-slate-400">
+          <div className="flex justify-between text-[0.94rem] text-slate-500">
             <span>{lesson.valueMin}{lesson.unit ?? ""}</span>
             <span>{lesson.valueMax}{lesson.unit ?? ""}</span>
           </div>
@@ -648,12 +663,12 @@ function TimelineInteractiveExploration({
                 <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white text-slate-500">
                   <Icon className="h-4 w-4" />
                 </div>
-                <p className="text-xs font-medium leading-5 text-slate-500">{metric.label}</p>
+                <p className="text-[0.98rem] font-semibold leading-6 text-slate-700">{metric.label}</p>
                 <p className="font-display text-[1.9rem] font-bold leading-none tracking-tight text-slate-900">
                   {formatMetricDisplay(metric.computedValue, metric.suffix)}
                 </p>
-                {sublabel ? <p className="text-xs text-slate-400">{sublabel}</p> : null}
-                <p className={cn("text-xs font-semibold uppercase tracking-[0.14em]", status.color)}>
+                {sublabel ? <p className="text-[0.92rem] text-slate-500">{sublabel}</p> : null}
+                <p className={cn("text-[0.9rem] font-semibold uppercase tracking-[0.12em]", status.color)}>
                   {status.label}
                 </p>
               </article>
@@ -661,7 +676,7 @@ function TimelineInteractiveExploration({
           })}
         </div>
       </div>
-      <p className="text-xs text-slate-400">
+      <p className="text-[0.92rem] text-slate-500">
         Model for learning only. Not financial advice.{" "}
         <span className="cursor-pointer underline-offset-2 hover:underline">See assumptions</span>
       </p>
@@ -715,6 +730,7 @@ export function TimelineLessonCanvas({
   const mechanismSteps = getMechanismSteps(module);
   const mechanismPanels = getMechanismPanels(module);
   const evidenceNotes = getEvidenceNotes(module);
+  const bigPicture = getTimelineBigPictureContent(module);
   const expectedObservations = getExpectedObservations(module);
   const chartBlock = getChartBlock(article);
   const sourceItems = getSourceItems(article, module.evidenceLinks).slice(0, 4);
@@ -724,10 +740,7 @@ export function TimelineLessonCanvas({
   const evidencePanels = useMemo(() => evidenceNotes, [evidenceNotes]);
 
   const discussionHref = withQuery("/discussions", { module: module.slug, prompt: module.discussionPrompt });
-  const simulatorBase = module.simulatorSlug
-    ? `/simulator/${module.simulatorSlug}`
-    : TRACK_RELATED_LABS[currentTrack?.id ?? ""]?.href ?? "/simulator";
-  const simulationHref = withQuery(simulatorBase, { focus: module.simulationPrompt, module: module.slug });
+  const simulationHref = getLessonSimulationHref(module, currentTrack);
   const continueHref = nextModule ? `/learn/${nextModule.slug}` : "/learn?view=tracks";
   const quizHref = `/quiz/${module.slug}`;
 
@@ -737,7 +750,7 @@ export function TimelineLessonCanvas({
   return (
     <div className="space-y-4">
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,0.4fr)_minmax(0,0.6fr)]">
-        {/* Left column: Why this matters + Evidence */}
+        {/* Left column: Why this matters + Big picture + Evidence */}
         <div className="space-y-4">
           <section className="rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="why-this-matters">
             <LessonSectionHeader
@@ -775,12 +788,53 @@ export function TimelineLessonCanvas({
             </div>
           </section>
 
+          <section className="rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="big-picture">
+            <LessonSectionHeader
+              accent={module.accent}
+              compact
+              id="big-picture-heading"
+              index={4}
+              subtitle="The narrative thread that connects the stakes, the pattern, and the evidence."
+              title="Big picture"
+            />
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,0.58fr)_minmax(0,0.42fr)]">
+              <div className="space-y-4">
+                {bigPicture.paragraphs.map((paragraph) => (
+                  <p className="text-sm leading-7 text-slate-700" key={paragraph}>
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <div className="relative overflow-hidden rounded-[1.2rem] border border-[rgba(28,36,48,0.08)]">
+                  <div className="relative h-40">
+                    <Image
+                      alt={`${module.title} big picture`}
+                      className="object-cover"
+                      fill
+                      sizes="(min-width: 1280px) 280px, 100vw"
+                      src={supportImageSrc}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(15,23,42,0.28)] via-transparent to-transparent" />
+                  </div>
+                </div>
+
+                <div className={cn("rounded-[1.1rem] border px-4 py-4", accent.panel, accent.line)}>
+                  <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Reading lens</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">{bigPicture.lens}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <section className="relative rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="evidence">
             <LessonSectionHeader
               accent={module.accent}
               compact
               id="evidence-heading"
-              index={4}
+              index={5}
               subtitle="What the data shows across monetary regimes."
               title="Evidence"
             />
@@ -804,8 +858,8 @@ export function TimelineLessonCanvas({
                     type="button"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Claim</p>
+                    <div>
+                        <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Claim</p>
                         <p className="mt-1 text-sm leading-6 text-slate-700">{extractFirstSentence(module.systemBug.summary)}</p>
                       </div>
                       <ArrowRight className="mt-1 h-3.5 w-3.5 flex-none text-slate-400" />
@@ -814,7 +868,7 @@ export function TimelineLessonCanvas({
                   {evidencePanels.map((note, index) => (
                     <button
                       className={cn(
-                        "flex w-full items-center justify-between rounded-[1rem] border px-3 py-3 text-left text-xs font-medium transition",
+                        "flex w-full items-center justify-between rounded-[1rem] border px-3 py-3 text-left text-[1rem] font-semibold transition",
                         activeEvidenceNote === index
                           ? SOLID_ACTIVE_TRIGGER_BY_ACCENT[module.accent]
                           : cn(SOLID_TRIGGER_SURFACE, "hover:border-[rgba(28,36,48,0.14)] hover:text-slate-900"),
@@ -868,11 +922,39 @@ export function TimelineLessonCanvas({
               </div>
             </DraggableFloatingPanel>
           </section>
+
+          <section className="rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="interactive-exploration">
+            <LessonSectionHeader
+              accent={module.accent}
+              compact
+              id="interactive-exploration-heading"
+              index={7}
+              subtitle="Adjust the dollar's role in global reserves to see possible outcomes."
+              title="Interactive exploration"
+            />
+            <div className="mt-5">
+              {hasInteractiveMiniLesson ? (
+                <TimelineInteractiveExploration
+                  accent={module.accent}
+                  lesson={module.miniLesson as MiniLessonConfig}
+                />
+              ) : (
+                <MiniLesson accent={module.accent} compact lesson={module.miniLesson} />
+              )}
+            </div>
+            <div className={cn("mt-5 rounded-[1.1rem] border px-4 py-4", accent.panel, accent.line)}>
+              <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Key lesson</p>
+              <p className="mt-2 text-sm leading-6 text-slate-700">
+                {extractFirstSentence(module.heroHighlights[1]) || extractFirstSentence(module.systemBug.summary)}
+              </p>
+            </div>
+          </section>
         </div>
 
-        {/* Right column: Core mechanism */}
-        <section className="relative rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="core-mechanism">
-          <div className="space-y-4">
+        {/* Right column: Core mechanism + follow-up stack */}
+        <div className="space-y-4">
+          <section className="relative rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="core-mechanism">
+            <div className="space-y-4">
             <div className="grid gap-4 xl:grid-cols-[minmax(15rem,0.28fr)_minmax(0,0.72fr)]">
               <div className="space-y-4">
                 <LessonSectionHeader
@@ -895,7 +977,7 @@ export function TimelineLessonCanvas({
                     const StepIcon = decor.icon;
                     return (
                       <div className="flex items-center gap-2" key={step}>
-                        <span className={cn("inline-flex items-center gap-2 rounded-[1rem] border px-3 py-2 text-xs font-semibold shadow-[0_6px_14px_rgba(28,36,48,0.03)]", decor.tone)}>
+                        <span className={cn("inline-flex items-center gap-2 rounded-[1rem] border px-3 py-2 text-[0.98rem] font-semibold shadow-[0_6px_14px_rgba(28,36,48,0.03)]", decor.tone)}>
                           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-current/20 bg-white/70">
                             <StepIcon className="h-3.5 w-3.5" />
                           </span>
@@ -911,7 +993,7 @@ export function TimelineLessonCanvas({
                   {mechanismPanels.map((panel, index) => (
                     <button
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-medium transition",
+                        "inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-[0.98rem] font-semibold transition",
                         activeMechanismPanel === index
                           ? SOLID_ACTIVE_TRIGGER_BY_ACCENT[module.accent]
                           : cn(SOLID_TRIGGER_SURFACE, "hover:border-[rgba(28,36,48,0.14)] hover:text-slate-900"),
@@ -935,8 +1017,8 @@ export function TimelineLessonCanvas({
 
             <div className="space-y-3" id="real-world-examples">
               <div className="flex items-center gap-3">
-                <span className={cn("inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold", accent.step)}>5</span>
-                <p className="text-base font-semibold text-slate-900">Real world examples</p>
+                <span className={cn("inline-flex h-9 w-9 items-center justify-center rounded-full text-[1rem] font-semibold", accent.step)}>6</span>
+                <p className="text-[1.32rem] font-semibold text-slate-900">Real world examples</p>
               </div>
               <div className="grid gap-3 lg:grid-cols-3">
                 {module.realWorldExamples.map((example, index) => (
@@ -962,7 +1044,7 @@ export function TimelineLessonCanvas({
                     </div>
                     <div className="space-y-2 px-3 py-2.5">
                       <div className="flex items-start justify-between gap-3">
-                        <p className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em]", accent.chip)}>
+                        <p className={cn("inline-flex rounded-full border px-2.5 py-1 text-[0.86rem] font-semibold tracking-[0.02em]", accent.chip)}>
                           {index === 0 ? "Wealth transfer" : index === 1 ? "System reset" : "Emerging shift"}
                         </p>
                         <ChevronDown
@@ -972,8 +1054,8 @@ export function TimelineLessonCanvas({
                           )}
                         />
                       </div>
-                      <h4 className="text-[11.5px] font-semibold leading-5 text-slate-900">{example.title}</h4>
-                      <p className="text-xs leading-5 text-slate-500">{extractFirstSentence(example.insight)}</p>
+                      <h4 className="text-[1.02rem] font-semibold leading-6 text-slate-900">{example.title}</h4>
+                      <p className="text-sm leading-6 text-slate-500">{extractFirstSentence(example.insight)}</p>
                     </div>
                   </button>
                 ))}
@@ -989,10 +1071,10 @@ export function TimelineLessonCanvas({
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
                             <div>
-                              <p className={cn("inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]", accent.chip)}>
+                              <p className={cn("inline-flex rounded-full border px-2.5 py-1 text-[0.86rem] font-semibold tracking-[0.02em]", accent.chip)}>
                                 Expanded case study
                               </p>
-                              <h4 className="mt-2 text-base font-semibold text-slate-900">{example.title}</h4>
+                              <h4 className="mt-2 text-[1.08rem] font-semibold text-slate-900">{example.title}</h4>
                             </div>
                             <button
                               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(28,36,48,0.08)] bg-white text-slate-400 transition hover:border-[rgba(28,36,48,0.16)] hover:text-slate-700"
@@ -1005,11 +1087,11 @@ export function TimelineLessonCanvas({
 
                           <div className="grid gap-3 md:grid-cols-2">
                             <div className="rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-white px-3.5 py-3.5">
-                              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">What happened</p>
+                              <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">What happened</p>
                               <p className="mt-2 text-sm leading-6 text-slate-700">{example.insight}</p>
                             </div>
                             <div className="rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-white px-3.5 py-3.5">
-                              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Result</p>
+                              <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Result</p>
                               <p className="mt-2 text-sm leading-6 text-slate-700">{example.outcome}</p>
                             </div>
                           </div>
@@ -1017,21 +1099,21 @@ export function TimelineLessonCanvas({
 
                         <div className="space-y-3">
                           <div className="rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-white px-3.5 py-3.5">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Reboot points involved</p>
+                            <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Reboot points involved</p>
                             <div className="mt-3 space-y-3">
                               {relatedEvents.length ? (
                                 relatedEvents.map((event) => (
                                   <div className="rounded-[0.95rem] bg-[rgba(241,245,249,0.8)] px-3 py-3" key={`${example.title}-${event.timeLabel}-${event.title}`}>
                                     <div className="flex items-center gap-2">
-                                      <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold", accent.chip)}>
+                                      <span className={cn("inline-flex rounded-full border px-2.5 py-1 text-[0.84rem] font-semibold", accent.chip)}>
                                         {event.timeLabel}
                                       </span>
-                                      <p className="text-sm font-semibold text-slate-900">{event.title}</p>
+                                      <p className="text-[1rem] font-semibold text-slate-900">{event.title}</p>
                                     </div>
-                                    <p className="mt-2 text-xs leading-5 text-slate-600">{event.turningPoint}</p>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600">{event.turningPoint}</p>
                                     <ul className="mt-2 space-y-1.5">
                                       {event.characteristics.slice(0, 3).map((characteristic) => (
-                                        <li className="text-xs leading-5 text-slate-500" key={characteristic}>
+                                        <li className="text-sm leading-6 text-slate-500" key={characteristic}>
                                           {"•"} {characteristic}
                                         </li>
                                       ))}
@@ -1092,163 +1174,134 @@ export function TimelineLessonCanvas({
               </div>
             </div>
           </DraggableFloatingPanel>
-        </section>
-      </div>
+          </section>
 
-      {/* Bottom row: Interactive exploration / Counterarguments / Choose next step */}
-      <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,0.43fr)_minmax(0,0.25fr)_minmax(0,0.32fr)]">
-        <section className="rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="interactive-exploration">
-          <LessonSectionHeader
-            accent={module.accent}
-            compact
-            id="interactive-exploration-heading"
-            index={6}
-            subtitle="Adjust the dollar's role in global reserves to see possible outcomes."
-            title="Interactive exploration"
-          />
-          <div className="mt-5">
-            {hasInteractiveMiniLesson ? (
-              <TimelineInteractiveExploration
-                accent={module.accent}
-                lesson={module.miniLesson as MiniLessonConfig}
-              />
-            ) : (
-              <MiniLesson accent={module.accent} compact lesson={module.miniLesson} />
-            )}
-          </div>
-          <div className={cn("mt-5 rounded-[1.1rem] border px-4 py-4", accent.panel, accent.line)}>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Key lesson</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">
-              {extractFirstSentence(module.heroHighlights[1]) || extractFirstSentence(module.systemBug.summary)}
-            </p>
-          </div>
-        </section>
-
-        <section className="rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="counterarguments">
-          <LessonSectionHeader
-            accent={module.accent}
-            compact
-            id="counterarguments-heading"
-            index={7}
-            subtitle="A useful lesson should face its strongest objections directly."
-            title="Counterarguments"
-          />
-          <div className="mt-4 divide-y divide-[rgba(28,36,48,0.07)] overflow-hidden rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white">
-            {module.counterArguments.map((argument, index) => {
-              const CounterIcon = COUNTER_ICONS[index % COUNTER_ICONS.length];
-              const iconTone = COUNTER_ICON_TONES[index % COUNTER_ICON_TONES.length];
-              return (
-                <details className="group" key={argument.title} open={index === 0}>
-                  <summary className="flex cursor-pointer list-none items-start gap-3 px-4 py-4">
-                    <div className={cn("flex h-8 w-8 flex-none items-center justify-center rounded-[0.6rem] border", iconTone)}>
-                      <CounterIcon className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold leading-5 text-slate-900">{argument.title}</p>
-                    </div>
-                    <ChevronDown className="mt-0.5 h-4 w-4 flex-none text-slate-400 transition group-open:rotate-180" />
-                  </summary>
-                  <div className="space-y-3 px-4 pb-4 pl-[3.5rem]">
-                    <div className="rounded-[1rem] bg-[rgba(241,245,249,0.82)] px-3 py-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Claim</p>
-                      <p className="mt-1 text-sm leading-6 text-slate-600">{argument.point}</p>
-                    </div>
-                    <div className="rounded-[1rem] bg-[rgba(241,245,249,0.82)] px-3 py-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Response</p>
-                      <p className="mt-1 text-sm leading-6 text-slate-600">{argument.response}</p>
-                    </div>
-                  </div>
-                </details>
-              );
-            })}
-          </div>
-          <p className="mt-3 text-xs text-slate-400">Open each to see the strongest case and our response.</p>
-        </section>
-
-        <section className="rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="next-actions">
-          <div className="flex items-start justify-between gap-4">
+          <section className="rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="counterarguments">
             <LessonSectionHeader
               accent={module.accent}
               compact
-              id="next-actions-heading"
+              id="counterarguments-heading"
               index={8}
-              subtitle="Choose your next step."
-              title="Choose your next step"
+              subtitle="A useful lesson should face its strongest objections directly."
+              title="Counterarguments"
             />
-            {quizQuestionCount ? (
-              <Button asChild className="h-auto rounded-full px-4 py-2.5">
-                <Link href={quizHref}>Quiz <ClipboardCheck className="h-4 w-4" /></Link>
-              </Button>
-            ) : null}
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {[
-              {
-                cta: "Go to discussions →",
-                description: "Join a conversation with peers and share perspectives.",
-                href: discussionHref,
-                icon: MessageSquare,
-                iconTone: ACTION_ICON_TONES[0],
-                label: "Discuss this idea",
-              },
-              {
-                cta: "Open simulator →",
-                description: "Test scenarios and explore long-term impacts.",
-                href: simulationHref,
-                icon: Network,
-                iconTone: ACTION_ICON_TONES[1],
-                label: "Run a simulation",
-              },
-              {
-                cta: "Open governance lab →",
-                description: "See proposals and reforms that could reshape the system.",
-                href: module.proposals?.length ? "#what-could-change" : "/governance",
-                icon: Landmark,
-                iconTone: ACTION_ICON_TONES[2],
-                label: "Explore reforms",
-              },
-              {
-                cta: "Go to study library →",
-                description: "Find readings, videos, and data to go deeper.",
-                href: "/study",
-                icon: BookOpenText,
-                iconTone: ACTION_ICON_TONES[3],
-                label: "Study more",
-              },
-            ].map((action) => {
-              const Icon = action.icon;
-              return (
-                <Link
-                  className="flex min-h-[11rem] flex-col rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 transition hover:border-[rgba(28,36,48,0.16)]"
-                  href={action.href}
-                  key={action.label}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={cn("flex h-9 w-9 flex-none items-center justify-center rounded-full border", action.iconTone)}>
-                      <Icon className="h-4 w-4" />
+            <div className="mt-4 divide-y divide-[rgba(28,36,48,0.07)] overflow-hidden rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white">
+              {module.counterArguments.map((argument, index) => {
+                const CounterIcon = COUNTER_ICONS[index % COUNTER_ICONS.length];
+                const iconTone = COUNTER_ICON_TONES[index % COUNTER_ICON_TONES.length];
+                return (
+                  <details className="group" key={argument.title} open={index === 0}>
+                    <summary className="flex cursor-pointer list-none items-start gap-3 px-4 py-4">
+                      <div className={cn("flex h-8 w-8 flex-none items-center justify-center rounded-[0.6rem] border", iconTone)}>
+                        <CounterIcon className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[1.04rem] font-semibold leading-6 text-slate-900">{argument.title}</p>
+                      </div>
+                      <ChevronDown className="mt-0.5 h-4 w-4 flex-none text-slate-400 transition group-open:rotate-180" />
+                    </summary>
+                    <div className="space-y-3 px-4 pb-4 pl-[3.5rem]">
+                      <div className="rounded-[1rem] bg-[rgba(241,245,249,0.82)] px-3 py-3">
+                        <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Claim</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">{argument.point}</p>
+                      </div>
+                      <div className="rounded-[1rem] bg-[rgba(241,245,249,0.82)] px-3 py-3">
+                        <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Response</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">{argument.response}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-900">{action.label}</h3>
-                      <p className="mt-1 text-sm leading-6 text-slate-600">{action.description}</p>
-                    </div>
-                  </div>
-                  <p className="mt-auto pt-3 text-sm font-semibold text-primary">{action.cta}</p>
-                </Link>
-              );
-            })}
-          </div>
+                  </details>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-xs text-slate-400">Open each to see the strongest case and our response.</p>
+          </section>
 
-          <div className="mt-3 flex items-center justify-between rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-3">
-            <p className="text-sm text-slate-600">
-              {nextModule ? `Continue with ${nextModule.title}.` : "Open the broader track and keep exploring from here."}
-            </p>
-            <Link className="inline-flex items-center gap-2 text-sm font-semibold text-primary" href={continueHref}>
-              {nextModule ? "Continue the track" : "Open track explorer"}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </section>
+          <section className="rounded-[1.75rem] border border-[rgba(28,36,48,0.08)] bg-white px-5 py-5 shadow-[0_16px_32px_rgba(28,36,48,0.045)]" id="next-actions">
+            <div className="flex items-start justify-between gap-4">
+              <LessonSectionHeader
+                accent={module.accent}
+                compact
+                id="next-actions-heading"
+                index={9}
+                subtitle="Choose your next step."
+                title="Choose your next step"
+              />
+              {quizQuestionCount ? (
+                <Button asChild className="h-auto rounded-full px-4 py-2.5">
+                  <Link href={quizHref}>Quiz <ClipboardCheck className="h-4 w-4" /></Link>
+                </Button>
+              ) : null}
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {[
+                {
+                  cta: "Go to discussions →",
+                  description: "Join a conversation with peers and share perspectives.",
+                  href: discussionHref,
+                  icon: MessageSquare,
+                  iconTone: ACTION_ICON_TONES[0],
+                  label: "Discuss this idea",
+                },
+                {
+                  cta: "Open simulator →",
+                  description: "Test scenarios and explore long-term impacts.",
+                  href: simulationHref,
+                  icon: Network,
+                  iconTone: ACTION_ICON_TONES[1],
+                  label: "Run a simulation",
+                },
+                {
+                  cta: "Open governance lab →",
+                  description: "See proposals and reforms that could reshape the system.",
+                  href: module.proposals?.length ? "#what-could-change" : "/governance",
+                  icon: Landmark,
+                  iconTone: ACTION_ICON_TONES[2],
+                  label: "Explore reforms",
+                },
+                {
+                  cta: "Go to study library →",
+                  description: "Find readings, videos, and data to go deeper.",
+                  href: "/study",
+                  icon: BookOpenText,
+                  iconTone: ACTION_ICON_TONES[3],
+                  label: "Study more",
+                },
+              ].map((action) => {
+                const Icon = action.icon;
+                return (
+                  <Link
+                    className="flex min-h-[11rem] flex-col rounded-[1.2rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 transition hover:border-[rgba(28,36,48,0.16)]"
+                    href={action.href}
+                    key={action.label}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn("flex h-9 w-9 flex-none items-center justify-center rounded-full border", action.iconTone)}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-[1.04rem] font-semibold text-slate-900">{action.label}</h3>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">{action.description}</p>
+                      </div>
+                    </div>
+                    <p className="mt-auto pt-3 text-sm font-semibold text-primary">{action.cta}</p>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="mt-3 flex items-center justify-between rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-3">
+              <p className="text-sm text-slate-600">
+                {nextModule ? `Continue with ${nextModule.title}.` : "Open the broader track and keep exploring from here."}
+              </p>
+              <Link className="inline-flex items-center gap-2 text-sm font-semibold text-primary" href={continueHref}>
+                {nextModule ? "Continue the track" : "Open track explorer"}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </section>
+        </div>
       </div>
 
       {module.proposals?.length ? <CollapsedProposals proposals={module.proposals} /> : null}

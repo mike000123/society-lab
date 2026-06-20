@@ -51,6 +51,7 @@ import type {
   ResolvedLearningModule,
   StaticMiniLesson,
 } from "@/lib/learn/modules";
+import { getLessonSimulationHref } from "@/lib/learn/simulator-routing";
 import type { LearningTrack } from "@/lib/tracks/config";
 import { cn, withQuery } from "@/lib/utils";
 
@@ -60,12 +61,6 @@ type ArticleSection = {
 };
 
 const WHY_IT_MATTERS_ICONS = [HeartPulse, TimerReset, Home, ShieldCheck, Leaf, Wallet] as const;
-const TRACK_RELATED_LABS: Record<string, { href: string; label: string }> = {
-  economy: { href: "/simulator/macro-economy", label: "Run a simulation" },
-  "politics-and-democracy": { href: "/simulator/political-talent", label: "Open governance lab" },
-  "cities-and-ecology": { href: "/simulator/world3", label: "Open World3" },
-  "media-and-information": { href: "/simulator/social-movements", label: "Open movement lab" },
-};
 const METRIC_TONE_CLASSES: Record<
   AccentTone,
   { fill: string; panel: string; value: string }
@@ -141,8 +136,40 @@ const COMPARISON_CANVAS_META: Record<
   },
 };
 
+type ComparisonLayoutPresetName = "standard" | "compact-quick-map";
+
+type ComparisonLayoutPreset = {
+  outerGrid: string;
+  quickMapCompact: boolean;
+  relaxed: boolean;
+};
+
+const COMPARISON_LAYOUT_PRESETS: Record<ComparisonLayoutPresetName, ComparisonLayoutPreset> = {
+  standard: {
+    outerGrid: "items-stretch xl:grid-cols-[1fr_2fr]",
+    quickMapCompact: false,
+    relaxed: false,
+  },
+  "compact-quick-map": {
+    outerGrid: "items-start xl:grid-cols-[minmax(0,1.42fr)_minmax(0,0.88fr)]",
+    quickMapCompact: true,
+    relaxed: true,
+  },
+};
+
+const COMPARISON_LAYOUT_PRESET_BY_SLUG: Partial<Record<string, ComparisonLayoutPresetName>> = {
+  "why-gdp-is-not-the-same-as-wellbeing": "standard",
+  "how-doughnut-economics-puts-the-economy-inside-limits": "compact-quick-map",
+  "how-capitalism-socialism-and-communism-differ": "standard",
+  "why-decoupling-growth-from-emissions-is-so-hard": "standard",
+};
+
 function compactSentence(text: string | undefined) {
   return extractFirstSentence(text)?.replace(/\s+/g, " ").trim() ?? "";
+}
+
+function contentWeight(chunks: Array<string | undefined>) {
+  return chunks.reduce((total, chunk) => total + (chunk?.replace(/\s+/g, " ").trim().length ?? 0), 0);
 }
 
 function humanizeEnumLabel(value: string) {
@@ -363,7 +390,7 @@ function ComparisonInteractivePanel({ module }: { module: ResolvedLearningModule
       .at(-1)?.insight ?? lesson.bands[0]?.insight ?? module.heroHighlights[1];
 
   return (
-    <section className="space-y-4" id="interactive-exploration">
+    <section className="relative z-[2] min-w-0 space-y-4" id="interactive-exploration">
       <LessonSectionHeader
         accent={module.accent}
         compact
@@ -374,8 +401,8 @@ function ComparisonInteractivePanel({ module }: { module: ResolvedLearningModule
       />
 
       <div className="rounded-[1.9rem] border border-[rgba(28,36,48,0.08)] bg-white/84 px-4 py-4 shadow-[0_16px_30px_rgba(28,36,48,0.04)] sm:px-5 sm:py-5">
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,0.46fr)_minmax(0,0.54fr)]">
-          <div className="rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.96)] px-4 py-4">
+        <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.46fr)_minmax(0,0.54fr)]">
+          <div className="min-w-0 rounded-[1.35rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.96)] px-4 py-4">
             <h3 className="text-base font-semibold text-slate-900">{lesson.title}</h3>
             <p className="mt-2 text-sm leading-7 text-slate-600">{lesson.description}</p>
 
@@ -421,30 +448,41 @@ function ComparisonInteractivePanel({ module }: { module: ResolvedLearningModule
             </div>
           </div>
 
-          <div className="grid content-start gap-3">
+          <div className="grid min-w-0 content-start gap-3">
+            <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Illustrative outcomes</p>
             {metrics.map((metric) => {
               const tone = METRIC_TONE_CLASSES[metric.tone];
+              const delta = metric.value - metric.base;
+              const deltaStr = delta >= 0 ? `+${(Math.round(delta * 10) / 10)}` : String(Math.round(delta * 10) / 10);
+              const deltaColor = delta > 0
+                ? (metric.tone === "rose" ? "text-rose-600" : "text-emerald-600")
+                : (metric.tone === "cyan" || metric.tone === "emerald" ? "text-rose-600" : "text-emerald-600");
               return (
-                <article className={cn("rounded-[1.25rem] border px-4 py-4", tone.panel)} key={metric.key}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold leading-tight text-slate-900">{metric.label}</p>
-                      <p className="mt-2 text-xs leading-6 text-slate-500">{metric.description}</p>
-                    </div>
-                    <span className={cn("text-2xl font-semibold leading-none", tone.value)}>{formatMiniMetric(metric)}</span>
+                <article
+                  className="flex min-w-0 items-center justify-between gap-3 rounded-[1.15rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-3.5 shadow-[0_4px_10px_rgba(28,36,48,0.03)]"
+                  key={metric.key}
+                >
+                  <div className="min-w-0">
+                    <p className="text-[1rem] font-semibold leading-6 text-slate-700">{metric.label}</p>
+                    {metric.description ? (
+                      <p className="mt-0.5 truncate text-[0.92rem] leading-5 text-slate-500">{metric.description}</p>
+                    ) : null}
                   </div>
-                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-[rgba(28,36,48,0.12)]">
-                    <div className={cn("h-full rounded-full bg-gradient-to-r", tone.fill)} style={{ width: `${metric.fill}%` }} />
+                  <div className="flex min-w-[5rem] flex-none items-baseline justify-end gap-2">
+                    <span className={cn("text-[1.6rem] font-bold leading-none tracking-tight", tone.value)}>
+                      {formatMiniMetric(metric)}
+                    </span>
+                    <span className={cn("text-[0.94rem] font-semibold", deltaColor)}>{deltaStr}</span>
                   </div>
                 </article>
               );
             })}
-          </div>
-        </div>
 
-        <div className={cn("mt-4 rounded-[1.2rem] border px-4 py-4", accent.panel, accent.line)}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Key lesson</p>
-          <p className="mt-2 text-sm leading-7 text-slate-700">{module.heroHighlights[1] ?? module.systemBug.summary}</p>
+            <div className={cn("rounded-[1.2rem] border px-4 py-4", accent.panel, accent.line)}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Key lesson</p>
+              <p className="mt-2 text-sm leading-7 text-slate-700">{module.heroHighlights[1] ?? module.systemBug.summary}</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -453,7 +491,7 @@ function ComparisonInteractivePanel({ module }: { module: ResolvedLearningModule
 
 function ComparisonCounterargumentsSection({ module }: { module: ResolvedLearningModule }) {
   return (
-    <section className="space-y-4" id="counterarguments">
+    <section className="relative z-[1] min-w-0 space-y-4" id="counterarguments">
       <LessonSectionHeader
         accent={module.accent}
         compact
@@ -474,32 +512,30 @@ function ComparisonCounterargumentsSection({ module }: { module: ResolvedLearnin
               key={argument.title}
               open={index === 0}
             >
-              <summary className="grid cursor-pointer list-none gap-4 px-4 py-4 lg:grid-cols-[minmax(11rem,0.36fr)_minmax(0,0.64fr)_auto] lg:items-start">
-                <div className="flex items-start gap-3">
-                  <span className={cn("inline-flex h-9 w-9 flex-none items-center justify-center rounded-[0.95rem] border", tone)}>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold leading-6 text-slate-900">{argument.title}</p>
-                  </div>
-                </div>
-
-                <p className="text-sm leading-6 text-slate-600">{argument.response}</p>
-
-                <span className="inline-flex items-center justify-center text-slate-400 transition group-open:rotate-180">
-                  <ChevronDown className="h-4 w-4" />
+              <summary className="flex cursor-pointer list-none items-start gap-3 px-4 py-4">
+                <span className={cn("inline-flex h-9 w-9 flex-none items-center justify-center rounded-[0.7rem] border", tone)}>
+                  <Icon className="h-4 w-4" />
                 </span>
+                <div className="flex flex-1 items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[1.06rem] font-semibold leading-6 text-slate-900">{argument.title}</p>
+                    <p className="mt-0.5 line-clamp-1 text-sm leading-5 text-slate-500">{argument.point}</p>
+                  </div>
+                  <span className="mt-0.5 inline-flex items-center justify-center text-slate-400 transition group-open:rotate-180">
+                    <ChevronDown className="h-4 w-4 flex-none" />
+                  </span>
+                </div>
               </summary>
 
               <div className="border-t border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.78)] px-4 py-4">
                 <div className="grid gap-3 xl:grid-cols-[minmax(0,0.36fr)_minmax(0,0.64fr)]">
                   <div className="rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-white px-3.5 py-3.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Claim</p>
+                    <p className="text-[0.96rem] font-semibold tracking-[0.02em] text-slate-700">Claim</p>
                     <p className="mt-2 text-sm leading-6 text-slate-700">{argument.point}</p>
                   </div>
 
                   <div className="rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-white px-3.5 py-3.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Why our answer holds</p>
+                    <p className="text-[0.96rem] font-semibold tracking-[0.02em] text-slate-700">Why our answer holds</p>
                     <p className="mt-2 text-sm leading-6 text-slate-700">{argument.response}</p>
                     <p className="mt-2 text-xs leading-5 text-slate-500">
                       Re-read the evidence and case studies above to test whether this objection truly breaks the mechanism or simply names a tradeoff inside it.
@@ -530,14 +566,7 @@ function ComparisonNextActionsSection({
     module: module.slug,
     prompt: module.discussionPrompt,
   });
-  const simulatorBase =
-    module.simulatorSlug
-      ? `/simulator/${module.simulatorSlug}`
-      : TRACK_RELATED_LABS[currentTrack?.id ?? ""]?.href ?? "/simulator";
-  const simulationHref = withQuery(simulatorBase, {
-    focus: module.simulationPrompt,
-    module: module.slug,
-  });
+  const simulationHref = getLessonSimulationHref(module, currentTrack);
   const continueHref = nextModule ? `/learn/${nextModule.slug}` : "/learn?view=tracks";
   const quizHref = `/quiz/${module.slug}`;
 
@@ -652,6 +681,13 @@ function ComparisonReformsSection({
 
   const governanceHref = `/governance/submit?module=${module.slug}`;
   const proposalImages = [supportImageSrc, heroImageSrc, supportImageSrc];
+  const proposalCount = module.proposals.length;
+  const proposalGridClass =
+    proposalCount <= 1
+      ? "xl:grid-cols-1"
+      : proposalCount === 2
+        ? "xl:grid-cols-2"
+        : "xl:grid-cols-2 2xl:grid-cols-3";
 
   return (
     <section className="space-y-4" id="what-could-change">
@@ -678,10 +714,13 @@ function ComparisonReformsSection({
         </Link>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className={cn("grid gap-4", proposalGridClass)}>
         {module.proposals.map((proposal, index) => (
           <article
-            className="relative overflow-hidden rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_14px_30px_rgba(28,36,48,0.05)]"
+            className={cn(
+              "relative overflow-hidden rounded-[1.45rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_14px_30px_rgba(28,36,48,0.05)]",
+              proposalCount === 3 && index === 2 ? "xl:col-span-2 2xl:col-span-1" : "",
+            )}
             key={proposal.title}
           >
             <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-br", PROPOSAL_IMAGE_TONES[index % PROPOSAL_IMAGE_TONES.length])} />
@@ -703,14 +742,14 @@ function ComparisonReformsSection({
 
               {proposal.precedents?.length ? (
                 <div className="mt-4 space-y-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Exploring today</p>
+                  <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Exploring today</p>
                   {proposal.precedents.slice(0, 2).map((precedent) => (
                     <div className="rounded-[0.95rem] border border-[rgba(28,36,48,0.08)] bg-white/90 px-3 py-2.5" key={`${proposal.title}-${precedent.place}-${precedent.year}`}>
-                      <p className="text-xs font-semibold text-slate-700">
+                      <p className="text-[1rem] font-semibold text-slate-700">
                         {precedent.place}
-                        <span className="ml-1.5 font-normal text-slate-400">{precedent.year}</span>
+                        <span className="ml-1.5 text-[0.92rem] font-normal text-slate-400">{precedent.year}</span>
                       </p>
-                      <p className="mt-1 text-xs leading-5 text-slate-500">{precedent.outcome}</p>
+                      <p className="mt-1 text-[0.94rem] leading-6 text-slate-500">{precedent.outcome}</p>
                     </div>
                   ))}
                 </div>
@@ -783,6 +822,31 @@ export function ComparisonLessonCanvas({
     mechanismTitle: cleanSystemBugTitle(module.systemBug.title),
   };
   const whyItMattersCards = module.betterMetrics.slice(0, 3);
+  const whyItMattersWeight = contentWeight(
+    whyItMattersCards.flatMap((metric) => [metric.label, compactSentence(metric.description)]),
+  );
+  const whyItMattersAverageWeight = whyItMattersCards.length > 0 ? whyItMattersWeight / whyItMattersCards.length : 0;
+  const quickMapSeedCards =
+    quickMapCards.length
+      ? quickMapCards
+      : module.heroHighlights.slice(0, 4).map((item, index) => ({
+          body: item,
+          title: `Lens ${index + 1}`,
+        }));
+  const quickMapWeight = contentWeight(
+    quickMapSeedCards.flatMap((card) => [card.title, compactSentence(card.body)]),
+  );
+  const quickMapAverageWeight = quickMapSeedCards.length > 0 ? quickMapWeight / quickMapSeedCards.length : 0;
+  const topRowShouldRelax =
+    quickMapSeedCards.length >= 4 &&
+    (quickMapWeight < whyItMattersWeight * 0.92 ||
+      quickMapAverageWeight < whyItMattersAverageWeight * 0.72);
+  const fallbackLayoutPresetName: ComparisonLayoutPresetName = topRowShouldRelax && quickMapSeedCards.length >= 4
+    ? "compact-quick-map"
+    : "standard";
+  const layoutPresetName = COMPARISON_LAYOUT_PRESET_BY_SLUG[module.slug] ?? fallbackLayoutPresetName;
+  const layoutPreset = COMPARISON_LAYOUT_PRESETS[layoutPresetName];
+  const quickMapShouldUseCompactGrid = layoutPreset.quickMapCompact && quickMapSeedCards.length >= 4;
   const dominantLensPoints = module.heroHighlights.slice(0, 3);
   const broaderLensPoints = module.betterMetrics.slice(0, 5);
   const expectedObservations = getExpectedObservations(module);
@@ -790,13 +854,6 @@ export function ComparisonLessonCanvas({
     {
       body: module.systemBug.summary,
       title: "Claim",
-    },
-    {
-      body:
-        evidenceLeadParagraphs[0] ??
-        compactSentence(module.simpleExplanation[2]) ??
-        compactSentence(module.summary),
-      title: "Explanation",
     },
     {
       body:
@@ -810,8 +867,19 @@ export function ComparisonLessonCanvas({
 
   return (
     <div className="space-y-6 xl:space-y-7">
-      <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,0.97fr)_minmax(0,1.03fr)]">
-        <section className="flex h-full flex-col space-y-4" id="why-this-matters">
+      <div
+        className={cn(
+          "grid gap-6",
+          layoutPreset.outerGrid,
+        )}
+      >
+        <section
+          className={cn(
+            "space-y-4",
+            layoutPreset.relaxed ? "" : "flex h-full flex-col",
+          )}
+          id="why-this-matters"
+        >
           <LessonSectionHeader
             accent={module.accent}
             compact
@@ -821,17 +889,22 @@ export function ComparisonLessonCanvas({
             title="Why this matters"
           />
 
-          <div className="flex h-full rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/84 px-4 py-4 shadow-[0_16px_30px_rgba(28,36,48,0.04)] sm:px-5 sm:py-5">
+          <div
+            className={cn(
+              "rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/84 px-4 py-4 shadow-[0_16px_30px_rgba(28,36,48,0.04)] sm:px-5 sm:py-5",
+              layoutPreset.relaxed ? "" : "flex h-full",
+            )}
+          >
             <div className="grid gap-3 md:grid-cols-3">
               {whyItMattersCards.map((metric, index) => {
                 const Icon = WHY_IT_MATTERS_ICONS[index % WHY_IT_MATTERS_ICONS.length];
                 return (
                   <article
-                    className="flex h-full flex-col rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.78)] px-4 py-4"
+                    className="flex h-full flex-col rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_4px_12px_rgba(28,36,48,0.02)]"
                     key={metric.label}
                   >
-                    <div className={cn("flex h-10 w-10 items-center justify-center rounded-full border", accent.icon)}>
-                      <Icon className="h-4 w-4" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-[0.75rem] border border-[rgba(28,36,48,0.09)] bg-[rgba(246,244,238,0.8)] text-slate-600">
+                      <Icon className="h-5 w-5" />
                     </div>
                     <h3 className="mt-3 text-base font-semibold leading-tight text-slate-900">{metric.label}</h3>
                     <p className="mt-2 text-sm leading-6 text-slate-600">{compactSentence(metric.description)}</p>
@@ -842,7 +915,13 @@ export function ComparisonLessonCanvas({
           </div>
         </section>
 
-        <section className="flex h-full flex-col space-y-4" id="quick-map">
+        <section
+          className={cn(
+            "space-y-4",
+            layoutPreset.relaxed ? "" : "flex h-full flex-col",
+          )}
+          id="quick-map"
+        >
           <LessonSectionHeader
             accent={module.accent}
             compact
@@ -852,21 +931,28 @@ export function ComparisonLessonCanvas({
             title="Quick map"
           />
 
-          <div className="flex h-full rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/84 px-4 py-4 shadow-[0_16px_30px_rgba(28,36,48,0.04)] sm:px-5 sm:py-5">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {(quickMapCards.length
-                ? quickMapCards
-                : module.heroHighlights.slice(0, 4).map((item, index) => ({
-                    body: item,
-                    title: `Lens ${index + 1}`,
-                  }))
-              ).map((card, index) => {
+          <div
+            className={cn(
+              "rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/84 px-4 py-4 shadow-[0_16px_30px_rgba(28,36,48,0.04)] sm:px-5 sm:py-5",
+              layoutPreset.relaxed ? "" : "flex h-full",
+            )}
+          >
+            <div
+              className={cn(
+                "grid gap-3 md:grid-cols-2",
+                quickMapShouldUseCompactGrid ? "xl:grid-cols-2" : "xl:grid-cols-4",
+              )}
+            >
+              {quickMapSeedCards.map((card, index) => {
                 return (
                   <article
-                    className="flex h-full flex-col rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.96)] px-4 py-4"
+                    className={cn(
+                      "flex flex-col rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[0_4px_12px_rgba(28,36,48,0.02)]",
+                      layoutPreset.relaxed ? "" : "h-full",
+                    )}
                     key={`${card.title}-${index}`}
                   >
-                    <span className={cn("inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold", accent.step)}>
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-[0.5rem] bg-slate-900 text-xs font-semibold text-white">
                       {index + 1}
                     </span>
                     <h3 className="mt-3 text-sm font-semibold leading-tight text-slate-900">{card.title}</h3>
@@ -879,8 +965,8 @@ export function ComparisonLessonCanvas({
         </section>
       </div>
 
-      <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,0.32fr)_minmax(0,0.68fr)]">
-        <section className="space-y-4" id="big-picture">
+      <div className="grid items-stretch gap-6 xl:grid-cols-[1fr_2fr]">
+        <section className="flex h-full flex-col gap-4" id="big-picture">
           <LessonSectionHeader
             accent={module.accent}
             compact
@@ -890,7 +976,7 @@ export function ComparisonLessonCanvas({
             title="Big picture"
           />
 
-          <div className="overflow-hidden rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/84 shadow-[0_16px_30px_rgba(28,36,48,0.04)]">
+          <div className="flex flex-1 flex-col overflow-hidden rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/84 shadow-[0_16px_30px_rgba(28,36,48,0.04)]">
             <div className="space-y-3 px-4 py-4 sm:px-5 sm:py-5">
               {bigPictureSection?.heading && !/^big picture$/i.test(bigPictureSection.heading) ? (
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{bigPictureSection.heading}</p>
@@ -909,7 +995,7 @@ export function ComparisonLessonCanvas({
               ) : null}
             </div>
 
-            <div className="relative h-52 border-t border-[rgba(28,36,48,0.08)] sm:h-60">
+            <div className="relative min-h-[12rem] flex-1 border-t border-[rgba(28,36,48,0.08)]">
               <Image
                 alt={`${module.title} supporting illustration`}
                 className="object-cover"
@@ -922,7 +1008,7 @@ export function ComparisonLessonCanvas({
           </div>
         </section>
 
-        <section className="space-y-4" id="core-mechanism">
+        <section className="flex h-full flex-col gap-4" id="core-mechanism">
           <LessonSectionHeader
             accent={module.accent}
             compact
@@ -932,8 +1018,8 @@ export function ComparisonLessonCanvas({
             title={`Core mechanism: ${comparisonMeta.mechanismTitle}`}
           />
 
-          <div className="rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/84 px-4 py-4 shadow-[0_16px_30px_rgba(28,36,48,0.04)] sm:px-5 sm:py-5">
-            <div className="grid gap-4 xl:grid-cols-4">
+          <div className="flex flex-1 flex-col rounded-[1.8rem] border border-[rgba(28,36,48,0.08)] bg-white/84 px-4 py-4 shadow-[0_16px_30px_rgba(28,36,48,0.04)] sm:px-5 sm:py-5">
+            <div className="grid flex-1 gap-4 xl:grid-cols-3">
               <article className="flex h-full flex-col rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(244,248,252,0.92)] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <h3 className="text-[1rem] font-semibold text-slate-900">{comparisonMeta.dominantLabel}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{compactSentence(module.simpleExplanation[1] ?? module.summary)}</p>
@@ -942,7 +1028,7 @@ export function ComparisonLessonCanvas({
                     const Icon = semanticIcon(point, index);
                     return (
                       <li className="flex items-start gap-2.5 text-sm leading-6 text-slate-700" key={point}>
-                        <span className={cn("mt-0.5 inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border", accent.icon)}>
+                        <span className="mt-0.5 inline-flex h-7 w-7 flex-none items-center justify-center rounded-[0.5rem] border border-[rgba(28,36,48,0.09)] bg-[rgba(246,244,238,0.8)] text-slate-500">
                           <Icon className="h-3.5 w-3.5" />
                         </span>
                         <span>{point}</span>
@@ -952,17 +1038,7 @@ export function ComparisonLessonCanvas({
                 </ul>
               </article>
 
-              <article className="flex h-full flex-col items-center justify-center rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">The mismatch</p>
-                <div className="mt-4 flex h-28 w-28 items-center justify-center rounded-full border border-[rgba(28,36,48,0.12)] bg-[rgba(241,245,249,0.84)] text-sm font-semibold leading-5 text-slate-900">
-                  {cleanSystemBugTitle(module.systemBug.title)}
-                </div>
-                <p className={cn("mt-4 rounded-full border px-3 py-2 text-sm font-medium", accent.chip)}>
-                  Hidden costs build up outside the headline measure
-                </p>
-              </article>
-
-              <article className="flex h-full flex-col rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(244,248,252,0.92)] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+              <article className="flex h-full flex-col rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <h3 className="text-[1rem] font-semibold text-slate-900">{comparisonMeta.broaderLabel}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{compactSentence(module.simpleExplanation[3] ?? module.summary)}</p>
                 <ul className="mt-4 space-y-2.5">
@@ -970,7 +1046,7 @@ export function ComparisonLessonCanvas({
                     const Icon = semanticIcon(metric.label, index);
                     return (
                       <li className="flex items-start gap-2.5 text-sm leading-6 text-slate-700" key={metric.label}>
-                        <span className={cn("mt-0.5 inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border", accent.icon)}>
+                        <span className="mt-0.5 inline-flex h-7 w-7 flex-none items-center justify-center rounded-[0.5rem] border border-[rgba(28,36,48,0.09)] bg-[rgba(246,244,238,0.8)] text-slate-500">
                           <Icon className="h-3.5 w-3.5" />
                         </span>
                         <div>
@@ -983,7 +1059,7 @@ export function ComparisonLessonCanvas({
                 </ul>
               </article>
 
-              <article className="flex h-full flex-col rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-white px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+              <article className="flex h-full flex-col rounded-[1.3rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(244,248,252,0.92)] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <h3 className="text-[1rem] font-semibold text-slate-900">
                   {mechanismSupportSection?.heading ?? "Why this keeps repeating"}
                 </h3>
@@ -1019,7 +1095,7 @@ export function ComparisonLessonCanvas({
             <div className="space-y-3">
               {evidenceNotes.map((note) => (
                 <article className="rounded-[1.15rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.88)] px-4 py-4" key={note.title}>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{note.title}</p>
+                  <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">{note.title}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-700">{note.body}</p>
                 </article>
               ))}
@@ -1046,7 +1122,7 @@ export function ComparisonLessonCanvas({
               >
                 {evidenceLeadBullets.length ? (
                   <article className="rounded-[1.25rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(247,250,252,0.96)] px-4 py-4 shadow-[0_12px_24px_rgba(28,36,48,0.03)]">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">What the data is correcting</p>
+                    <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">What the data is correcting</p>
                     <ul className="mt-3 space-y-2.5">
                       {evidenceLeadBullets.map((item) => (
                         <li className="flex items-start gap-2.5 text-sm leading-6 text-slate-700" key={item}>
@@ -1073,7 +1149,7 @@ export function ComparisonLessonCanvas({
                       <div className="absolute inset-0 bg-gradient-to-t from-[rgba(15,23,42,0.35)] via-transparent to-transparent" />
                     </div>
                     <div className="px-4 py-4">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Wider insight</p>
+                      <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">Wider insight</p>
                       <p className="mt-2 text-sm leading-6 text-slate-700">
                         {compactSentence(
                           evidenceLeadParagraphs[evidenceLeadParagraphs.length - 1] ??
@@ -1203,7 +1279,7 @@ export function ComparisonLessonCanvas({
                   <h3 className="text-base font-semibold leading-tight text-slate-900">{example.title}</h3>
                   <p className="text-sm leading-6 text-slate-600">{compactSentence(example.outcome) || example.outcome}</p>
                   <div className="rounded-[1rem] border border-[rgba(28,36,48,0.08)] bg-[rgba(241,245,249,0.86)] px-3 py-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">What it teaches</p>
+                    <p className="text-[0.98rem] font-semibold tracking-[0.02em] text-slate-700">What it teaches</p>
                     <p className="mt-2 text-sm leading-6 text-slate-700">{compactSentence(example.insight) || example.insight}</p>
                   </div>
                 </div>

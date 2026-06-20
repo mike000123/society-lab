@@ -9,49 +9,60 @@ import { cn } from "@/lib/utils";
 import { extractFirstSentence, getLessonPromise, getLessonTakeaway, lessonAccentClasses } from "@/components/learn/lesson-theme";
 import { ShareLesson } from "@/components/learn/ShareLesson";
 import { StartDiscussionModal } from "@/components/learn/StartDiscussionModal";
+import { getLessonSimulationHref, hasLessonSimulator } from "@/lib/learn/simulator-routing";
 
 export function LessonHero({
   comparisonMode = false,
   heroImageSrc,
   module,
+  processMode = false,
   quizQuestionCount,
   timelineMode = false,
 }: {
   comparisonMode?: boolean;
   heroImageSrc: string;
   module: ResolvedLearningModule;
+  processMode?: boolean;
   quizQuestionCount?: number;
   timelineMode?: boolean;
 }) {
   const accent = lessonAccentClasses[module.accent];
   const promise = getLessonPromise(module);
   const takeaway = getLessonTakeaway(module);
+  const wideMode = timelineMode || comparisonMode || processMode;
   const timelineLead = extractFirstSentence(module.simpleExplanation[1]) || module.summary;
   const timelineTakeaway = extractFirstSentence(module.systemBug.summary) || takeaway;
   const timelineImagePosition =
     module.slug === "how-the-us-rewrites-the-rules-of-money" ? "object-[49%_center]" : "object-[58%_center]";
   const comparisonFooterIcons = [Scale, Home, ShieldCheck, Leaf, TimerReset, Sparkles];
   const comparisonFooterLabels = module.betterMetrics.slice(0, 6);
+  const hasSimulator = hasLessonSimulator(module);
+  const simulatorHref = getLessonSimulationHref(module);
+  const heroActionClass = cn(
+    "inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/88 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900",
+    wideMode ? "px-4 py-2.5 text-[0.92rem]" : "px-5 py-3",
+  );
 
   return (
-    <section className="relative overflow-hidden rounded-[2.6rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_30px_70px_rgba(28,36,48,0.06)]">
+    <section className="relative overflow-hidden rounded-[2.6rem] border border-[rgba(28,36,48,0.08)] bg-white shadow-[0_30px_70px_rgba(28,36,48,0.06)] xl:mr-[calc(50%-50vw)] xl:rounded-r-none xl:border-r-0">
       <div
         className={cn(
-          "grid gap-0",
+          "relative px-6 py-5 sm:px-8 sm:py-6",
           timelineMode
-            ? "min-h-[27rem] lg:grid-cols-[minmax(0,0.49fr)_minmax(0,0.51fr)] xl:min-h-[29rem]"
+            ? "min-h-[18.25rem] lg:min-h-[18.25rem] lg:px-8 lg:py-6 xl:min-h-[19.6rem] xl:px-9 xl:py-6"
             : comparisonMode
-              ? "min-h-[27rem] lg:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] xl:min-h-[30rem]"
-            : "min-h-[26rem] lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]",
+              ? "min-h-[18.25rem] lg:min-h-[18.25rem] lg:px-8 lg:py-6 xl:min-h-[19.8rem] xl:px-9 xl:py-6"
+              : processMode
+                ? "min-h-[18.25rem] lg:min-h-[18.25rem] lg:px-8 lg:py-6 xl:min-h-[19.8rem] xl:px-9 xl:py-6"
+            : "min-h-[17.75rem] lg:min-h-[17.75rem] lg:px-8 lg:py-6 xl:min-h-[19.2rem] xl:px-9 xl:py-6",
         )}
       >
         <div
           className={cn(
-            "relative z-10 flex flex-col justify-center px-6 py-7 sm:px-8 sm:py-8",
-            timelineMode || comparisonMode ? "lg:px-9 lg:py-9 xl:px-10 xl:py-10" : "lg:px-10 lg:py-10",
+            "relative z-10 flex min-h-full flex-col justify-center",
           )}
         >
-          <div className="max-w-[52rem] space-y-5">
+          <div className="max-w-[36rem] space-y-4 lg:max-w-[50%]">
             <Link
               className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-800 xl:hidden"
               href="/learn"
@@ -89,30 +100,32 @@ export function LessonHero({
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h1
                 className={cn(
-                  "atlas-display max-w-[40rem] leading-[0.94] text-slate-900",
+                  "atlas-display max-w-[31rem] leading-[0.86] text-slate-900 lg:max-w-full",
                   timelineMode
-                    ? "text-[2.62rem] sm:text-[3.05rem] lg:text-[3.4rem] xl:text-[3.6rem]"
+                    ? "text-[2.35rem] sm:text-[2.8rem] lg:text-[3.05rem] xl:text-[3.25rem]"
                     : comparisonMode
-                      ? "text-[2.7rem] sm:text-[3.15rem] lg:text-[3.75rem] xl:text-[4.05rem]"
-                    : "text-[2.55rem] sm:text-[3.35rem] lg:text-[3.95rem]",
+                      ? "text-[2.42rem] sm:text-[2.95rem] lg:text-[3.3rem] xl:text-[3.55rem]"
+                      : processMode
+                        ? "text-[2.42rem] sm:text-[2.95rem] lg:text-[3.3rem] xl:text-[3.55rem]"
+                    : "text-[2.32rem] sm:text-[2.95rem] lg:text-[3.35rem] xl:text-[3.55rem]",
                 )}
               >
                 {module.title}
               </h1>
               {timelineMode ? (
-                <p className="atlas-lede max-w-[38rem] text-[1.05rem] leading-8 text-slate-700">{timelineLead}</p>
+                <p className="atlas-lede max-w-[30rem] text-[1rem] leading-7 text-slate-700 lg:max-w-full">{timelineLead}</p>
               ) : comparisonMode ? (
                 <>
-                  <p className="atlas-lede max-w-[38rem] text-[1.02rem] leading-8 text-slate-700">{module.summary}</p>
-                  <p className="max-w-[38rem] text-[1rem] leading-8 text-slate-600">{promise}</p>
+                  <p className="atlas-lede max-w-[30rem] text-[0.98rem] leading-7 text-slate-700 lg:max-w-full">{module.summary}</p>
+                  <p className="max-w-[30rem] text-[0.96rem] leading-7 text-slate-600 lg:max-w-full">{promise}</p>
                 </>
               ) : (
                 <>
-                  <p className="atlas-lede max-w-[38rem] text-[1.05rem] leading-8 text-slate-700">{module.summary}</p>
-                  <p className="max-w-[38rem] text-[1.02rem] leading-8 text-slate-700">{promise}</p>
+                  <p className="atlas-lede max-w-[30rem] text-[1rem] leading-7 text-slate-700 lg:max-w-full">{module.summary}</p>
+                  <p className="max-w-[30rem] text-[0.98rem] leading-7 text-slate-700 lg:max-w-full">{promise}</p>
                 </>
               )}
             </div>
@@ -140,64 +153,68 @@ export function LessonHero({
               <p className="mt-2 text-base leading-7 text-slate-800">{timelineMode ? timelineTakeaway : takeaway}</p>
             </div>
 
-            {!timelineMode && !comparisonMode ? (
-              <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5">
                 {quizQuestionCount ? (
-                  <Button asChild className="h-auto rounded-full px-5 py-3">
+                  <Button asChild className={cn("h-auto rounded-full", wideMode ? "px-4 py-2.5 text-[0.92rem]" : "px-5 py-3")}>
                     <Link href={`/quiz/${module.slug}`}>
                       Take the quiz
                       <ClipboardCheck className="h-4 w-4" />
                     </Link>
                   </Button>
                 ) : null}
-                {module.simulatorSlug ? (
+                {hasSimulator ? (
                   <Link
-                    className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
-                    href={`/simulator/${module.simulatorSlug}`}
+                    className={heroActionClass}
+                    href={simulatorHref}
                   >
                     Open simulator
                     <Play className="h-4 w-4" />
                   </Link>
                 ) : null}
                 <Link
-                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
+                  className={heroActionClass}
                   href="/study"
                 >
                   Open study resources
                   <BookOpenText className="h-4 w-4" />
                 </Link>
-                <StartDiscussionModal module={module} />
-                <ShareLesson slug={module.slug} summary={module.summary} title={module.title} />
+                <StartDiscussionModal className={wideMode ? "px-4 py-2.5 text-[0.92rem]" : undefined} module={module} />
+                <ShareLesson className={wideMode ? "px-4 py-2.5 text-[0.92rem]" : undefined} slug={module.slug} summary={module.summary} title={module.title} />
               </div>
-            ) : null}
           </div>
         </div>
 
         <div
           className={cn(
-            "relative min-h-[20rem] overflow-hidden rounded-t-[2rem] lg:rounded-l-none lg:rounded-r-[2.6rem]",
-            timelineMode || comparisonMode ? "lg:min-h-[28rem] xl:min-h-[30rem]" : "",
+            "relative mt-5 min-h-[17rem] overflow-hidden rounded-[2rem] sm:min-h-[18.5rem]",
+            timelineMode || comparisonMode
+              ? "lg:absolute lg:inset-y-0 lg:right-0 lg:mt-0 lg:min-h-0 lg:w-[67%] lg:rounded-l-[2.2rem] lg:rounded-r-[2.6rem] xl:rounded-r-none"
+              : processMode
+                ? "lg:absolute lg:inset-y-0 lg:right-0 lg:mt-0 lg:min-h-0 lg:w-[67%] lg:rounded-l-[2.2rem] lg:rounded-r-[2.6rem] xl:rounded-r-none"
+              : "lg:absolute lg:inset-y-0 lg:right-0 lg:mt-0 lg:min-h-0 lg:w-[66%] lg:rounded-l-[2.2rem] lg:rounded-r-[2.6rem] xl:rounded-r-none",
           )}
         >
           <Image
             alt={module.title}
             className={cn(
               "object-cover",
-              timelineMode ? timelineImagePosition : comparisonMode ? "object-[68%_center]" : "object-right",
+              timelineMode ? timelineImagePosition : comparisonMode ? "object-[66%_center]" : processMode ? "object-[66%_center]" : "object-[72%_center]",
             )}
             fill
             priority={false}
-            sizes="(min-width: 1280px) 960px, 100vw"
+            sizes="(min-width: 1024px) 67vw, 100vw"
             src={heroImageSrc}
           />
           <div
             className={cn(
-              "absolute inset-y-0 left-0 bg-gradient-to-r to-transparent",
+              "absolute inset-y-0 left-0 hidden bg-gradient-to-r to-transparent lg:block",
               timelineMode
-                ? "w-[22%] from-white via-white/82"
+                ? "w-[42%] from-white via-white/84"
                 : comparisonMode
-                  ? "w-[24%] from-white via-white/88"
-                : "w-24 from-white/80 via-white/20 lg:w-40",
+                  ? "w-[44%] from-white via-white/88"
+                  : processMode
+                    ? "w-[44%] from-white via-white/88"
+                : "w-[42%] from-white/88 via-white/20",
             )}
           />
           <div

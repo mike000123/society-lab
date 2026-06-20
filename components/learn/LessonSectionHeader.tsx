@@ -25,8 +25,8 @@ export function LessonSectionHeader({
         <span
           className={cn(
             compact
-              ? "inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold"
-              : "inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold",
+              ? "inline-flex h-9 w-9 items-center justify-center rounded-full text-[1rem] font-semibold"
+              : "inline-flex h-10 w-10 items-center justify-center rounded-full text-[1.08rem] font-semibold",
             lessonAccentClasses[accent].step,
           )}
         >

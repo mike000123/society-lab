@@ -24,10 +24,12 @@ function shareUrls(title: string, summary: string, url: string) {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function ShareLesson({
+  className,
   slug,
   summary,
   title,
 }: {
+  className?: string;
   slug: string;
   summary: string;
   title: string;
@@ -91,7 +93,10 @@ export function ShareLesson({
     <div className="relative" ref={ref}>
       <button
         aria-label="Share this lesson"
-        className="inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900"
+        className={cn(
+          "inline-flex items-center gap-2 rounded-full border border-[rgba(28,36,48,0.12)] bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[rgba(28,36,48,0.22)] hover:text-slate-900",
+          className,
+        )}
         onClick={handleShare}
         type="button"
       >
@@ -137,10 +142,17 @@ export function ShareLesson({
             onClick={copyLink}
             type="button"
           >
-            {copied
-              ? <><Check className="h-4 w-4 shrink-0" />Copied!</>
-              : <><Copy className="h-4 w-4 shrink-0" />Copy link</>
-            }
+            {copied ? (
+              <>
+                <Check className="h-4 w-4 shrink-0" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4 shrink-0" />
+                    Copy link
+              </>
+            )}
           </button>
         </div>
       )}

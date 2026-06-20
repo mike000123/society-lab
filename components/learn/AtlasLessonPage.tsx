@@ -258,6 +258,7 @@ export function AtlasLessonPage({
     : isTimelineLesson
       ? [
           { id: "why-this-matters", label: "Why this matters" },
+          { id: "big-picture", label: "Big picture" },
           ...(hasTimelineSection ? [{ id: "timeline", label: "Timeline" }] : []),
           { id: "core-mechanism", label: "Core mechanism" },
           { id: "evidence", label: "Evidence" },
@@ -279,6 +280,19 @@ export function AtlasLessonPage({
             { id: "next-actions", label: "Choose your next step" },
             { id: "what-could-change", label: "What could change this?" },
           ]
+        : isProcessLesson
+          ? [
+              { id: "why-this-matters", label: "Why this matters" },
+              { id: "quick-map", label: "Quick map" },
+              { id: "big-picture", label: "Big picture" },
+              { id: "core-mechanism", label: "Core mechanism" },
+              { id: "evidence", label: "Evidence" },
+              { id: "interactive-exploration", label: "Interactive exploration" },
+              { id: "counterarguments", label: "Counterarguments" },
+              { id: "real-world-examples", label: "Real world examples" },
+              { id: "next-actions", label: "Choose your next step" },
+              { id: "what-could-change", label: "What could change this?" },
+            ]
     : [
         { id: "why-this-matters", label: "Why this matters" },
         { id: "core-mechanism", label: "Core mechanism" },
@@ -320,9 +334,11 @@ export function AtlasLessonPage({
     <ProcessLessonCanvas
       article={article}
       currentTrack={currentTrack}
+      heroImageSrc={heroImageSrc}
       module={module}
       nextModule={nextModule}
       quizQuestionCount={quizQuestionCount}
+      supportImageSrc={supportImageSrc}
     />
   );
 
@@ -350,11 +366,12 @@ export function AtlasLessonPage({
           trackModules={trackModules}
         />
 
-        <main className={cn("min-w-0", isWideLesson ? "space-y-6 xl:space-y-7" : "space-y-10 xl:space-y-12")}>
+        <main className={cn("lesson-reading-scale min-w-0", isWideLesson ? "space-y-6 xl:space-y-7" : "space-y-10 xl:space-y-12")}>
           <LessonHero
             comparisonMode={isComparisonLesson}
             heroImageSrc={heroImageSrc}
             module={module}
+            processMode={isProcessLesson}
             quizQuestionCount={quizQuestionCount}
             timelineMode={isTimelineLesson}
           />
