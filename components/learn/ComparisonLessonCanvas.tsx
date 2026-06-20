@@ -370,14 +370,15 @@ function formatMiniMetric(metric: ReturnType<typeof computeMiniMetric>) {
   return `${Math.round(metric.value * 10) / 10}${metric.suffix ?? ""}`;
 }
 
-function ComparisonInteractivePanel({ module }: { module: ResolvedLearningModule }) {
-  const lesson = module.miniLesson;
-  const accent = lessonAccentClasses[module.accent];
-
-  if (isStaticMiniLesson(lesson)) {
-    return <LessonInteractive compact indexOverride={6} module={module} />;
-  }
-
+function DynamicComparisonInteractivePanel({
+  accent,
+  lesson,
+  module,
+}: {
+  accent: (typeof lessonAccentClasses)[AccentTone];
+  lesson: MiniLessonConfig;
+  module: ResolvedLearningModule;
+}) {
   const [sliderValue, setSliderValue] = useState(lesson.defaultValue);
   const metrics = useMemo(
     () => lesson.metrics.map((metric) => computeMiniMetric(metric, sliderValue)),
@@ -487,6 +488,17 @@ function ComparisonInteractivePanel({ module }: { module: ResolvedLearningModule
       </div>
     </section>
   );
+}
+
+function ComparisonInteractivePanel({ module }: { module: ResolvedLearningModule }) {
+  const lesson = module.miniLesson;
+  const accent = lessonAccentClasses[module.accent];
+
+  if (isStaticMiniLesson(lesson)) {
+    return <LessonInteractive compact indexOverride={6} module={module} />;
+  }
+
+  return <DynamicComparisonInteractivePanel accent={accent} lesson={lesson} module={module} />;
 }
 
 function ComparisonCounterargumentsSection({ module }: { module: ResolvedLearningModule }) {
